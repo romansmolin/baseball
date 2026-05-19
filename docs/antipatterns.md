@@ -104,3 +104,77 @@ export default function TradingPage() {
   )
 }
 ```
+
+## 9. Parsing request body in the controller
+```ts
+// ❌ controller owns HTTP parsing — mixes transport and business logic
+async createUser(request: Request): Promise<Response> {
+  const body = await request.json()
+  // ...
+}
+
+// ✅ route handler parses; controller receives plain data
+// route.ts
+export async function POST(request: Request) {
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return ApiError.validationError('Invalid JSON body').toResponse()
+  }
+  return userController.createUser(body)
+}
+
+// user.controller.ts
+async createUser(body: unknown): Promise<Response> {
+  const result = createUserSchema.safeParse(body)
+  // ...
+}
+```
+
+## 10. Zod schemas defined in the controller
+```ts
+// ❌ validation schema lives in the controller — not reusable, wrong layer
+// controllers/user/user.controller.ts
+const createUserSchema = z.object({ ... })
+
+// ✅ schema lives in entities, imported by controller
+// entities/user/user.schema.ts
+export const createUserSchema = z.object({ ... })
+
+// controllers/user/user.controller.ts
+import { createUserSchema } from '../../entities/user/user.schema'
+```
+
+## 11. TypeScript parameter property shorthand in classes
+```ts
+// ❌ hides the dependency — property declaration is implicit
+export class UserController {
+  constructor(private readonly userService: IUserService) {}
+}
+
+// ✅ explicit property declaration — dependency is visible at a glance
+export class UserController {
+  private readonly userService: IUserService
+
+  constructor(userService: IUserService) {
+    this.userService = userService
+  }
+}
+```
+
+## 12. Passing full Request to GET/DELETE handlers
+```ts
+// ❌ controller signature leaks HTTP transport concerns
+async findUserById(request: Request, params: { id: string }): Promise<Response>
+
+// ✅ route extracts what is needed; controller receives plain values
+// route handler
+export async function GET(_req: Request, { params }) {
+  const { id } = await params
+  return userController.findUserById(id)
+}
+
+// controller
+async findUserById(id: string): Promise<Response>
+```

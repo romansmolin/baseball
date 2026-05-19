@@ -25,10 +25,34 @@ Data fetching uses SWR with separate fetcher functions.
 -   Enum files: `{entity}.enum.ts`
 -   Type files: `{entity}.type.ts`
 
+## Database (Prisma + PostgreSQL)
+
+After every change to `prisma/schema.prisma` — adding a model, adding/removing a field, changing a type or relation — run from the **project root**:
+
+```bash
+npx prisma migrate dev --name <describe-the-change>
+```
+
+This creates a timestamped SQL migration in `prisma/migrations/`, applies it to the local database, and regenerates the Prisma client in `src/generated/prisma/`.
+
+Examples of good migration names: `add-user-model`, `add-league-table`, `user-add-avatar-url`.
+
+Never edit migration files by hand. Never use `prisma db push` in development — always use `migrate dev` so the migration history stays intact.
+
+## Server rules (enforced, no exceptions)
+
+-   Route handlers parse `request.json()` — controllers never call it
+-   GET and DELETE route handlers pass only extracted primitives (id, email) to controllers
+-   Zod schemas live in `server/entities/{entity}/{entity}.schema.ts` — never in controllers
+-   `password` is required on user creation — never optional
+-   Classes use explicit property declarations, not TypeScript parameter property shorthand
+-   Strip `passwordHash` from every response using `omit(user, 'passwordHash')`
+
 ## Reference docs
 
 -   Architecture & FSD: @docs/architecture.md
 -   Custom hooks patterns: @docs/hooks.md
 -   API / SWR / fetchers: @docs/api.md
 -   Data mappers (mapToModel / mapToDto): @docs/mappers.md
+-   Server-side conventions: @docs/server.md
 -   What NOT to do: @docs/antipatterns.md
