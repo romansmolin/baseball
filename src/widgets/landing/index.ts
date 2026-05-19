@@ -1,0 +1,6 @@
+export { LiveTicker } from './ui/live-ticker'
+export { HeroSection } from './ui/hero-section'
+export { TournamentInfo } from './ui/tournament-info'
+export { EliteContenders } from './ui/elite-contenders'
+export { TicketsCta } from './ui/tickets-cta'
+export { LandingFooter } from './ui/landing-footer'
