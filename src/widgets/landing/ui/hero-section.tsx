@@ -9,6 +9,7 @@ import { Button } from '@/shared/ui'
 import { HERO_STATS, SEQUENCE_STAGES } from '../model/landing.const'
 import { useHeroScroll } from '../model/use-hero-scroll'
 import { ScrollFrameBackground } from './scroll-frame-background'
+import Link from 'next/link'
 
 export function HeroSection() {
     const introRef = useRef<HTMLElement>(null)
@@ -53,14 +54,14 @@ export function HeroSection() {
                                 The pinnacle of international baseball returns. 32 Nations. One
                                 champion. Tokyo Dome Finale.
                             </p>
-                            <div className="hidden md:block h-[1px] flex-1 bg-white/20" />
+                            <div className="hidden md:block h-px flex-1 bg-white/20" />
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <Button
-                                    size="lg"
-                                    className="bg-white text-black hover:bg-red-600 hover:text-white px-10 h-16 text-xs font-black uppercase tracking-[0.2em] rounded-none transition-all duration-300"
+                                <Link
+                                    href={'/auth/sign-in'}
+                                    className="bg-white flex items-center gap-1 text-black hover:bg-red-600 hover:text-white px-10 h-16 text-xs font-black uppercase tracking-[0.2em] rounded-none transition-all duration-300"
                                 >
-                                    <Ticket className="mr-2 h-4 w-4" /> Secure Seats
-                                </Button>
+                                    <Ticket className="mr-2 h-4 w-4" /> Sign In
+                                </Link>
                                 <Button
                                     size="lg"
                                     variant="outline"

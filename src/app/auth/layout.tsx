@@ -1,0 +1,25 @@
+import { Toaster } from 'sonner'
+
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'Basebal Fantasy - Authentication',
+}
+
+export default function AuthLayout({
+    children,
+}: Readonly<{
+    children: React.ReactNode
+}>) {
+    return (
+        <>
+            <main className="h-svh flex items-center justify-center">
+                <section className="flex p-2 border border-primary rounded-2xl min-h-[70vh] max-h-125 w-full max-w-5xl">
+                    <div className="flex-1 p-10">{children}</div>
+                    <div className="flex-1 rounded-xl bg-primary"></div>
+                </section>
+            </main>
+            <Toaster richColors position="top-right" />
+        </>
+    )
+}

@@ -1,7 +1,20 @@
 import type { Metadata } from 'next'
-import { Anton, Geist, Geist_Mono, Inter, JetBrains_Mono } from 'next/font/google'
+import {
+    Anton,
+    Geist,
+    Geist_Mono,
+    Inter,
+    JetBrains_Mono,
+    DM_Sans,
+    Space_Grotesk,
+} from 'next/font/google'
 import './globals.css'
 import { SmoothScrollProvider } from './smooth-scroll-provider'
+import { cn } from '@/shared/utils'
+
+const spaceGroteskHeading = Space_Grotesk({ subsets: ['latin'], variable: '--font-heading' })
+
+const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -44,7 +57,18 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${jetbrainsMono.variable} ${anton.variable} h-full antialiased`}
+            className={cn(
+                'h-full',
+                'antialiased',
+                geistSans.variable,
+                geistMono.variable,
+                inter.variable,
+                jetbrainsMono.variable,
+                anton.variable,
+                'font-sans',
+                dmSans.variable,
+                spaceGroteskHeading.variable,
+            )}
         >
             <body className="min-h-full flex flex-col">
                 <SmoothScrollProvider>{children}</SmoothScrollProvider>
