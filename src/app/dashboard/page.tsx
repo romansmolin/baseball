@@ -1,15 +1,16 @@
 import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
 
 import { auth } from '@/shared/lib/auth'
 import { DashboardView } from '@/views/dashboard/dashboard-view'
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+    searchParams: Promise<{ view?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
     const session = await auth.api.getSession({ headers: await headers() })
+    const { view } = await searchParams
+    const dashboardView = view === 'new' ? 'new' : 'returning'
 
-    if (!session) {
-        redirect('/auth/sign-in')
-    }
-
-    return <DashboardView session={session} />
+    return <DashboardView userName={session?.user.name ?? ''} view={dashboardView} />
 }

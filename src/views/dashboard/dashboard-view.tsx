@@ -1,31 +1,21 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-
-import type { Session } from '@/shared/lib/auth'
+import { NewUserDashboard, PreviewToggle, ReturningUserDashboard } from '@/widgets/dashboard'
 
 interface DashboardViewProps {
-    session: Session
+    userName: string
+    view: 'new' | 'returning'
 }
 
-export const DashboardView = ({ session }: DashboardViewProps) => {
-    const { user } = session
+export const DashboardView = ({ userName, view }: DashboardViewProps) => {
+    const firstName = userName.split(' ')[0] || userName
 
     return (
-        <div className="container mx-auto max-w-5xl px-6 py-12">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-audiowide text-3xl">
-                        Welcome back, {user.name} 👋
-                    </CardTitle>
-                    <CardDescription>
-                        You are signed in as <strong>{user.email}</strong>.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">
-                        This is your dashboard. Build your team, follow matches, and analyze stats.
-                    </p>
-                </CardContent>
-            </Card>
+        <div className="container mx-auto max-w-6xl space-y-6 px-6 py-6">
+            <PreviewToggle current={view} />
+            {view === 'new' ? (
+                <NewUserDashboard firstName={firstName} />
+            ) : (
+                <ReturningUserDashboard />
+            )}
         </div>
     )
 }
