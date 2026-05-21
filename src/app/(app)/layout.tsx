@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { Toaster } from 'sonner'
 
 import { auth } from '@/shared/lib/auth'
 import { DashboardHeader } from '@/widgets/dashboard'
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
                 creditsLabel="1,420"
             />
             <main className="flex-1">{children}</main>
+            <Toaster richColors position="top-right" />
         </div>
     )
 }

@@ -1,5 +1,10 @@
 import { LandingPage } from '@/views/landing-page/landing-page'
+import { SmoothScrollProvider } from './smooth-scroll-provider'
 
 export default function HomePage() {
-    return <LandingPage />
+    return (
+        <SmoothScrollProvider>
+            <LandingPage />
+        </SmoothScrollProvider>
+    )
 }

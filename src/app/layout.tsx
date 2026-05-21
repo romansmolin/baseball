@@ -9,7 +9,6 @@ import {
     Space_Grotesk,
 } from 'next/font/google'
 import './globals.css'
-import { SmoothScrollProvider } from './smooth-scroll-provider'
 import { cn } from '@/shared/utils'
 
 const spaceGroteskHeading = Space_Grotesk({ subsets: ['latin'], variable: '--font-heading' })
@@ -70,9 +69,7 @@ export default function RootLayout({
                 spaceGroteskHeading.variable,
             )}
         >
-            <body className="min-h-full flex flex-col">
-                <SmoothScrollProvider>{children}</SmoothScrollProvider>
-            </body>
+            <body className="min-h-full flex flex-col">{children}</body>
         </html>
     )
 }

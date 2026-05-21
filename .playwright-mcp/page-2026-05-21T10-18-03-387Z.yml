@@ -1,0 +1,493 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "BaseballFantasy" [ref=e5] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e7]
+          - generic [ref=e11]: BaseballFantasy
+        - generic [ref=e12]:
+          - button "1,420 credits" [ref=e13]:
+            - img
+            - generic [ref=e14]: 1,420
+            - generic [ref=e15]: credits
+          - generic [ref=e16]: S
+    - main [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - combobox [ref=e21]:
+            - option "All leagues" [selected]
+            - option "MLB"
+            - option "MiLB"
+            - option "NPB"
+            - option "KBO"
+            - option "LVBP"
+            - option "LMB"
+            - option "LIDOM"
+            - option "Winter leagues"
+            - option "ABL"
+          - generic [ref=e22]:
+            - button "All" [ref=e23]
+            - button "Live" [ref=e24]
+            - button "Open" [ref=e25]
+            - button "Soon" [ref=e26]
+            - button "Free" [ref=e27]
+          - combobox [ref=e28]:
+            - 'option "Sort: prize" [selected]'
+            - 'option "Sort: entry fee"'
+            - 'option "Sort: locks soon"'
+            - 'option "Sort: fill %"'
+        - generic [ref=e30]:
+          - button "Grand slam MLB · Tournament 12,000 cr 200 cr entry Live Tournament 3200/4000 entries Live" [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - generic [ref=e34]: Grand slam
+                - generic [ref=e35]: MLB · Tournament
+              - generic [ref=e36]:
+                - generic [ref=e37]: 12,000 cr
+                - generic [ref=e38]: 200 cr entry
+            - generic [ref=e39]:
+              - generic [ref=e40]:
+                - img [ref=e42]
+                - text: Live
+              - generic [ref=e47]: Tournament
+            - generic [ref=e50]: 3200/4000 entries
+            - generic [ref=e53]:
+              - img [ref=e54]
+              - text: Live
+          - button "Weekly tournament MLB · Weekly 5,000 cr 50 cr entry Soon Weekly 1240/2400 entries 1d 4h" [ref=e57]:
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - generic [ref=e60]: Weekly tournament
+                - generic [ref=e61]: MLB · Weekly
+              - generic [ref=e62]:
+                - generic [ref=e63]: 5,000 cr
+                - generic [ref=e64]: 50 cr entry
+            - generic [ref=e65]:
+              - generic [ref=e66]: Soon
+              - generic [ref=e67]: Weekly
+            - generic [ref=e70]: 1240/2400 entries
+            - generic [ref=e73]:
+              - img [ref=e74]
+              - text: 1d 4h
+          - button "Winter all-star classic Winter leagues · Tournament 4,000 cr 50 cr entry Soon Tournament 320/2000 entries 3d 2h" [ref=e77]:
+            - generic [ref=e78]:
+              - generic [ref=e79]:
+                - generic [ref=e80]: Winter all-star classic
+                - generic [ref=e81]: Winter leagues · Tournament
+              - generic [ref=e82]:
+                - generic [ref=e83]: 4,000 cr
+                - generic [ref=e84]: 50 cr entry
+            - generic [ref=e85]:
+              - generic [ref=e86]: Soon
+              - generic [ref=e87]: Tournament
+            - generic [ref=e90]: 320/2000 entries
+            - generic [ref=e93]:
+              - img [ref=e94]
+              - text: 3d 2h
+          - button "NPB classic NPB · Tournament 3,200 cr 40 cr entry Soon Tournament 410/1500 entries 1d 9h" [ref=e97]:
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - generic [ref=e100]: NPB classic
+                - generic [ref=e101]: NPB · Tournament
+              - generic [ref=e102]:
+                - generic [ref=e103]: 3,200 cr
+                - generic [ref=e104]: 40 cr entry
+            - generic [ref=e105]:
+              - generic [ref=e106]: Soon
+              - generic [ref=e107]: Tournament
+            - generic [ref=e110]: 410/1500 entries
+            - generic [ref=e113]:
+              - img [ref=e114]
+              - text: 1d 9h
+          - button "Prospect rumble MLB · Tournament 2,400 cr 10 cr entry Soon Tournament 180/1200 entries 22h 10m" [ref=e117]:
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]: Prospect rumble
+                - generic [ref=e121]: MLB · Tournament
+              - generic [ref=e122]:
+                - generic [ref=e123]: 2,400 cr
+                - generic [ref=e124]: 10 cr entry
+            - generic [ref=e125]:
+              - generic [ref=e126]: Soon
+              - generic [ref=e127]: Tournament
+            - generic [ref=e130]: 180/1200 entries
+            - generic [ref=e133]:
+              - img [ref=e134]
+              - text: 22h 10m
+          - button "LMB weekly LMB · Weekly 2,000 cr 25 cr entry Soon Weekly 140/800 entries 1d 6h" [ref=e137]:
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - generic [ref=e140]: LMB weekly
+                - generic [ref=e141]: LMB · Weekly
+              - generic [ref=e142]:
+                - generic [ref=e143]: 2,000 cr
+                - generic [ref=e144]: 25 cr entry
+            - generic [ref=e145]:
+              - generic [ref=e146]: Soon
+              - generic [ref=e147]: Weekly
+            - generic [ref=e150]: 140/800 entries
+            - generic [ref=e153]:
+              - img [ref=e154]
+              - text: 1d 6h
+          - button "KBO weekly KBO · Weekly 1,800 cr 30 cr entry Soon Weekly 240/1000 entries 2d 4h" [ref=e157]:
+            - generic [ref=e158]:
+              - generic [ref=e159]:
+                - generic [ref=e160]: KBO weekly
+                - generic [ref=e161]: KBO · Weekly
+              - generic [ref=e162]:
+                - generic [ref=e163]: 1,800 cr
+                - generic [ref=e164]: 30 cr entry
+            - generic [ref=e165]:
+              - generic [ref=e166]: Soon
+              - generic [ref=e167]: Weekly
+            - generic [ref=e170]: 240/1000 entries
+            - generic [ref=e173]:
+              - img [ref=e174]
+              - text: 2d 4h
+          - button "Night cap special MLB · Daily 800 cr 30 cr entry Live Daily 220/250 entries Live" [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - generic [ref=e180]: Night cap special
+                - generic [ref=e181]: MLB · Daily
+              - generic [ref=e182]:
+                - generic [ref=e183]: 800 cr
+                - generic [ref=e184]: 30 cr entry
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - img [ref=e188]
+                - text: Live
+              - generic [ref=e193]: Daily
+            - generic [ref=e196]: 220/250 entries
+            - generic [ref=e199]:
+              - img [ref=e200]
+              - text: Live
+          - button "Yomiuri rivalry NPB · Daily 600 cr 15 cr entry Live Daily 180/250 entries Live" [ref=e203]:
+            - generic [ref=e204]:
+              - generic [ref=e205]:
+                - generic [ref=e206]: Yomiuri rivalry
+                - generic [ref=e207]: NPB · Daily
+              - generic [ref=e208]:
+                - generic [ref=e209]: 600 cr
+                - generic [ref=e210]: 15 cr entry
+            - generic [ref=e211]:
+              - generic [ref=e212]:
+                - img [ref=e214]
+                - text: Live
+              - generic [ref=e219]: Daily
+            - generic [ref=e222]: 180/250 entries
+            - generic [ref=e225]:
+              - img [ref=e226]
+              - text: Live
+          - button "LIDOM Showdown LIDOM · Daily 600 cr 30 cr entry Open Daily 40/150 entries 6h 0m" [ref=e229]:
+            - generic [ref=e230]:
+              - generic [ref=e231]:
+                - generic [ref=e232]: LIDOM Showdown
+                - generic [ref=e233]: LIDOM · Daily
+              - generic [ref=e234]:
+                - generic [ref=e235]: 600 cr
+                - generic [ref=e236]: 30 cr entry
+            - generic [ref=e237]:
+              - generic [ref=e238]: Open
+              - generic [ref=e239]: Daily
+            - generic [ref=e242]: 40/150 entries
+            - generic [ref=e245]:
+              - img [ref=e246]
+              - text: 6h 0m
+          - button "MLB Showdown MLB · Daily 500 cr Free entry Open Daily Free 412/500 entries 3h 20m" [ref=e249]:
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - generic [ref=e252]: MLB Showdown
+                - generic [ref=e253]: MLB · Daily
+              - generic [ref=e254]:
+                - generic [ref=e255]: 500 cr
+                - generic [ref=e256]: Free entry
+            - generic [ref=e257]:
+              - generic [ref=e258]: Open
+              - generic [ref=e259]: Daily
+              - generic [ref=e260]: Free
+            - generic [ref=e263]: 412/500 entries
+            - generic [ref=e266]:
+              - img [ref=e267]
+              - text: 3h 20m
+          - button "Caracas classic LVBP · Daily 500 cr 25 cr entry Open Daily 70/150 entries 7h 45m" [ref=e270]:
+            - generic [ref=e271]:
+              - generic [ref=e272]:
+                - generic [ref=e273]: Caracas classic
+                - generic [ref=e274]: LVBP · Daily
+              - generic [ref=e275]:
+                - generic [ref=e276]: 500 cr
+                - generic [ref=e277]: 25 cr entry
+            - generic [ref=e278]:
+              - generic [ref=e279]: Open
+              - generic [ref=e280]: Daily
+            - generic [ref=e283]: 70/150 entries
+            - generic [ref=e286]:
+              - img [ref=e287]
+              - text: 7h 45m
+          - button "Tokyo showdown NPB · Daily 420 cr 25 cr entry Open Daily 64/200 entries 9h 30m" [ref=e290]:
+            - generic [ref=e291]:
+              - generic [ref=e292]:
+                - generic [ref=e293]: Tokyo showdown
+                - generic [ref=e294]: NPB · Daily
+              - generic [ref=e295]:
+                - generic [ref=e296]: 420 cr
+                - generic [ref=e297]: 25 cr entry
+            - generic [ref=e298]:
+              - generic [ref=e299]: Open
+              - generic [ref=e300]: Daily
+            - generic [ref=e303]: 64/200 entries
+            - generic [ref=e306]:
+              - img [ref=e307]
+              - text: 9h 30m
+          - button "50/50 cash game MLB · Daily 360 cr 20 cr entry Open Daily 28/40 entries 3h 20m" [ref=e310]:
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - generic [ref=e313]: 50/50 cash game
+                - generic [ref=e314]: MLB · Daily
+              - generic [ref=e315]:
+                - generic [ref=e316]: 360 cr
+                - generic [ref=e317]: 20 cr entry
+            - generic [ref=e318]:
+              - generic [ref=e319]: Open
+              - generic [ref=e320]: Daily
+            - generic [ref=e323]: 28/40 entries
+            - generic [ref=e326]:
+              - img [ref=e327]
+              - text: 3h 20m
+          - button "Monterrey showdown LMB · Daily 360 cr 15 cr entry Open Daily 44/120 entries 5h 0m" [ref=e330]:
+            - generic [ref=e331]:
+              - generic [ref=e332]:
+                - generic [ref=e333]: Monterrey showdown
+                - generic [ref=e334]: LMB · Daily
+              - generic [ref=e335]:
+                - generic [ref=e336]: 360 cr
+                - generic [ref=e337]: 15 cr entry
+            - generic [ref=e338]:
+              - generic [ref=e339]: Open
+              - generic [ref=e340]: Daily
+            - generic [ref=e343]: 44/120 entries
+            - generic [ref=e346]:
+              - img [ref=e347]
+              - text: 5h 0m
+          - button "Seoul slugfest KBO · Daily 300 cr 10 cr entry Open Daily 96/150 entries 11h 0m" [ref=e350]:
+            - generic [ref=e351]:
+              - generic [ref=e352]:
+                - generic [ref=e353]: Seoul slugfest
+                - generic [ref=e354]: KBO · Daily
+              - generic [ref=e355]:
+                - generic [ref=e356]: 300 cr
+                - generic [ref=e357]: 10 cr entry
+            - generic [ref=e358]:
+              - generic [ref=e359]: Open
+              - generic [ref=e360]: Daily
+            - generic [ref=e363]: 96/150 entries
+            - generic [ref=e366]:
+              - img [ref=e367]
+              - text: 11h 0m
+          - button "Sydney slam ABL · Daily 280 cr 10 cr entry Live Daily 95/100 entries Live" [ref=e370]:
+            - generic [ref=e371]:
+              - generic [ref=e372]:
+                - generic [ref=e373]: Sydney slam
+                - generic [ref=e374]: ABL · Daily
+              - generic [ref=e375]:
+                - generic [ref=e376]: 280 cr
+                - generic [ref=e377]: 10 cr entry
+            - generic [ref=e378]:
+              - generic [ref=e379]:
+                - img [ref=e381]
+                - text: Live
+              - generic [ref=e386]: Daily
+            - generic [ref=e389]: 95/100 entries
+            - generic [ref=e392]:
+              - img [ref=e393]
+              - text: Live
+          - button "Free Friday MLB · Daily 250 cr Free entry Open Daily Free 320/1000 entries 6h 0m" [ref=e396]:
+            - generic [ref=e397]:
+              - generic [ref=e398]:
+                - generic [ref=e399]: Free Friday
+                - generic [ref=e400]: MLB · Daily
+              - generic [ref=e401]:
+                - generic [ref=e402]: 250 cr
+                - generic [ref=e403]: Free entry
+            - generic [ref=e404]:
+              - generic [ref=e405]: Open
+              - generic [ref=e406]: Daily
+              - generic [ref=e407]: Free
+            - generic [ref=e410]: 320/1000 entries
+            - generic [ref=e413]:
+              - img [ref=e414]
+              - text: 6h 0m
+          - button "Farm system free roll MiLB · Tournament 200 cr Free entry Open Tournament Free 240/500 entries 4h 12m" [ref=e417]:
+            - generic [ref=e418]:
+              - generic [ref=e419]:
+                - generic [ref=e420]: Farm system free roll
+                - generic [ref=e421]: MiLB · Tournament
+              - generic [ref=e422]:
+                - generic [ref=e423]: 200 cr
+                - generic [ref=e424]: Free entry
+            - generic [ref=e425]:
+              - generic [ref=e426]: Open
+              - generic [ref=e427]: Tournament
+              - generic [ref=e428]: Free
+            - generic [ref=e431]: 240/500 entries
+            - generic [ref=e434]:
+              - img [ref=e435]
+              - text: 4h 12m
+          - button "Head to head MLB · H2H 180 cr 100 cr entry Open H2H 88/100 entries 3h 20m" [ref=e438]:
+            - generic [ref=e439]:
+              - generic [ref=e440]:
+                - generic [ref=e441]: Head to head
+                - generic [ref=e442]: MLB · H2H
+              - generic [ref=e443]:
+                - generic [ref=e444]: 180 cr
+                - generic [ref=e445]: 100 cr entry
+            - generic [ref=e446]:
+              - generic [ref=e447]: Open
+              - generic [ref=e448]: H2H
+            - generic [ref=e451]: 88/100 entries
+            - generic [ref=e454]:
+              - img [ref=e455]
+              - text: 3h 20m
+          - button "Prospect watch MiLB · Daily 150 cr 5 cr entry Open Daily 88/200 entries 4h 12m" [ref=e458]:
+            - generic [ref=e459]:
+              - generic [ref=e460]:
+                - generic [ref=e461]: Prospect watch
+                - generic [ref=e462]: MiLB · Daily
+              - generic [ref=e463]:
+                - generic [ref=e464]: 150 cr
+                - generic [ref=e465]: 5 cr entry
+            - generic [ref=e466]:
+              - generic [ref=e467]: Open
+              - generic [ref=e468]: Daily
+            - generic [ref=e471]: 88/200 entries
+            - generic [ref=e474]:
+              - img [ref=e475]
+              - text: 4h 12m
+          - button "LIDOM free pick LIDOM · Daily 150 cr Free entry Open Daily Free 8/80 entries 6h 0m" [ref=e478]:
+            - generic [ref=e479]:
+              - generic [ref=e480]:
+                - generic [ref=e481]: LIDOM free pick
+                - generic [ref=e482]: LIDOM · Daily
+              - generic [ref=e483]:
+                - generic [ref=e484]: 150 cr
+                - generic [ref=e485]: Free entry
+            - generic [ref=e486]:
+              - generic [ref=e487]: Open
+              - generic [ref=e488]: Daily
+              - generic [ref=e489]: Free
+            - generic [ref=e492]: 8/80 entries
+            - generic [ref=e495]:
+              - img [ref=e496]
+              - text: 6h 0m
+          - button "KBO free pick KBO · Daily 120 cr Free entry Open Daily Free 60/200 entries 11h 0m" [ref=e499]:
+            - generic [ref=e500]:
+              - generic [ref=e501]:
+                - generic [ref=e502]: KBO free pick
+                - generic [ref=e503]: KBO · Daily
+              - generic [ref=e504]:
+                - generic [ref=e505]: 120 cr
+                - generic [ref=e506]: Free entry
+            - generic [ref=e507]:
+              - generic [ref=e508]: Open
+              - generic [ref=e509]: Daily
+              - generic [ref=e510]: Free
+            - generic [ref=e513]: 60/200 entries
+            - generic [ref=e516]:
+              - img [ref=e517]
+              - text: 11h 0m
+          - button "LVBP free pick LVBP · Daily 100 cr Free entry Open Daily Free 30/100 entries 7h 45m" [ref=e520]:
+            - generic [ref=e521]:
+              - generic [ref=e522]:
+                - generic [ref=e523]: LVBP free pick
+                - generic [ref=e524]: LVBP · Daily
+              - generic [ref=e525]:
+                - generic [ref=e526]: 100 cr
+                - generic [ref=e527]: Free entry
+            - generic [ref=e528]:
+              - generic [ref=e529]: Open
+              - generic [ref=e530]: Daily
+              - generic [ref=e531]: Free
+            - generic [ref=e534]: 30/100 entries
+            - generic [ref=e537]:
+              - img [ref=e538]
+              - text: 7h 45m
+          - button "Winter H2H Winter leagues · H2H 100 cr 50 cr entry Open H2H 10/20 entries 8h 0m" [ref=e541]:
+            - generic [ref=e542]:
+              - generic [ref=e543]:
+                - generic [ref=e544]: Winter H2H
+                - generic [ref=e545]: Winter leagues · H2H
+              - generic [ref=e546]:
+                - generic [ref=e547]: 100 cr
+                - generic [ref=e548]: 50 cr entry
+            - generic [ref=e549]:
+              - generic [ref=e550]: Open
+              - generic [ref=e551]: H2H
+            - generic [ref=e554]: 10/20 entries
+            - generic [ref=e557]:
+              - img [ref=e558]
+              - text: 8h 0m
+          - button "Triple-A head to head MiLB · H2H 90 cr 50 cr entry Open H2H 12/20 entries 4h 12m" [ref=e561]:
+            - generic [ref=e562]:
+              - generic [ref=e563]:
+                - generic [ref=e564]: Triple-A head to head
+                - generic [ref=e565]: MiLB · H2H
+              - generic [ref=e566]:
+                - generic [ref=e567]: 90 cr
+                - generic [ref=e568]: 50 cr entry
+            - generic [ref=e569]:
+              - generic [ref=e570]: Open
+              - generic [ref=e571]: H2H
+            - generic [ref=e574]: 12/20 entries
+            - generic [ref=e577]:
+              - img [ref=e578]
+              - text: 4h 12m
+          - button "Pacific League H2H NPB · H2H 80 cr 40 cr entry Open H2H 6/10 entries 9h 30m" [ref=e581]:
+            - generic [ref=e582]:
+              - generic [ref=e583]:
+                - generic [ref=e584]: Pacific League H2H
+                - generic [ref=e585]: NPB · H2H
+              - generic [ref=e586]:
+                - generic [ref=e587]: 80 cr
+                - generic [ref=e588]: 40 cr entry
+            - generic [ref=e589]:
+              - generic [ref=e590]: Open
+              - generic [ref=e591]: H2H
+            - generic [ref=e594]: 6/10 entries
+            - generic [ref=e597]:
+              - img [ref=e598]
+              - text: 9h 30m
+          - button "ABL free pick ABL · Daily 80 cr Free entry Open Daily Free 32/100 entries 14h 20m" [ref=e601]:
+            - generic [ref=e602]:
+              - generic [ref=e603]:
+                - generic [ref=e604]: ABL free pick
+                - generic [ref=e605]: ABL · Daily
+              - generic [ref=e606]:
+                - generic [ref=e607]: 80 cr
+                - generic [ref=e608]: Free entry
+            - generic [ref=e609]:
+              - generic [ref=e610]: Open
+              - generic [ref=e611]: Daily
+              - generic [ref=e612]: Free
+            - generic [ref=e615]: 32/100 entries
+            - generic [ref=e618]:
+              - img [ref=e619]
+              - text: 14h 20m
+          - button "Liga Mex H2H LMB · H2H 50 cr 30 cr entry Open H2H 4/10 entries 5h 0m" [ref=e622]:
+            - generic [ref=e623]:
+              - generic [ref=e624]:
+                - generic [ref=e625]: Liga Mex H2H
+                - generic [ref=e626]: LMB · H2H
+              - generic [ref=e627]:
+                - generic [ref=e628]: 50 cr
+                - generic [ref=e629]: 30 cr entry
+            - generic [ref=e630]:
+              - generic [ref=e631]: Open
+              - generic [ref=e632]: H2H
+            - generic [ref=e635]: 4/10 entries
+            - generic [ref=e638]:
+              - img [ref=e639]
+              - text: 5h 0m
+    - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e647] [cursor=pointer]:
+    - img [ref=e648]
