@@ -1,27 +1,8 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-}
-
-model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String
-  emailVerified Boolean  @default(false)
-  image         String?
-  username      String?  @unique
-  passwordHash  String?
-  provider      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  sessions Session[]
-  accounts Account[]
-}
+// Auth domain: better-auth-compatible Session, Account, Verification.
+// Field shapes match what better-auth's prismaAdapter expects — do not rename
+// or remove fields without updating the adapter config in src/shared/lib/auth.
+// Account here serves as the OAuth account table (better-auth combines
+// password credentials and OAuth providers into one table).
 
 model Session {
   id        String   @id @default(cuid())
@@ -33,6 +14,9 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Account {
@@ -50,6 +34,9 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([providerId, accountId])
 }
 
 model Verification {
@@ -59,4 +46,6 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
 }

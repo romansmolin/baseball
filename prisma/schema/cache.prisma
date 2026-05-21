@@ -1,0 +1,14 @@
+// Cache domain: persisted cache for upstream api-sports.io responses.
+// Keyed by an opaque cacheKey (composed by the API layer). `expiresAt` is
+// indexed to support cheap cleanup queries.
+
+model ApiCacheEntry {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  payload   Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+}

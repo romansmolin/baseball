@@ -1,0 +1,97 @@
+// League domain: season-long fantasy leagues with a commissioner, members,
+// weekly head-to-head matchups, and per-league standings. The MLB season is
+// referenced by externalSeasonId (api-sports.io). LeagueMember holds the
+// league-scoped record; the actual fantasy roster lives in FantasyTeam.
+
+enum DraftType {
+  SNAKE
+  AUCTION
+  AUTO
+}
+
+enum LeagueStatus {
+  DRAFTING
+  IN_SEASON
+  PLAYOFFS
+  COMPLETED
+  ARCHIVED
+}
+
+enum MatchupStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+}
+
+model League {
+  id String @id @default(cuid())
+
+  // No cascade from User — preserve league history across commissioner soft-delete
+  commissionerId String
+  commissioner   User   @relation("LeagueCommissioner", fields: [commissionerId], references: [id])
+
+  // Versioned ruleset — changes to defaults don't rewrite history
+  scoringRuleId String
+  scoringRule   ScoringRule @relation(fields: [scoringRuleId], references: [id])
+
+  inviteCode       String       @unique
+  externalSeasonId Int
+  status           LeagueStatus
+  draftType        DraftType
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  members  LeagueMember[]
+  matchups LeagueMatchup[]
+
+  @@index([commissionerId])
+  @@index([scoringRuleId])
+}
+
+model LeagueMember {
+  id       String @id @default(cuid())
+  leagueId String
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  // No cascade from User — preserve standings history
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  wins      Int     @default(0)
+  losses    Int     @default(0)
+  pointsFor Decimal @default(0) @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fantasyTeam FantasyTeam?
+  matchupsAsA LeagueMatchup[] @relation("MatchupTeamA")
+  matchupsAsB LeagueMatchup[] @relation("MatchupTeamB")
+
+  @@unique([leagueId, userId])
+  @@index([leagueId])
+  @@index([userId])
+}
+
+model LeagueMatchup {
+  id       String @id @default(cuid())
+  leagueId String
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  teamAId String
+  teamA   LeagueMember @relation("MatchupTeamA", fields: [teamAId], references: [id])
+  teamBId String
+  teamB   LeagueMember @relation("MatchupTeamB", fields: [teamBId], references: [id])
+
+  week       Int
+  teamAScore Decimal       @default(0) @db.Decimal(10, 2)
+  teamBScore Decimal       @default(0) @db.Decimal(10, 2)
+  status     MatchupStatus
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([leagueId])
+  @@index([teamAId])
+  @@index([teamBId])
+  @@index([leagueId, week])
+}

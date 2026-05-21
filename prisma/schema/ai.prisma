@@ -1,0 +1,43 @@
+// AI domain: a catalog of paid AI features and an immutable usage log.
+// `transactionId` is a loose pointer to the matching CreditTransaction row —
+// it's not a Prisma relation because the transaction may be created or
+// reversed independently of the usage record. No cascade from User —
+// audit/usage records survive account soft-delete.
+
+enum AIUsageStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model AIFeature {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  costCredits Int
+  modelName   String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  usageLogs AIUsageLog[]
+}
+
+model AIUsageLog {
+  id        String    @id @default(cuid())
+  // No cascade — audit data survives soft-delete
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  featureId String
+  feature   AIFeature @relation(fields: [featureId], references: [id])
+
+  costCredits   Int
+  // Loose pointer to the CreditTransaction that funded this usage
+  transactionId String?
+  status        AIUsageStatus
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([featureId])
+  @@index([transactionId])
+}

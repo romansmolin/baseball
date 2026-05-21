@@ -1,0 +1,20 @@
+// Scoring domain: versioned, immutable rule sets shared by contests and leagues.
+// `rules` is flexible JSON so we can evolve scoring without schema changes.
+// Contests/Leagues FK to a specific (name, version) so editing defaults later
+// never rewrites historical scoring.
+
+model ScoringRule {
+  id        String   @id @default(cuid())
+  name      String
+  version   Int      @default(1)
+  // Flexible JSON config — shape lives in TypeScript model, not Prisma
+  rules     Json
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contests Contest[]
+  leagues  League[]
+
+  @@unique([name, version])
+}

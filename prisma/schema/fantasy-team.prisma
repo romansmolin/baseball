@@ -1,0 +1,80 @@
+// Fantasy team domain: a user's lineup, either for a single DFS contest
+// (via ContestEntry) or a season-long league (via LeagueMember). Real-world
+// players are referenced by externalPlayerId — we never store a Player model.
+// RosterSlot snapshots player metadata at lineup-lock time so historical
+// contests render and score reproducibly without re-querying api-sports.io.
+
+enum PlayerPosition {
+  P
+  C
+  FIRST_BASE
+  SECOND_BASE
+  THIRD_BASE
+  SS
+  LF
+  CF
+  RF
+  DH
+  OF
+  IF
+  UTIL
+}
+
+enum RosterSlotPosition {
+  P
+  C
+  FIRST_BASE
+  SECOND_BASE
+  THIRD_BASE
+  SS
+  OF
+  UTIL
+  BENCH
+}
+
+model FantasyTeam {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // A FantasyTeam belongs to exactly one of contestEntry (DFS) or
+  // leagueMember (season-long). CHECK constraint candidate:
+  //   (contestEntryId IS NOT NULL) <> (leagueMemberId IS NOT NULL)
+  contestEntryId String?       @unique
+  contestEntry   ContestEntry? @relation(fields: [contestEntryId], references: [id], onDelete: Cascade)
+  leagueMemberId String?       @unique
+  leagueMember   LeagueMember? @relation(fields: [leagueMemberId], references: [id], onDelete: Cascade)
+
+  totalScore Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  rosterSlots RosterSlot[]
+
+  @@index([userId])
+}
+
+model RosterSlot {
+  id            String      @id @default(cuid())
+  fantasyTeamId String
+  fantasyTeam   FantasyTeam @relation(fields: [fantasyTeamId], references: [id], onDelete: Cascade)
+
+  externalPlayerId Int
+
+  // frozen at lock time — historical contests stay reproducible
+  playerName     String
+  playerPosition PlayerPosition
+  playerTeamName String
+  playerPhotoUrl String?
+
+  slotPosition      RosterSlotPosition
+  // frozen at lock time
+  salaryAtLock      Int
+  scoreContribution Decimal            @default(0) @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([fantasyTeamId])
+  @@index([externalPlayerId])
+}

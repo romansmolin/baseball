@@ -1,0 +1,44 @@
+// User domain: the platform's account holders.
+// Auth tables (Session, Account, Verification) live in auth.prisma —
+// kept in better-auth's expected shape so its prisma adapter keeps working.
+// Soft-delete is performed via status = DELETED so financial/audit
+// data (CreditTransaction, AIUsageLog) is preserved across "deletion".
+
+enum UserRole {
+  USER
+  COMMISSIONER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  name          String
+  emailVerified Boolean    @default(false)
+  image         String?
+  username      String?    @unique
+  passwordHash  String?
+  provider      String?
+  role          UserRole   @default(USER)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Auth
+  sessions Session[]
+  accounts Account[]
+
+  // Domain
+  fantasyTeams   FantasyTeam[]
+  contestEntries ContestEntry[]
+  creditLedger   CreditTransaction[]
+  aiUsage        AIUsageLog[]
+  leaguesOwned   League[]            @relation("LeagueCommissioner")
+  leagueMembers  LeagueMember[]
+}

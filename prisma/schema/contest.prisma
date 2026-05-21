@@ -1,0 +1,113 @@
+// Contest domain: DFS-style contests with a slate of real-world games, paid
+// entries, and a payout structure. Games are referenced by externalGameId and
+// their display fields (homeTeamName, awayTeamName, scheduledAt) are snapshotted
+// so completed contests don't depend on api-sports.io being available.
+// ContestEntry never cascades from User — historical results survive soft-delete.
+
+enum ContestType {
+  GUARANTEED
+  HEAD_TO_HEAD
+  TOURNAMENT
+  FIFTY_FIFTY
+}
+
+enum ContestFormat {
+  SALARY_CAP
+  SNAKE_DRAFT
+}
+
+enum ContestStatus {
+  UPCOMING
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ContestEntryStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  REFUNDED
+}
+
+model Contest {
+  id            String      @id @default(cuid())
+  // FK to a versioned rule set so changing defaults later doesn't rewrite history
+  scoringRuleId String
+  scoringRule   ScoringRule @relation(fields: [scoringRuleId], references: [id])
+
+  type             ContestType
+  format           ContestFormat
+  status           ContestStatus
+  entryFeeCredits  Int
+  prizePoolCredits Int
+  salaryCap        Int
+  lineupLockAt     DateTime
+  startAt          DateTime
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  slateGames ContestSlateGame[]
+  entries    ContestEntry[]
+  payouts    ContestPayout[]
+
+  @@index([scoringRuleId])
+  @@index([status, startAt])
+}
+
+model ContestSlateGame {
+  id        String  @id @default(cuid())
+  contestId String
+  contest   Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  externalGameId Int
+
+  // frozen at slate creation — historical contests stay reproducible
+  homeTeamName String
+  awayTeamName String
+  scheduledAt  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contestId])
+  @@index([externalGameId])
+}
+
+model ContestEntry {
+  id        String  @id @default(cuid())
+  contestId String
+  contest   Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  // No cascade from User — preserve entry history across soft-delete
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  finalScore Decimal            @default(0) @db.Decimal(10, 2)
+  finalRank  Int?
+  prizeWon   Int                @default(0)
+  status     ContestEntryStatus
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fantasyTeam FantasyTeam?
+
+  @@index([contestId])
+  @@index([userId])
+  @@index([contestId, finalRank])
+}
+
+model ContestPayout {
+  id        String  @id @default(cuid())
+  contestId String
+  contest   Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+
+  rankFrom Int
+  rankTo   Int
+  credits  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contestId])
+}
