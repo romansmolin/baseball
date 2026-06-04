@@ -1,0 +1,17 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "crons": [
+        {
+            "path": "/api/internal/cron/refresh-tournament-status",
+            "schedule": "0 7 * * *"
+        },
+        {
+            "path": "/api/internal/cron/refresh-scoring",
+            "schedule": "0 6 * * *"
+        },
+        {
+            "path": "/api/internal/cron/snapshot-weekly-lineups",
+            "schedule": "0 5 * * *"
+        }
+    ]
+}

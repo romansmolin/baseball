@@ -141,6 +141,11 @@
     color: transparent;
 }
 
+.text-outline-red {
+    -webkit-text-stroke: 1px #dc2626;
+    color: transparent;
+}
+
 .stadium-gradient {
     background: radial-gradient(circle at 50% 120%, #1e293b 0%, #0a0a0a 70%);
 }

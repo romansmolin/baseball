@@ -1,18 +1,21 @@
+'use client'
+
 import { CheckmarkCircle02Icon, LockedIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
+import { useOnboardingData } from '@/entities/dashboard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import type { OnboardingStep } from '@/shared/dashboard'
 import { cn } from '@/shared/utils'
-
-import { onboardingSteps } from '../model/mock-data'
-import type { OnboardingStep } from '../model/dashboard.type'
 
 interface OnboardingChecklistProps {
     firstName: string
 }
 
 export const OnboardingChecklist = ({ firstName }: OnboardingChecklistProps) => {
-    const doneCount = onboardingSteps.filter((s) => s.status === 'done').length
+    const { data, error, isLoading } = useOnboardingData()
+    const steps = data ?? []
+    const doneCount = steps.filter((s) => s.status === 'done').length
 
     return (
         <Card>
@@ -20,17 +23,25 @@ export const OnboardingChecklist = ({ firstName }: OnboardingChecklistProps) => 
                 <CardTitle className="font-anton text-2xl tracking-wide">
                     Welcome to <span className="text-primary">BaseballFantasy</span>, {firstName}
                 </CardTitle>
-                <CardDescription>Complete these steps to play your first contest.</CardDescription>
+                <CardDescription>Complete these steps to join your first tournament.</CardDescription>
                 <div className="col-start-2 row-span-2 row-start-1 self-start justify-self-end text-right text-sm text-muted-foreground">
-                    <span className="text-foreground">{doneCount}</span> of{' '}
-                    {onboardingSteps.length} done
+                    {isLoading ? (
+                        'Loading…'
+                    ) : error ? (
+                        'Couldn’t load progress'
+                    ) : (
+                        <>
+                            <span className="text-foreground">{doneCount}</span> of {steps.length}{' '}
+                            done
+                        </>
+                    )}
                 </div>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-3 md:grid-cols-3">
-                    {onboardingSteps.map((step) => (
-                        <OnboardingStepCard key={step.id} step={step} />
-                    ))}
+                    {isLoading
+                        ? [0, 1, 2].map((i) => <OnboardingStepSkeleton key={i} />)
+                        : steps.map((step) => <OnboardingStepCard key={step.id} step={step} />)}
                 </div>
             </CardContent>
         </Card>
@@ -72,3 +83,11 @@ const OnboardingStepCard = ({ step }: { step: OnboardingStep }) => {
         </div>
     )
 }
+
+const OnboardingStepSkeleton = () => (
+    <div className="flex flex-col gap-2 rounded-lg border border-foreground/10 bg-muted/30 p-4">
+        <div className="size-8 animate-pulse rounded-full bg-muted" />
+        <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+    </div>
+)

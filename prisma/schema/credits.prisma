@@ -2,14 +2,14 @@
 // the user's balance is the `balanceAfter` of their most recent transaction.
 // `amount` is signed (positive=credit, negative=debit). `referenceType` +
 // `referenceId` form a polymorphic pointer to whatever caused the transaction
-// (ContestEntry, ContestPayout, AIUsageLog, an external payment provider, etc.).
+// (LeagueMember, AIUsageLog, an external payment provider, etc.).
 // No cascade from User — financial data must survive account soft-delete.
 
 enum CreditTransactionType {
   PURCHASE
   REFUND
-  CONTEST_ENTRY_FEE
-  CONTEST_WINNINGS
+  TOURNAMENT_ENTRY_FEE
+  TOURNAMENT_WINNINGS
   AI_USAGE
   ADMIN_GRANT
   ADMIN_DEDUCT

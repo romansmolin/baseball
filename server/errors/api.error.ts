@@ -21,6 +21,10 @@ export class ApiError extends Error {
         return new ApiError(400, ErrorCode.VALIDATION_ERROR, message)
     }
 
+    static unauthorized(message = 'Authentication required'): ApiError {
+        return new ApiError(401, ErrorCode.UNAUTHENTICATED, message)
+    }
+
     static notFound(code: ErrorCode, message: string): ApiError {
         return new ApiError(404, code, message)
     }
@@ -31,5 +35,13 @@ export class ApiError extends Error {
 
     static internal(message = 'Internal server error'): ApiError {
         return new ApiError(500, ErrorCode.INTERNAL_ERROR, message)
+    }
+
+    static badGateway(code: ErrorCode, message: string): ApiError {
+        return new ApiError(502, code, message)
+    }
+
+    static serviceUnavailable(code: ErrorCode, message: string): ApiError {
+        return new ApiError(503, code, message)
     }
 }

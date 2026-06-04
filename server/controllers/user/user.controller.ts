@@ -61,6 +61,9 @@ export class UserController implements IUserController {
 
             const input: CreateUserInput = {
                 email,
+                // Prisma `User.name` is required; fall back to username for
+                // this legacy direct-create flow.
+                name: username,
                 username,
                 passwordHash: await hashPassword(password),
                 provider: provider ?? null,

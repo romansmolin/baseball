@@ -1,10 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Ticket } from 'lucide-react'
+import { ArrowRight, LogIn } from 'lucide-react'
 import { useRef } from 'react'
-
-import { Button } from '@/shared/ui'
 
 import { HERO_STATS, SEQUENCE_STAGES } from '../model/landing.const'
 import { useHeroScroll } from '../model/use-hero-scroll'
@@ -39,36 +37,35 @@ export function HeroSection() {
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
                             <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/60">
-                                Global Baseball Series 2026
+                                Daily Fantasy Baseball · Every League
                             </span>
                         </div>
 
                         <h1 className="font-anton text-[72px] md:text-[180px] leading-[0.8] tracking-tighter mb-8 uppercase text-white">
-                            GLOBAL <span className="text-outline">DIAMOND</span>
+                            BUILD THE <span className="text-outline-red">DIAMOND</span>
                             <br />
-                            SERIES
+                            TAKE THE POOL
                         </h1>
 
                         <div className="flex flex-col md:flex-row items-center gap-8 max-w-4xl">
                             <p className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.2em] leading-relaxed max-w-sm text-center md:text-left">
-                                The pinnacle of international baseball returns. 32 Nations. One
-                                champion. Tokyo Dome Finale.
+                                Daily fantasy contests across MLB, NPB, KBO, LVBP and more. Build
+                                lineups under the salary cap. Captain your star. Win on skill.
                             </p>
                             <div className="hidden md:block h-px flex-1 bg-white/20" />
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <Link
-                                    href={'/auth/sign-in'}
+                                    href={'/auth/sign-up'}
                                     className="bg-white flex items-center gap-1 text-black hover:bg-red-600 hover:text-white px-10 h-16 text-xs font-black uppercase tracking-[0.2em] rounded-none transition-all duration-300"
                                 >
-                                    <Ticket className="mr-2 h-4 w-4" /> Sign In
+                                    <ArrowRight className="mr-2 h-4 w-4" /> Get Started
                                 </Link>
-                                <Button
-                                    size="lg"
-                                    variant="outline"
-                                    className="border-white/40 hover:bg-white/10 px-10 h-16 text-xs font-black uppercase tracking-[0.2em] rounded-none backdrop-blur-sm transition-all duration-300"
+                                <Link
+                                    href={'/auth/sign-in'}
+                                    className="border border-white/40 flex items-center gap-1 text-white hover:bg-white/10 px-10 h-16 text-xs font-black uppercase tracking-[0.2em] rounded-none backdrop-blur-sm transition-all duration-300"
                                 >
-                                    Watch Trailer
-                                </Button>
+                                    <LogIn className="mr-2 h-4 w-4" /> Sign In
+                                </Link>
                             </div>
                         </div>
                     </motion.div>

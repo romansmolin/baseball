@@ -17,6 +17,11 @@ enum LeagueStatus {
   ARCHIVED
 }
 
+enum LeagueVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 enum MatchupStatus {
   SCHEDULED
   LIVE
@@ -41,11 +46,25 @@ model League {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
+  // Tournament catalog fields. `currentWeek` is NOT stored — it is derived
+  // server-side from startsAt/totalWeeks/status. See
+  // server/services/tournaments/tournament-week.util.ts.
+  name             String
+  leagueSlug       String
+  visibility       LeagueVisibility @default(PUBLIC)
+  startsAt         DateTime
+  endsAt           DateTime
+  totalWeeks       Int
+  entryFeeCredits  Int              @default(0)
+  prizePoolCredits Int              @default(0)
+
   members  LeagueMember[]
   matchups LeagueMatchup[]
 
   @@index([commissionerId])
   @@index([scoringRuleId])
+  @@index([visibility, status, startsAt])
+  @@index([leagueSlug, status])
 }
 
 model LeagueMember {
@@ -63,9 +82,11 @@ model LeagueMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  fantasyTeam FantasyTeam?
-  matchupsAsA LeagueMatchup[] @relation("MatchupTeamA")
-  matchupsAsB LeagueMatchup[] @relation("MatchupTeamB")
+  fantasyTeam   FantasyTeam?
+  matchupsAsA   LeagueMatchup[]    @relation("MatchupTeamA")
+  matchupsAsB   LeagueMatchup[]    @relation("MatchupTeamB")
+  weeklyScores  WeeklyScoreCache[]
+  weeklyLineups WeeklyLineup[]
 
   @@unique([leagueId, userId])
   @@index([leagueId])

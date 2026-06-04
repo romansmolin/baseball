@@ -1,3 +1,0 @@
-[     286ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/0cso_next_dist_0153enx._.js:2477
-[     315ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/auth/sign-in:0
-[     320ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/0cso_next_dist_0153enx._.js:2477

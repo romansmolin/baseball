@@ -13,14 +13,16 @@ export type HeroStat = {
     value: string
 }
 
-export type QualifierStage = {
+export type FeatureCard = {
     index: number
     label: string
+    sub: string
 }
 
-export type Team = {
-    name: string
-    score: string
+export type LeagueShowcase = {
     code: string
-    stat: string
+    name: string
+    region: string
+    openContests: string
+    prizePool: string
 }

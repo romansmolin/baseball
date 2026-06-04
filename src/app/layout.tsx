@@ -44,8 +44,9 @@ const anton = Anton({
 })
 
 export const metadata: Metadata = {
-    title: 'Global Diamond Series 2026',
-    description: 'The pinnacle of international baseball returns. 32 Nations. One champion.',
+    title: 'BaseballFantasy — Daily fantasy baseball, every league',
+    description:
+        'Daily fantasy baseball across MLB, NPB, KBO, LVBP and more. Build lineups under the salary cap, captain your star, take down the field.',
 }
 
 export default function RootLayout({

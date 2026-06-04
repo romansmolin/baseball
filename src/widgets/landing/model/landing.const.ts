@@ -1,47 +1,65 @@
-import type { HeroStat, QualifierStage, SequenceStage, Team, TickerItem } from './landing.type'
+import type { FeatureCard, HeroStat, LeagueShowcase, SequenceStage, TickerItem } from './landing.type'
 
 export const SCROLL_FRAMES_BASE = '/assets/landing/baseball-scroll-frames'
 export const SCROLL_FRAMES_COUNT = 192
 
 export const TICKER_ITEMS: TickerItem[] = [
-    { label: 'LIVE: TOKYO 5 - 2 SEOUL (9TH INN)' },
-    { label: 'UP NEXT: NY METS VS LONDON LIONS - 19:00 GMT' },
-    { label: 'SERIES MVP VOTE OPEN NOW' },
+    { label: 'LIVE: 412 OPEN CONTESTS ACROSS 6 LEAGUES' },
+    { label: 'FREE-ENTRY CONTESTS EVERY DAY · CREDITS-ONLY ECONOMY' },
+    { label: 'AUTOFILL · CAPTAIN ×1.5 · SAVE A LINEUP IN 30 SECONDS' },
 ]
 
 export const SEQUENCE_STAGES: SequenceStage[] = [
     {
-        eyebrow: 'Opening Velocity',
-        headline: '32 Nations',
-        body: 'Qualifiers enter the global bracket under one night signal.',
+        eyebrow: 'Step One',
+        headline: 'Scout',
+        body: 'Live stats, injuries, transfers and recent form across every active league.',
     },
     {
-        eyebrow: 'Impact Window',
-        headline: 'Tokyo Dome',
-        body: 'The final bracket compresses into a single elimination night.',
+        eyebrow: 'Step Two',
+        headline: 'Build',
+        body: 'Slot 9 players on the diamond. Captain your star for a 1.5× bonus. Stay under the $50K cap.',
     },
     {
-        eyebrow: 'Championship Split',
-        headline: 'Miami Finale',
-        body: 'One champion breaks from the field after twelve host cities.',
+        eyebrow: 'Step Three',
+        headline: 'Compete',
+        body: 'Daily, weekly, head-to-head or tournament — credits-only, free to play, real bragging rights.',
     },
 ]
 
 export const HERO_STATS: HeroStat[] = [
-    { label: 'Host Cities', value: '12' },
-    { label: 'Final Capacity', value: '120K' },
-    { label: 'Series Window', value: '76D' },
+    { label: 'Leagues', value: '6' },
+    { label: 'Daily Contests', value: '412' },
+    { label: 'Total Prize Pool', value: '$500K' },
 ]
 
-export const QUALIFIER_STAGES: QualifierStage[] = [
-    { index: 1, label: 'Stage 01 Qualifier' },
-    { index: 2, label: 'Stage 02 Qualifier' },
-    { index: 3, label: 'Stage 03 Qualifier' },
-    { index: 4, label: 'Stage 04 Qualifier' },
+export const FEATURE_CARDS: FeatureCard[] = [
+    { index: 1, label: 'Players', sub: 'Scout the pool' },
+    { index: 2, label: 'Builder', sub: 'Slot the diamond' },
+    { index: 3, label: 'Contests', sub: 'Daily · H2H · Weekly' },
+    { index: 4, label: 'Leagues', sub: 'MLB · NPB · KBO · LVBP' },
 ]
 
-export const TEAMS: Team[] = [
-    { name: 'Tokyo Samurai', score: '12-2', code: 'JPN', stat: '98.2 MPH AVG' },
-    { name: 'NY Ironclads', score: '11-3', code: 'USA', stat: '.342 B-AVG' },
-    { name: 'Havana Hurricanes', score: '10-4', code: 'CUB', stat: '42 HR TOTAL' },
+export const LEAGUES_SHOWCASE: LeagueShowcase[] = [
+    {
+        code: 'MLB',
+        name: 'Major League Baseball',
+        region: 'USA / Canada',
+        openContests: '128 open',
+        prizePool: '$240K pool',
+    },
+    {
+        code: 'NPB',
+        name: 'Nippon Professional Baseball',
+        region: 'Japan',
+        openContests: '74 open',
+        prizePool: '$118K pool',
+    },
+    {
+        code: 'KBO',
+        name: 'Korea Baseball Organization',
+        region: 'South Korea',
+        openContests: '56 open',
+        prizePool: '$82K pool',
+    },
 ]

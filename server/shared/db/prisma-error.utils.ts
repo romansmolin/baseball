@@ -1,4 +1,4 @@
-import { RepositoryError } from '../errors/repository.error'
+import { RepositoryError } from '../../errors/repository.error'
 
 export function isPrismaError(error: unknown, code: string): error is { code: string; meta?: Record<string, unknown> } {
     return (

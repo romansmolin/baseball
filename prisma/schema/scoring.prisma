@@ -1,20 +1,56 @@
-// Scoring domain: versioned, immutable rule sets shared by contests and leagues.
+// Scoring domain: versioned, immutable rule sets shared by leagues/tournaments.
 // `rules` is flexible JSON so we can evolve scoring without schema changes.
-// Contests/Leagues FK to a specific (name, version) so editing defaults later
+// Leagues FK to a specific (name, version) so editing defaults later
 // never rewrites historical scoring.
 
 model ScoringRule {
   id        String   @id @default(cuid())
   name      String
   version   Int      @default(1)
-  // Flexible JSON config — shape lives in TypeScript model, not Prisma
+  // Flexible JSON config — shape lives in TypeScript model, not Prisma.
+  // Parsed via BaseballScoringRuleSchema in
+  // server/services/scoring/scoring-rule.schema.ts before being applied.
   rules     Json
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  contests Contest[]
-  leagues  League[]
+  leagues      League[]
+  weeklyScores WeeklyScoreCache[]
 
   @@unique([name, version])
+}
+
+// PARTIAL = week not fully scored (games LIVE/SCHEDULED/POSTPONED); recompute when staleAt < now.
+// FINAL   = every game in the week reached FINAL or CANCELLED; safe to cache forever.
+enum WeeklyScoreState {
+  PARTIAL
+  FINAL
+}
+
+// Materialized per-week per-member scoring result. Computed lazily on first
+// /standings or /me-tournament read; reused thereafter. Includes the breakdown
+// JSON for the user's per-week UI.
+model WeeklyScoreCache {
+  id             String       @id @default(cuid())
+  leagueMemberId String
+  leagueMember   LeagueMember @relation(fields: [leagueMemberId], references: [id], onDelete: Cascade)
+
+  week    Int
+  points  Decimal          @db.Decimal(10, 2)
+  state   WeeklyScoreState @default(PARTIAL)
+  staleAt DateTime
+
+  // Per-slot points + per-game contributions used by the user-progress UI
+  // and as an audit trail. Shape lives in TypeScript.
+  breakdown Json
+
+  scoringRuleId String
+  scoringRule   ScoringRule @relation(fields: [scoringRuleId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leagueMemberId, week])
+  @@index([staleAt])
 }

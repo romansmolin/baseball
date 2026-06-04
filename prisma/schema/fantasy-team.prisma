@@ -1,8 +1,9 @@
-// Fantasy team domain: a user's lineup, either for a single DFS contest
-// (via ContestEntry) or a season-long league (via LeagueMember). Real-world
-// players are referenced by externalPlayerId — we never store a Player model.
-// RosterSlot snapshots player metadata at lineup-lock time so historical
-// contests render and score reproducibly without re-querying api-sports.io.
+// Fantasy team domain: a user's lineup for a season-long league/tournament
+// (via LeagueMember) — or unattached ("draft" team still being assembled).
+// Real-world players are referenced by externalPlayerId — we never store a
+// Player model. RosterSlot snapshots player metadata at lineup-lock time so
+// historical tournaments render and score reproducibly without re-querying
+// api-sports.io.
 
 enum PlayerPosition {
   P
@@ -37,13 +38,16 @@ model FantasyTeam {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // A FantasyTeam belongs to exactly one of contestEntry (DFS) or
-  // leagueMember (season-long). CHECK constraint candidate:
-  //   (contestEntryId IS NOT NULL) <> (leagueMemberId IS NOT NULL)
-  contestEntryId String?       @unique
-  contestEntry   ContestEntry? @relation(fields: [contestEntryId], references: [id], onDelete: Cascade)
+  // A FantasyTeam belongs to a leagueMember (season-long/tournament) OR is
+  // unattached (a "draft" team still being assembled).
   leagueMemberId String?       @unique
   leagueMember   LeagueMember? @relation(fields: [leagueMemberId], references: [id], onDelete: Cascade)
+
+  // Display fields surfaced by the team-builder UI
+  name                    String
+  leagueSlug              String
+  format                  String?
+  captainExternalPlayerId Int?
 
   totalScore Decimal  @default(0) @db.Decimal(10, 2)
   createdAt  DateTime @default(now())
@@ -52,6 +56,7 @@ model FantasyTeam {
   rosterSlots RosterSlot[]
 
   @@index([userId])
+  @@index([leagueSlug])
 }
 
 model RosterSlot {
@@ -76,5 +81,48 @@ model RosterSlot {
   updatedAt DateTime @updatedAt
 
   @@index([fantasyTeamId])
+  @@index([externalPlayerId])
+}
+
+// Per-week immutable snapshot of a member's lineup. Created when the week
+// boundary passes (cron) or when a user joins mid-season (immediate snapshot
+// for the next upcoming week). Scoring engine reads from this — never from
+// the live FantasyTeam.rosterSlots — so historical weeks stay reproducible
+// even after the user edits their lineup for the next week.
+model WeeklyLineup {
+  id                      String       @id @default(cuid())
+  leagueMemberId          String
+  leagueMember            LeagueMember @relation(fields: [leagueMemberId], references: [id], onDelete: Cascade)
+  week                    Int
+  captainExternalPlayerId Int?
+  lockedAt                DateTime
+
+  slots WeeklyLineupSlot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leagueMemberId, week])
+  @@index([leagueMemberId])
+}
+
+model WeeklyLineupSlot {
+  id             String       @id @default(cuid())
+  weeklyLineupId String
+  weeklyLineup   WeeklyLineup @relation(fields: [weeklyLineupId], references: [id], onDelete: Cascade)
+
+  externalPlayerId Int
+
+  playerName     String
+  playerPosition PlayerPosition
+  playerTeamName String
+  playerPhotoUrl String?
+
+  slotPosition RosterSlotPosition
+  salaryAtLock Int
+
+  createdAt DateTime @default(now())
+
+  @@index([weeklyLineupId])
   @@index([externalPlayerId])
 }

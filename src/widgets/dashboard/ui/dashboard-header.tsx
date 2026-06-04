@@ -10,6 +10,8 @@ import { cn } from '@/shared/utils'
 
 import { dashboardNav } from '../model/nav.const'
 
+import { UserMenu } from './user-menu'
+
 interface DashboardHeaderProps {
     initials: string
     creditsLabel: string
@@ -58,9 +60,7 @@ export const DashboardHeader = ({ initials, creditsLabel }: DashboardHeaderProps
                         <span className="font-medium">{creditsLabel}</span>
                         <span className="text-xs text-muted-foreground">credits</span>
                     </Button>
-                    <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-                        {initials}
-                    </span>
+                    <UserMenu initials={initials} />
                 </div>
             </div>
         </header>

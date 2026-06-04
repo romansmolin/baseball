@@ -35,10 +35,9 @@ model User {
   accounts Account[]
 
   // Domain
-  fantasyTeams   FantasyTeam[]
-  contestEntries ContestEntry[]
-  creditLedger   CreditTransaction[]
-  aiUsage        AIUsageLog[]
-  leaguesOwned   League[]            @relation("LeagueCommissioner")
-  leagueMembers  LeagueMember[]
+  fantasyTeams  FantasyTeam[]
+  creditLedger  CreditTransaction[]
+  aiUsage       AIUsageLog[]
+  leaguesOwned  League[]            @relation("LeagueCommissioner")
+  leagueMembers LeagueMember[]
 }
