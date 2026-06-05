@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Toaster } from 'sonner'
 
+import { BuyCreditsProvider } from '@/features/buy-credits'
 import { auth } from '@/shared/lib/auth'
 import { DashboardHeader } from '@/widgets/dashboard'
 
@@ -26,13 +27,12 @@ export default async function DashboardLayout({
     }
 
     return (
-        <div className="flex min-h-svh flex-col">
-            <DashboardHeader
-                initials={getInitials(session.user.name)}
-                creditsLabel="1,420"
-            />
-            <main className="flex-1">{children}</main>
-            <Toaster richColors position="top-right" />
-        </div>
+        <BuyCreditsProvider>
+            <div className="flex min-h-svh flex-col">
+                <DashboardHeader initials={getInitials(session.user.name)} />
+                <main className="flex-1">{children}</main>
+                <Toaster richColors position="top-right" />
+            </div>
+        </BuyCreditsProvider>
     )
 }

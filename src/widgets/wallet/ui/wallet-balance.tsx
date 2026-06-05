@@ -1,17 +1,15 @@
 'use client'
 
-import {
-    Add01Icon,
-    Coins01Icon,
-    ShoppingCart02Icon,
-} from '@hugeicons/core-free-icons'
+import { Add01Icon, Coins01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
-import { useCreditsData } from '@/entities/dashboard'
+import { useWalletData } from '@/entities/wallet'
+import { useBuyCredits } from '@/features/buy-credits'
 import { Button } from '@/shared/ui/button'
 
 export const WalletBalance = () => {
-    const { data, error, isLoading } = useCreditsData()
+    const { data, error, isLoading } = useWalletData()
+    const { open: openBuyCredits } = useBuyCredits()
     const balance = data?.balance ?? 0
 
     return (
@@ -35,9 +33,7 @@ export const WalletBalance = () => {
                                 {balance.toLocaleString()}
                             </span>
                         )}
-                        <span className="font-anton text-2xl text-muted-foreground">
-                            cr
-                        </span>
+                        <span className="font-anton text-2xl text-muted-foreground">cr</span>
                     </div>
                     {error ? (
                         <p className="mt-1 text-xs text-destructive">
@@ -46,16 +42,10 @@ export const WalletBalance = () => {
                     ) : null}
                 </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
-                    <Button variant="default" className="gap-2">
-                        <HugeiconsIcon icon={Add01Icon} className="size-4" />
-                        Buy credits
-                    </Button>
-                    <Button variant="outline" className="gap-2">
-                        <HugeiconsIcon icon={ShoppingCart02Icon} className="size-4" />
-                        Redeem
-                    </Button>
-                </div>
+                <Button variant="default" className="gap-2" onClick={() => openBuyCredits()}>
+                    <HugeiconsIcon icon={Add01Icon} className="size-4" />
+                    Buy credits
+                </Button>
             </div>
         </section>
     )

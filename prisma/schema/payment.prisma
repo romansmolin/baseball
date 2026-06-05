@@ -1,0 +1,45 @@
+// Payment domain: tracks a credit-pack purchase through the external payment
+// gateway (Secure Processor). One Payment row is created when checkout starts
+// and updated as the gateway reports status via webhook / return reconcile.
+// On a SUCCESSFUL payment the matching credits are granted by writing a
+// PURCHASE row into the CreditTransaction ledger (referenceType = 'payment',
+// referenceId = Payment.id) — there is no Prisma relation between the two,
+// matching the ledger's polymorphic-reference convention. No cascade from
+// User: financial data must survive account soft-delete.
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  SUCCESSFUL
+  FAILED
+  DECLINED
+  EXPIRED
+  ERROR
+  CANCELLED
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  // No cascade — financial data survives soft-delete
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Our own tracking id, sent to the gateway as tracking_id / return token
+  token String @unique
+  // The gateway's checkout token, learned after the checkout is created
+  gatewayUid String? @unique
+
+  status       PaymentStatus @default(CREATED)
+  amountCents  Int
+  currency     String        @default("EUR")
+  // How many credits this purchase grants on success
+  creditAmount Int
+  description  String
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([token])
+}

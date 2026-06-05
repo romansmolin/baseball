@@ -14,6 +14,7 @@ import {
     useLeaguesData,
     usePlayersByTeamData,
 } from '@/entities/team-builder'
+import { useBuyCredits } from '@/features/buy-credits'
 import { autofillTeamBuilder } from '@/features/team-builder-autofill'
 import { ApiError } from '@/shared/api/api-error'
 import {
@@ -169,6 +170,8 @@ export const useTeamBuilderState = (
     const [isSaving, setIsSaving] = useState(false)
     const [isAutofilling, setIsAutofilling] = useState(false)
     const prefilledTeamIdRef = useRef<string | null>(null)
+
+    const { open: openBuyCredits } = useBuyCredits()
 
     const existingTeam: Team | undefined = useMemo(() => {
         if (!isEditMode) return undefined
@@ -402,7 +405,9 @@ export const useTeamBuilderState = (
             const code = readApiCode(error)
             const message = readApiMessage(error)
             if (code === 'INSUFFICIENT_CREDITS') {
-                toast.error('Not enough credits for Autofill')
+                // Out of credits → surface the buy-credits modal so the user
+                // can top up inline instead of just seeing an error.
+                openBuyCredits({ featureName: 'Autofill' })
             } else if (code === 'AI_FEATURE_DISABLED') {
                 toast.error('Autofill is currently disabled')
             } else if (code === 'AI_PROVIDER_ERROR') {
@@ -419,6 +424,7 @@ export const useTeamBuilderState = (
         salaryCap,
         playersQuery.data,
         selectedTeamId,
+        openBuyCredits,
     ])
 
     const focusEmptySlot = useCallback((slotKey: SlotKey) => {

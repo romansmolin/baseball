@@ -14,10 +14,10 @@ export default function AuthLayout({
 }>) {
     return (
         <>
-            <main className="h-svh flex items-center justify-center">
-                <section className="flex p-2 border border-primary rounded-2xl min-h-[70vh] max-h-125 w-full max-w-5xl">
-                    <div className="flex-1 p-10">{children}</div>
-                    <div className="relative flex-1 overflow-hidden rounded-xl bg-primary">
+            <main className="flex min-h-svh items-center justify-center p-4">
+                <section className="flex w-full max-w-5xl flex-col rounded-2xl border border-primary p-2 md:max-h-125 md:min-h-[70vh] md:flex-row">
+                    <div className="flex-1 p-6 sm:p-8 md:p-10">{children}</div>
+                    <div className="relative hidden min-h-48 flex-1 overflow-hidden rounded-xl bg-primary md:block">
                         <Image
                             src="/image.png"
                             alt="Basebal Fantasy"

@@ -38,6 +38,7 @@ model User {
   fantasyTeams  FantasyTeam[]
   creditLedger  CreditTransaction[]
   aiUsage       AIUsageLog[]
+  payments      Payment[]
   leaguesOwned  League[]            @relation("LeagueCommissioner")
   leagueMembers LeagueMember[]
 }

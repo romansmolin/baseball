@@ -1,2 +1,4 @@
 export { WalletBalance } from './ui/wallet-balance'
-export { WalletActivity } from './ui/wallet-activity'
+export { WalletPacks } from './ui/wallet-packs'
+export { WalletHistory } from './ui/wallet-history'
+export { WalletPaymentToast } from './ui/wallet-payment-toast'

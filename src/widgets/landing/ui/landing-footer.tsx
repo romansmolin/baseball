@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { FooterBankingInfo } from '@/shared/ui/footer-banking-info'
+
 const LEGAL_LINKS = [
     { href: '/legal/terms', label: 'Terms of Service' },
     { href: '/legal/privacy', label: 'Privacy Policy' },
@@ -25,6 +27,9 @@ export function LandingFooter() {
                         </Link>
                     ))}
                 </nav>
+            </div>
+            <div className="mx-auto mt-8 flex max-w-6xl items-center justify-center md:justify-start">
+                <FooterBankingInfo className="h-6 w-auto opacity-70" />
             </div>
         </footer>
     )
