@@ -3,6 +3,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import Link from 'next/link'
 
 import { FooterBankingInfo } from '@/shared/ui/footer-banking-info'
+import { FooterBusinessInfo } from '@/shared/ui/footer-business-info'
 
 interface LegalPageShellProps {
     title: string
@@ -92,6 +93,7 @@ export const LegalPageShell = ({
         <footer className="border-t border-foreground/10 py-8">
             <div className="container mx-auto flex max-w-4xl flex-col items-center gap-4 px-6 text-center text-xs text-muted-foreground">
                 © 2026 BaseballFantasy · Daily fantasy baseball, every league
+                <FooterBusinessInfo className="flex flex-col gap-1 leading-relaxed not-italic" />
                 <FooterBankingInfo className="h-6 w-auto opacity-70" />
             </div>
         </footer>
