@@ -24,7 +24,7 @@ export interface PoolPlayer {
 
 export type Roster = Record<SlotKey, number | null>
 
-export const SALARY_CAP_DEFAULT = 60000
+export const SALARY_CAP_DEFAULT = 80000
 export const ROSTER_SIZE = 9
 export const CAPTAIN_MULTIPLIER = 1.5
 

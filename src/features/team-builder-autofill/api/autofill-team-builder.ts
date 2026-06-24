@@ -13,7 +13,6 @@ export interface AutofillSuggestion {
     slotKey: SlotKey
     externalPlayerId: number
     playerName: string
-    reasoning: string
 }
 
 export interface AutofillResponse {

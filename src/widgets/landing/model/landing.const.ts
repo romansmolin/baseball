@@ -2,6 +2,9 @@ import type { FeatureCard, HeroStat, LeagueShowcase, SequenceStage, TickerItem }
 
 export const SCROLL_FRAMES_BASE = '/assets/landing/baseball-scroll-frames'
 export const SCROLL_FRAMES_COUNT = 192
+// Frame file extension. Frames are stored as WebP (re-encoded from the
+// original JPEGs at q80 — ~5.9MB → ~3.1MB) for faster download over the network.
+export const SCROLL_FRAMES_EXT = 'webp'
 
 export const TICKER_ITEMS: TickerItem[] = [
     { label: 'LIVE: 412 OPEN CONTESTS ACROSS 6 LEAGUES' },
@@ -34,10 +37,10 @@ export const HERO_STATS: HeroStat[] = [
 ]
 
 export const FEATURE_CARDS: FeatureCard[] = [
-    { index: 1, label: 'Players', sub: 'Scout the pool' },
-    { index: 2, label: 'Builder', sub: 'Slot the diamond' },
-    { index: 3, label: 'Contests', sub: 'Daily · H2H · Weekly' },
-    { index: 4, label: 'Leagues', sub: 'MLB · NPB · KBO · LVBP' },
+    { index: 1, label: 'Players', sub: 'Scout the pool', href: '/players' },
+    { index: 2, label: 'Builder', sub: 'Slot the diamond', href: '/teams/new' },
+    { index: 3, label: 'Contests', sub: 'Daily · H2H · Weekly', href: '/tournaments' },
+    { index: 4, label: 'Leagues', sub: 'MLB · NPB · KBO · LVBP', href: '/leagues' },
 ]
 
 export const LEAGUES_SHOWCASE: LeagueShowcase[] = [

@@ -16,6 +16,9 @@ interface SaveBarProps {
     canSave: boolean
     isSaving: boolean
     isAutofilling?: boolean
+    // Autofill is only allowed once a league is chosen — the AI draws from that
+    // league's teams. Defaults to true so non-builder usages are unaffected.
+    canAutofill?: boolean
     onSave: () => void
     onAutofill?: () => void
     onClear?: () => void
@@ -29,6 +32,7 @@ export const SaveBar = ({
     canSave,
     isSaving,
     isAutofilling = false,
+    canAutofill = true,
     onSave,
     onAutofill,
     onClear,
@@ -36,6 +40,7 @@ export const SaveBar = ({
     weekLabel,
 }: SaveBarProps) => {
     const saveDisabled = !canSave || isSaving
+    const autofillDisabled = isSaving || isAutofilling || !canAutofill
 
     const idleLabel = editMode
         ? weekLabel
@@ -66,11 +71,15 @@ export const SaveBar = ({
                         <button
                             type="button"
                             onClick={onAutofill}
-                            disabled={isSaving || isAutofilling}
-                            title="AI fills remaining slots from your selected team (3 credits)"
+                            disabled={autofillDisabled}
+                            title={
+                                canAutofill
+                                    ? 'AI fills remaining slots from your selected league (3 credits)'
+                                    : 'Select a league first'
+                            }
                             className={cn(
                                 'flex items-center gap-1.5 rounded-md border border-foreground/15 px-3 py-2 text-sm transition-colors hover:bg-muted',
-                                (isSaving || isAutofilling) && 'cursor-not-allowed opacity-40',
+                                autofillDisabled && 'cursor-not-allowed opacity-40',
                             )}
                         >
                             <HugeiconsIcon

@@ -44,6 +44,7 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     canSave={state.canSave}
                     isSaving={state.isSaving}
                     isAutofilling={state.isAutofilling}
+                    canAutofill={state.canAutofill}
                     onSave={state.saveLineup}
                     onAutofill={() => setAutofillOpen(true)}
                     onClear={state.clearLineup}
@@ -110,7 +111,8 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
         <AutofillModal
             open={autofillOpen}
             onOpenChange={setAutofillOpen}
-            teams={state.teams}
+            teams={state.autofillTeams}
+            leagueName={state.selectedLeagueName}
             teamsLoading={state.teamsLoading}
             teamsError={state.teamsError}
             initialSelectedTeamIds={initialAutofillTeamIds}

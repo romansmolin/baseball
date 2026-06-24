@@ -17,6 +17,7 @@ export type FeatureCard = {
     index: number
     label: string
     sub: string
+    href: string
 }
 
 export type LeagueShowcase = {

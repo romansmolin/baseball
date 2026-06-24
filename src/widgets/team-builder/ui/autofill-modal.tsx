@@ -16,6 +16,8 @@ interface AutofillModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     teams: BuilderTeam[]
+    // Name of the league the user selected — the teams above are scoped to it.
+    leagueName: string | null
     teamsLoading: boolean
     teamsError: Error | undefined
     // Pre-checked when the modal opens.
@@ -30,6 +32,7 @@ export const AutofillModal = ({
     open,
     onOpenChange,
     teams,
+    leagueName,
     teamsLoading,
     teamsError,
     initialSelectedTeamIds,
@@ -73,7 +76,7 @@ export const AutofillModal = ({
                         'data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
                     )}
                 >
-                    <Header onClose={() => onOpenChange(false)} />
+                    <Header leagueName={leagueName} onClose={() => onOpenChange(false)} />
 
                     <Toolbar
                         selectedCount={selectedIds.size}
@@ -117,7 +120,13 @@ export const AutofillModal = ({
     )
 }
 
-const Header = ({ onClose }: { onClose: () => void }) => (
+const Header = ({
+    leagueName,
+    onClose,
+}: {
+    leagueName: string | null
+    onClose: () => void
+}) => (
     <div className="flex items-start justify-between gap-3 border-b border-foreground/10 px-5 py-4">
         <div className="min-w-0">
             <Dialog.Title className="flex items-center gap-2 font-medium">
@@ -125,8 +134,8 @@ const Header = ({ onClose }: { onClose: () => void }) => (
                 Autofill from teams
             </Dialog.Title>
             <Dialog.Description className="mt-1 text-xs text-muted-foreground">
-                Pick the MLB teams the AI should draw from. Costs 3 credits per
-                run.
+                Pick the {leagueName ?? ''} teams the AI should draw from. Costs
+                3 credits per run.
             </Dialog.Description>
         </div>
         <button

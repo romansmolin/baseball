@@ -57,7 +57,7 @@ export function EliteContenders() {
                                 </span>
                             </div>
                             <Link
-                                href="/contests"
+                                href="/tournaments"
                                 className="flex w-full items-center justify-center bg-white text-black hover:bg-red-600 hover:text-white text-xs font-black uppercase tracking-[0.2em] h-14 rounded-none transition-all"
                             >
                                 Browse Contests

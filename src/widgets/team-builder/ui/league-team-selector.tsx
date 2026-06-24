@@ -1,5 +1,6 @@
 'use client'
 
+import { hasLeagueTeamData } from '@/shared/team-builder'
 import type { BuilderLeague, BuilderTeam } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
@@ -68,11 +69,20 @@ export const LeagueTeamSelector = ({
                                   ? 'No leagues available'
                                   : 'Select a league'}
                         </option>
-                        {leagues.map((league) => (
-                            <option key={league.slug} value={league.slug}>
-                                {league.name}
-                            </option>
-                        ))}
+                        {leagues.map((league) => {
+                            const available = hasLeagueTeamData(league.slug)
+                            return (
+                                <option
+                                    key={league.slug}
+                                    value={league.slug}
+                                    disabled={!available}
+                                >
+                                    {available
+                                        ? league.name
+                                        : `${league.name} (Coming soon)`}
+                                </option>
+                            )
+                        })}
                     </select>
                     {leaguesError ? (
                         <div className="mt-1.5 flex items-center gap-2 text-xs text-destructive">

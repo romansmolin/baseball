@@ -61,6 +61,15 @@ async function main() {
     // so they can actually invoke the features end-to-end.
     await seedAIFeatures()
     await seedStartingCredits()
+
+    // NOTE: weekly scores are intentionally NOT computed here. The seed stays
+    // pure DB writes (fast + reliable over a remote database). To populate
+    // standings with real points immediately after seeding, hit the scoring
+    // cron once — it runs in the app runtime (with provider fetch caching) and
+    // warms every active tournament in seconds:
+    //   curl -H "Authorization: Bearer $CRON_SECRET" \
+    //     http://localhost:3000/api/internal/cron/refresh-scoring
+    // Otherwise standings lazy-compute (and cache) on first view.
 }
 
 async function seedAIFeatures(): Promise<void> {
@@ -166,17 +175,21 @@ async function seedStartingCredits(): Promise<void> {
 //
 // We sit on top of the existing League/LeagueMember/FantasyTeam schema.
 // To make the catalog feel populated, each PUBLIC tournament gets 8-15
-// freshly seeded demo members:
-//   - demo User (email *@seed.local, no passwordHash)
-//   - demo FantasyTeam (linked to the league via leagueMemberId) with a
+// seeded competitors with realistic manager + team names:
+//   - User (realistic name, email *@seed.local, no passwordHash)
+//   - FantasyTeam (linked to the league via leagueMemberId) with a
 //     deterministic 9-player roster of real 2026 MLB players
 //   - LeagueMember row joining the two
+//   - WeeklyLineup snapshots for every past week, so scoring has real data
 //
-// Weekly scores are NOT persisted at seed time — the standings endpoint and
-// the /me endpoints lazy-compute them at read time via the WeeklyScoringService
-// and cache them in WeeklyScoreCache.
+// The real account (the first non-@seed.local user, also the commissioner) is
+// additionally enrolled as a competitor in each active (non-completed) MLB
+// tournament, so "my tournaments" reflects the correct leagues with opponents.
+//
+// Only MLB tournaments are seeded — MLB is the only league with real player
+// data behind it (see SEED_TOURNAMENTS).
 
-const DEMO_USER_EMAIL_SUFFIX = '@seed.local'
+const SEED_USER_EMAIL_SUFFIX = '@seed.local'
 
 // ---------------------------------------------------------------------------
 // Real-MLB roster pool for demo members
@@ -347,6 +360,124 @@ function buildDemoRoster(seedKey: string): {
     return { rosterSlots, captainExternalPlayerId }
 }
 
+// ---------------------------------------------------------------------------
+// Realistic seeded identities
+// ---------------------------------------------------------------------------
+//
+// Seeded competitors get plausible human manager names and fantasy team names
+// (no "Demo"/"Player N" labels). Names are chosen deterministically from these
+// pools by a running counter so reruns are stable; the e-mail still carries the
+// @seed.local suffix the cleanup + credit-grant logic keys off.
+
+const SEEDED_FIRST_NAMES = [
+    'James', 'Marcus', 'David', 'Daniel', 'Carlos', 'Tyler', 'Brandon', 'Jordan',
+    'Ethan', 'Lucas', 'Mason', 'Logan', 'Diego', 'Victor', 'Isaac', 'Noah',
+    'Owen', 'Caleb', 'Hunter', 'Cole', 'Trevor', 'Aaron', 'Kevin', 'Sean',
+    'Patrick', 'Ryan', 'Andre', 'Nathan', 'Miguel', 'Tobias',
+]
+
+const SEEDED_LAST_NAMES = [
+    'Mitchell', 'Carter', 'Bennett', 'Sullivan', 'Brooks', 'Reyes', 'Foster',
+    'Hayes', 'Coleman', 'Parker', 'Morgan', 'Russell', 'Griffin', 'Hudson',
+    'Porter', 'Spencer', 'Wallace', 'Bryant', 'Fleming', 'Hoffman', 'Ramsey',
+    'Delgado', 'Knight', 'Vaughn', 'Maddox', 'Sutton', 'Barrett', 'Crawford',
+    'Donovan', 'Mercer',
+]
+
+const SEEDED_TEAM_NAMES = [
+    'Bronx Bombers', 'Diamond Kings', 'Grand Slammers', 'Bases Loaded',
+    'Dinger Dynasty', 'Pinch Hitters', 'Triple Threat', 'Wild Pitches',
+    'Strike Zone', 'Power Alley', 'Bullpen Bandits', 'Home Run Heroes',
+    'Extra Innings', 'The Closers', 'Rally Caps', 'Cleanup Crew',
+    'Backdoor Sliders', 'Web Gems', 'Walk-Off Warriors', 'Moonshot Mavericks',
+    'Fastball Fanatics', 'Switch Hitters', 'Golden Gloves', 'Seventh Inning',
+    'Chin Music', 'Can of Corn', 'Frozen Ropes', 'Sandlot Saints',
+    'Curveball Crew', 'Outfield Outlaws', 'Designated Hitters', 'Foul Poles',
+    'Rosin Bags', 'Squeeze Play', 'Hot Corner Heroes', 'Leadoff Legends',
+]
+
+// Distinct team names for the real user's own entries across tournaments.
+const REAL_USER_TEAM_NAMES = ['Skyline Sluggers', 'Summit Stars', 'Capital Crushers']
+
+function seededManagerName(n: number): string {
+    const first = SEEDED_FIRST_NAMES[(n * 3) % SEEDED_FIRST_NAMES.length]
+    const last = SEEDED_LAST_NAMES[(n * 5) % SEEDED_LAST_NAMES.length]
+    return `${first} ${last}`
+}
+
+function seededTeamName(n: number): string {
+    return SEEDED_TEAM_NAMES[(n * 7) % SEEDED_TEAM_NAMES.length]
+}
+
+function seededEmail(managerName: string, n: number): string {
+    const local = managerName.toLowerCase().replace(/[^a-z]+/g, '.')
+    return `${local}.${n}${SEED_USER_EMAIL_SUFFIX}`
+}
+
+// Creates a FantasyTeam + LeagueMember (1:1) for a user in a tournament and
+// backfills WeeklyLineup snapshots for every week up to `upToWeek` (0 for not-
+// yet-started tournaments). Returns the number of weekly lineups created.
+// Shared by seeded competitors and the real-user enrollment so both have an
+// identical, fully-scoreable footprint.
+async function enrollMember(params: {
+    leagueId: string
+    userId: string
+    teamName: string
+    leagueSlug: string
+    seedKey: string
+    startsAt: Date
+    upToWeek: number
+}): Promise<number> {
+    const { rosterSlots, captainExternalPlayerId } = buildDemoRoster(params.seedKey)
+
+    const team = await prisma.fantasyTeam.create({
+        data: {
+            userId: params.userId,
+            name: params.teamName,
+            leagueSlug: params.leagueSlug,
+            format: 'season_long',
+            captainExternalPlayerId,
+            rosterSlots: { create: rosterSlots },
+        },
+    })
+
+    const member = await prisma.leagueMember.create({
+        data: { leagueId: params.leagueId, userId: params.userId },
+    })
+
+    // Link the FantasyTeam to its LeagueMember (1:1).
+    await prisma.fantasyTeam.update({
+        where: { id: team.id },
+        data: { leagueMemberId: member.id },
+    })
+
+    let weeklyLineups = 0
+    for (let week = 1; week <= params.upToWeek; week += 1) {
+        const lockedAt = tournamentWeekRange(params.startsAt, week).startUtc
+        await prisma.weeklyLineup.create({
+            data: {
+                leagueMemberId: member.id,
+                week,
+                captainExternalPlayerId,
+                lockedAt,
+                slots: {
+                    create: rosterSlots.map((slot) => ({
+                        externalPlayerId: slot.externalPlayerId,
+                        playerName: slot.playerName,
+                        playerPosition: slot.playerPosition,
+                        playerTeamName: slot.playerTeamName,
+                        slotPosition: slot.slotPosition,
+                        salaryAtLock: slot.salaryAtLock,
+                    })),
+                },
+            },
+        })
+        weeklyLineups += 1
+    }
+
+    return weeklyLineups
+}
+
 interface SeedTournament {
     slug: string
     name: string
@@ -413,73 +544,60 @@ const SEED_TOURNAMENTS: SeedTournament[] = [
         prizePoolCredits: 18000,
         memberCount: 14,
     },
-    {
-        slug: 'milb-prospects-league',
-        name: 'MiLB Prospects League',
-        leagueSlug: 'milb',
-        visibility: LeagueVisibility.PUBLIC,
-        status: LeagueStatus.IN_SEASON,
-        startsInDays: -7,
-        totalWeeks: 6,
-        entryFeeCredits: 10,
-        prizePoolCredits: 1500,
-        memberCount: 10,
-    },
-    {
-        slug: 'npb-summer-showdown',
-        name: 'NPB Summer Showdown',
-        leagueSlug: 'npb',
-        visibility: LeagueVisibility.PUBLIC,
-        status: LeagueStatus.DRAFTING,
-        startsInDays: 10,
-        totalWeeks: 8,
-        entryFeeCredits: 30,
-        prizePoolCredits: 5000,
-        memberCount: 9,
-    },
+    // NOTE: MiLB / NPB tournaments were intentionally removed — only MLB has
+    // real player data behind it today (a single MLB sports provider), so a
+    // tournament in any other league can't render players or score. The league
+    // picker still lists them as "Coming soon"; once a provider exists, add the
+    // tournament back here and its sub-leagues to LEAGUE_TEAM_GROUPS.
 ]
 
 async function seedTournaments(scoringRuleId: string): Promise<void> {
     console.log('--- Tournaments ---')
 
     // Idempotency, in this order:
-    //   1) Drop the seed tournaments by their well-known inviteCodes.
-    //      LeagueMember cascades from League → memberships go with it.
-    //   2) Drop demo users by *@seed.local. Their FantasyTeams cascade
+    //   1) Drop EVERY previously-seeded tournament (inviteCode prefix-matched),
+    //      not just the ones still listed below — so tournaments we've since
+    //      removed (the data-less MiLB/NPB ones) are cleaned up too. League
+    //      cascades take their LeagueMembers, and each member's FantasyTeam
+    //      (including a real user's team that had joined a removed tournament).
+    //   2) Drop seeded users by *@seed.local. Their FantasyTeams cascade
     //      with User. League has NO cascade from User, so we MUST drop
     //      the tournaments first or the user deletion will fail on FK
     //      (commissionerId references the seed commissioner).
-    const seedInviteCodes = SEED_TOURNAMENTS.map((t) => `SEED-${t.slug}`)
     const toursDeleted = await prisma.league.deleteMany({
-        where: { inviteCode: { in: seedInviteCodes } },
+        where: { inviteCode: { startsWith: 'SEED-' } },
     })
     if (toursDeleted.count > 0) {
-        console.log(`  - Removed ${toursDeleted.count} existing demo tournament(s)`)
+        console.log(`  - Removed ${toursDeleted.count} existing seeded tournament(s)`)
     }
 
-    const demoUsersToWipe = await prisma.user.findMany({
-        where: { email: { endsWith: DEMO_USER_EMAIL_SUFFIX } },
+    const seededUsersToWipe = await prisma.user.findMany({
+        where: { email: { endsWith: SEED_USER_EMAIL_SUFFIX } },
         select: { id: true },
     })
-    if (demoUsersToWipe.length > 0) {
-        const ids = demoUsersToWipe.map((u) => u.id)
+    if (seededUsersToWipe.length > 0) {
+        const ids = seededUsersToWipe.map((u) => u.id)
         const fts = await prisma.fantasyTeam.deleteMany({
             where: { userId: { in: ids } },
         })
         const us = await prisma.user.deleteMany({
             where: { id: { in: ids } },
         })
-        console.log(`  - Wiped ${us.count} demo user(s) and ${fts.count} demo team(s)`)
+        console.log(`  - Wiped ${us.count} seeded user(s) and ${fts.count} seeded team(s)`)
     }
 
-    // Find a commissioner. Prefer a real seeded admin user; if none exists
-    // we fall back to creating a dedicated demo commissioner.
+    // Find a commissioner. Prefer the first real user; fall back to a
+    // dedicated seed commissioner when no real users exist yet. When the
+    // commissioner is a real account we also enroll them as a competitor in
+    // the active tournaments below.
     const commissioner = await ensureCommissioner()
+    const realCommissioner = !commissioner.email.endsWith(SEED_USER_EMAIL_SUFFIX)
 
-    let demoUserCounter = 0
+    let seededUserCounter = 0
     let totalMembers = 0
     let totalRosterSlots = 0
     let totalWeeklyLineups = 0
+    let realEnrollments = 0
 
     for (const t of SEED_TOURNAMENTS) {
         const startsAt = new Date(now + t.startsInDays * DAY)
@@ -516,94 +634,71 @@ async function seedTournaments(scoringRuleId: string): Promise<void> {
             now: new Date(now),
         })
 
-        // Create demo members.
+        // Create seeded competitors with realistic manager + team names.
         for (let i = 0; i < t.memberCount; i += 1) {
-            demoUserCounter += 1
-            const slug = `${t.slug}-${i + 1}`
-            const userEmail = `demo-${slug}${DEMO_USER_EMAIL_SUFFIX}`
-            const userName = `Demo Player ${demoUserCounter}`
-            const teamName = `Demo Squad ${demoUserCounter}`
+            seededUserCounter += 1
+            const managerName = seededManagerName(seededUserCounter)
+            const teamName = seededTeamName(seededUserCounter)
+            const userEmail = seededEmail(managerName, seededUserCounter)
 
             const user = await prisma.user.create({
                 data: {
                     email: userEmail,
-                    name: userName,
+                    name: managerName,
                     emailVerified: false,
                     passwordHash: null,
                     provider: 'seed',
                 },
             })
 
-            // Roster is deterministic per (tournament, demo slot) so reruns
-            // produce identical lineups even if user IDs shuffle.
-            const { rosterSlots, captainExternalPlayerId } = buildDemoRoster(
-                `${t.slug}:${i + 1}`,
-            )
-
-            const team = await prisma.fantasyTeam.create({
-                data: {
-                    userId: user.id,
-                    name: teamName,
-                    leagueSlug: t.leagueSlug,
-                    format: 'season_long',
-                    captainExternalPlayerId,
-                    rosterSlots: {
-                        create: rosterSlots,
-                    },
-                },
+            // Roster is deterministic per (tournament, slot) so reruns produce
+            // identical lineups even if user IDs shuffle.
+            const weekly = await enrollMember({
+                leagueId: league.id,
+                userId: user.id,
+                teamName,
+                leagueSlug: t.leagueSlug,
+                seedKey: `${t.slug}:${i + 1}`,
+                startsAt,
+                upToWeek: seedCurrentWeek,
             })
-
-            const member = await prisma.leagueMember.create({
-                data: {
-                    leagueId: league.id,
-                    userId: user.id,
-                },
-            })
-
-            // Link the FantasyTeam to its LeagueMember (1:1).
-            await prisma.fantasyTeam.update({
-                where: { id: team.id },
-                data: { leagueMemberId: member.id },
-            })
-
-            // Backfill WeeklyLineup snapshots for every past week so the
-            // scoring engine sees real frozen lineups (instead of "not joined
-            // yet" 0-point placeholders). Each weekly row is a copy of the
-            // demo roster — we don't model edit history at seed time.
-            for (let week = 1; week <= seedCurrentWeek; week += 1) {
-                const lockedAt = tournamentWeekRange(startsAt, week).startUtc
-                await prisma.weeklyLineup.create({
-                    data: {
-                        leagueMemberId: member.id,
-                        week,
-                        captainExternalPlayerId,
-                        lockedAt,
-                        slots: {
-                            create: rosterSlots.map((slot) => ({
-                                externalPlayerId: slot.externalPlayerId,
-                                playerName: slot.playerName,
-                                playerPosition: slot.playerPosition,
-                                playerTeamName: slot.playerTeamName,
-                                slotPosition: slot.slotPosition,
-                                salaryAtLock: slot.salaryAtLock,
-                            })),
-                        },
-                    },
-                })
-                totalWeeklyLineups += 1
-            }
-
+            totalWeeklyLineups += weekly
             totalMembers += 1
-            totalRosterSlots += rosterSlots.length
+            totalRosterSlots += 9
+        }
+
+        // Enroll the real account as a competitor in the active tournaments
+        // (skip finished/archived ones — you can't join a completed contest),
+        // so "my tournaments" reflects the correct MLB leagues with seeded
+        // opponents already in them.
+        let enrolledReal = false
+        if (
+            realCommissioner &&
+            t.status !== LeagueStatus.COMPLETED &&
+            t.status !== LeagueStatus.ARCHIVED
+        ) {
+            const weekly = await enrollMember({
+                leagueId: league.id,
+                userId: commissioner.id,
+                teamName:
+                    REAL_USER_TEAM_NAMES[realEnrollments % REAL_USER_TEAM_NAMES.length],
+                leagueSlug: t.leagueSlug,
+                seedKey: `${t.slug}:me`,
+                startsAt,
+                upToWeek: seedCurrentWeek,
+            })
+            totalWeeklyLineups += weekly
+            realEnrollments += 1
+            enrolledReal = true
         }
 
         console.log(
-            `  + ${t.leagueSlug.padEnd(5)} ${t.name.padEnd(28)} ${t.status.padEnd(10)} ${t.memberCount} members (${seedCurrentWeek} weeks/member)`,
+            `  + ${t.leagueSlug.padEnd(5)} ${t.name.padEnd(28)} ${t.status.padEnd(10)} ${t.memberCount} members${enrolledReal ? ' + you' : ''} (${seedCurrentWeek} weeks/member)`,
         )
     }
 
     console.log(
-        `Tournaments seed complete — ${SEED_TOURNAMENTS.length} tournament(s), ${totalMembers} demo member(s), ${totalRosterSlots} roster slot(s), ${totalWeeklyLineups} weekly lineup(s).`,
+        `Tournaments seed complete — ${SEED_TOURNAMENTS.length} tournament(s), ${totalMembers} seeded member(s), ${realEnrollments} real enrollment(s), ${totalRosterSlots} roster slot(s), ${totalWeeklyLineups} weekly lineup(s).`,
     )
 }
 
@@ -611,7 +706,7 @@ async function ensureCommissioner() {
     // Reuse an existing real user as commissioner (any non-demo user works).
     // Falls back to a dedicated seed-commissioner if no real users exist yet.
     const real = await prisma.user.findFirst({
-        where: { email: { not: { endsWith: DEMO_USER_EMAIL_SUFFIX } } },
+        where: { email: { not: { endsWith: SEED_USER_EMAIL_SUFFIX } } },
         orderBy: { createdAt: 'asc' },
         select: { id: true, email: true },
     })
@@ -620,7 +715,7 @@ async function ensureCommissioner() {
         return real
     }
 
-    const seedCommissionerEmail = `seed-commissioner${DEMO_USER_EMAIL_SUFFIX}`
+    const seedCommissionerEmail = `seed-commissioner${SEED_USER_EMAIL_SUFFIX}`
     let commissioner = await prisma.user.findUnique({
         where: { email: seedCommissionerEmail },
         select: { id: true, email: true },

@@ -113,7 +113,8 @@ export class MlbSportsProvider implements ISportsProvider {
             if (!raw) return null
 
             const teamId = raw.currentTeam?.id ?? null
-            const teamLookup = teamId != null ? await this.buildTeamLookup(env.defaultSeason()) : undefined
+            const teamLookup =
+                teamId != null ? await this.buildTeamLookup(env.defaultSeason()) : undefined
 
             return mapMlbPersonToProviderPlayer(raw, { teamLookup })
         } catch (error) {
@@ -197,9 +198,7 @@ export class MlbSportsProvider implements ISportsProvider {
                     tags: [mlbTags.boxscore(gamePk)],
                 },
             )
-            const game = scheduleData.dates.flatMap((d) => d.games).find(
-                (g) => g.gamePk === gamePk,
-            )
+            const game = scheduleData.dates.flatMap((d) => d.games).find((g) => g.gamePk === gamePk)
             if (!game) return null
             status = mapMlbDetailedStateToStatus(
                 game.status.detailedState,
@@ -211,13 +210,10 @@ export class MlbSportsProvider implements ISportsProvider {
         }
 
         try {
-            const data = await mlbFetch<MlbRawBoxScoreResponse>(
-                `/game/${gamePk}/boxscore`,
-                {
-                    revalidate: MLB_REVALIDATE.boxscore,
-                    tags: [mlbTags.boxscore(gamePk)],
-                },
-            )
+            const data = await mlbFetch<MlbRawBoxScoreResponse>(`/game/${gamePk}/boxscore`, {
+                revalidate: MLB_REVALIDATE.boxscore,
+                tags: [mlbTags.boxscore(gamePk)],
+            })
             return mapMlbBoxScoreToProvider(data, gamePk, status)
         } catch (error) {
             if (error instanceof ProviderNotFoundError) return null

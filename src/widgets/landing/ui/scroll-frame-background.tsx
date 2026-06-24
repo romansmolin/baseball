@@ -9,22 +9,13 @@ type Props = {
 }
 
 export function ScrollFrameBackground({ progress }: Props) {
-    const { frameSrc } = useScrollFrames(progress)
+    const { canvasRef } = useScrollFrames(progress)
 
     return (
-        <div className="fixed inset-0 z-0 h-screen w-full overflow-hidden">
-            <div className="relative w-full h-full flex items-center justify-center bg-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={frameSrc}
-                    alt=""
-                    aria-hidden="true"
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                    decoding="sync"
-                    fetchPriority="high"
-                />
-            </div>
+        <div className="fixed inset-0 z-0 h-screen w-full overflow-hidden bg-black">
+            {/* Frames are drawn cover-cropped onto the canvas in the hook; the
+                black wrapper shows until the first frame decodes. */}
+            <canvas ref={canvasRef} aria-hidden="true" className="block h-full w-full" />
         </div>
     )
 }

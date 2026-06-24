@@ -20,6 +20,7 @@ import { ApiError } from '@/shared/api/api-error'
 import {
     CAPTAIN_MULTIPLIER,
     FIELD_SLOTS,
+    filterTeamsByLeague,
     ROSTER_SIZE,
     SALARY_CAP_DEFAULT,
     type BuilderBudget,
@@ -47,6 +48,10 @@ export interface TeamBuilderState {
     slots: FieldSlot[]
     leagues: BuilderLeague[]
     teams: BuilderTeam[]
+    // Teams belonging to the selected league — the candidate set for Autofill.
+    autofillTeams: BuilderTeam[]
+    selectedLeagueName: string | null
+    canAutofill: boolean
     pool: PoolPlayer[]
     visiblePool: PoolPlayer[]
     roster: Roster
@@ -325,8 +330,12 @@ export const useTeamBuilderState = (
     // applies the same faux salary formula the pool fetcher uses, so the
     // AI sees the same prices the user sees.
     const autofill = useCallback(async (mlbTeamIds: number[]): Promise<void> => {
+        if (!selectedLeagueSlug) {
+            toast.error('Select a league before running Autofill.')
+            return
+        }
         if (mlbTeamIds.length === 0) {
-            toast.error('Pick at least one MLB team for Autofill.')
+            toast.error('Pick at least one team for Autofill.')
             return
         }
         if (isAutofilling) return
@@ -385,8 +394,21 @@ export const useTeamBuilderState = (
             setRoster((prev) => {
                 const next: Roster = { ...prev }
                 for (const pick of response.suggestedPicks) {
-                    if (next[pick.slotKey] != null) continue
-                    next[pick.slotKey] = pick.externalPlayerId
+                    // The LF/CF/RF slots all accept outfielders, so the model
+                    // can label two outfield picks with the same slotKey. If
+                    // the requested slot is taken, redirect the pick to another
+                    // empty slot that accepts the same position rather than
+                    // dropping it — otherwise an outfield slot stays empty.
+                    let targetKey: SlotKey | null = next[pick.slotKey] == null ? pick.slotKey : null
+                    if (targetKey == null) {
+                        const accept = FIELD_SLOTS.find((s) => s.key === pick.slotKey)?.accept
+                        targetKey =
+                            FIELD_SLOTS.find(
+                                (s) => s.accept === accept && next[s.key] == null,
+                            )?.key ?? null
+                    }
+                    if (targetKey == null) continue
+                    next[targetKey] = pick.externalPlayerId
                     const pooled = poolById.get(pick.externalPlayerId)
                     if (pooled) playerCacheRef.current.set(pick.externalPlayerId, pooled)
                 }
@@ -424,6 +446,7 @@ export const useTeamBuilderState = (
         salaryCap,
         playersQuery.data,
         selectedTeamId,
+        selectedLeagueSlug,
         openBuyCredits,
     ])
 
@@ -537,10 +560,20 @@ export const useTeamBuilderState = (
         existingTeamId,
     ])
 
+    // Autofill is scoped to the league the user picked: the modal only offers
+    // that league's teams, so the AI can only draw players from within it.
+    const selectedLeagueName =
+        (leaguesQuery.data ?? []).find((l) => l.slug === selectedLeagueSlug)?.name ?? null
+    const autofillTeams = filterTeamsByLeague(teamsQuery.data ?? [], selectedLeagueSlug)
+    const canAutofill = !!selectedLeagueSlug
+
     return {
         slots: FIELD_SLOTS,
         leagues: leaguesQuery.data ?? [],
         teams: teamsQuery.data ?? [],
+        autofillTeams,
+        selectedLeagueName,
+        canAutofill,
         pool,
         visiblePool,
         roster,

@@ -53,7 +53,6 @@ export const tbAutofillOutputSchema = z.object({
             slotKey: SLOT_KEY_SCHEMA,
             externalPlayerId: z.number().int().positive(),
             playerName: z.string(),
-            reasoning: z.string(),
         }),
     ),
     strategy: z.string(),
@@ -62,6 +61,83 @@ export const tbAutofillOutputSchema = z.object({
 export type TBAutofillOutput = z.infer<typeof tbAutofillOutputSchema>
 
 const ALL_SLOT_KEYS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'] as const
+type SlotKey = (typeof ALL_SLOT_KEYS)[number]
+
+// Which normalized primaryPosition values each slot accepts. The pool carries
+// the provider's Position enum ('SP'/'RP'/'C'/'1B'/'2B'/'3B'/'SS'/'OF'/'DH'),
+// NOT raw baseball codes — so the pitcher slot matches SP/RP and the three
+// outfield slots all match OF. 'DH' fits no slot.
+function slotAcceptsPosition(slotKey: SlotKey, primaryPosition: string): boolean {
+    switch (slotKey) {
+        case 'P':
+            return primaryPosition === 'SP' || primaryPosition === 'RP'
+        case 'LF':
+        case 'CF':
+        case 'RF':
+            return primaryPosition === 'OF'
+        default:
+            // C / 1B / 2B / 3B / SS — exact match.
+            return primaryPosition === slotKey
+    }
+}
+
+// Turns the model's suggestions into a complete, valid set of picks. The cheap
+// model is unreliable at enumerating all 9 slots, so we treat its picks as
+// preferences (good players per risk profile) and then deterministically
+// backfill any slot it left empty from the available pool — cheapest eligible
+// player first — so every fillable slot gets filled within the cap. This is
+// the guarantee the model alone could not provide.
+export function completeAutofill(args: {
+    modelPicks: Array<{ slotKey: string; externalPlayerId: number }>
+    emptySlotKeys: SlotKey[]
+    pool: TBAutofillPromptPlayer[]
+    salaryBudget: number
+}): { suggestedPicks: TBAutofillOutput['suggestedPicks']; salaryUsed: number } {
+    const { modelPicks, emptySlotKeys, pool, salaryBudget } = args
+    const poolById = new Map(pool.map((p) => [p.externalPlayerId, p]))
+    const emptySet = new Set<SlotKey>(emptySlotKeys)
+    const assigned = new Map<SlotKey, number>()
+    const usedPlayers = new Set<number>()
+    let spent = 0
+
+    const tryAssign = (slotKey: SlotKey, playerId: number): boolean => {
+        if (assigned.has(slotKey)) return false
+        const p = poolById.get(playerId)
+        if (!p || !p.available || usedPlayers.has(playerId)) return false
+        if (!slotAcceptsPosition(slotKey, p.primaryPosition)) return false
+        if (spent + p.salary > salaryBudget) return false
+        assigned.set(slotKey, playerId)
+        usedPlayers.add(playerId)
+        spent += p.salary
+        return true
+    }
+
+    // 1) Honor the model's picks first. If a pick's slot is taken or invalid,
+    //    try to reslot the player into any other eligible empty slot (handles
+    //    the model labelling two outfielders with the same slotKey).
+    for (const pick of modelPicks) {
+        const sk = pick.slotKey as SlotKey
+        if (emptySet.has(sk) && tryAssign(sk, pick.externalPlayerId)) continue
+        for (const alt of emptySlotKeys) {
+            if (tryAssign(alt, pick.externalPlayerId)) break
+        }
+    }
+
+    // 2) Backfill every slot the model left empty, cheapest eligible first.
+    const cheapestFirst = [...pool].sort((a, b) => a.salary - b.salary)
+    for (const slotKey of emptySlotKeys) {
+        if (assigned.has(slotKey)) continue
+        for (const p of cheapestFirst) {
+            if (tryAssign(slotKey, p.externalPlayerId)) break
+        }
+    }
+
+    const suggestedPicks = [...assigned.entries()].map(([slotKey, id]) => {
+        const p = poolById.get(id)!
+        return { slotKey, externalPlayerId: id, playerName: p.fullName }
+    })
+    return { suggestedPicks, salaryUsed: spent }
+}
 
 export class TeamBuilderAutofillFeature
     implements AIFeatureModule<TBAutofillInput, TBAutofillOutput>
@@ -155,14 +231,38 @@ export class TeamBuilderAutofillFeature
             pool,
         })
 
-        return this.provider.complete({
+        const result = await this.provider.complete({
             tier: 'cheap',
             instructions,
             input: serialized,
             outputSchema: this.outputSchema,
             schemaName: 'TBAutofillOutput',
-            maxOutputTokens: 2000,
+            // Generous headroom so the model can emit picks for all 9 slots.
+            // It still won't reliably fill every one — gpt-4o-mini is weak at
+            // this constrained assignment — but that's fine: completeness is
+            // guaranteed by completeAutofill() below, not by the model.
+            maxOutputTokens: 6000,
         })
+
+        // The model is unreliable at returning a pick for every empty slot, so
+        // we deterministically complete the lineup from the same pool it saw.
+        // Its picks are treated as preferences; the backfill is the actual
+        // completeness guarantee.
+        const completed = completeAutofill({
+            modelPicks: result.output.suggestedPicks,
+            emptySlotKeys: [...emptySlotKeys],
+            pool,
+            salaryBudget: salaryRemaining,
+        })
+
+        return {
+            ...result,
+            output: {
+                ...result.output,
+                suggestedPicks: completed.suggestedPicks,
+                salaryUsed: completed.salaryUsed,
+            },
+        }
     }
 }
 

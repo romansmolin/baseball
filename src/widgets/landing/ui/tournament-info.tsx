@@ -2,10 +2,13 @@
 
 import { motion } from 'framer-motion'
 import { CircleUser, Crown, Gamepad2, Users } from 'lucide-react'
+import Link from 'next/link'
 
 import { FEATURE_CARDS } from '../model/landing.const'
 
 const CARD_ICONS = [CircleUser, Users, Gamepad2, Crown]
+
+const MotionLink = motion(Link)
 
 export function TournamentInfo() {
     return (
@@ -44,8 +47,10 @@ export function TournamentInfo() {
                     {FEATURE_CARDS.map((card) => {
                         const Icon = CARD_ICONS[card.index - 1] ?? CircleUser
                         return (
-                            <motion.div
+                            <MotionLink
                                 key={card.index}
+                                href={card.href}
+                                aria-label={`${card.label} — ${card.sub}`}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 initial={{ opacity: 0, y: 20 }}
                                 viewport={{ once: true }}
@@ -62,7 +67,7 @@ export function TournamentInfo() {
                                 <span className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 group-hover:text-white/80 relative z-10 transition-colors">
                                     {card.sub}
                                 </span>
-                            </motion.div>
+                            </MotionLink>
                         )
                     })}
                 </div>
