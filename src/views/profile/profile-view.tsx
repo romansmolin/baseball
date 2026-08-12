@@ -1,4 +1,4 @@
-import { ProfileCard } from '@/widgets/profile'
+import { ProfileCard, SecurityCard } from '@/widgets/profile'
 
 interface ProfileViewProps {
     name: string
@@ -6,6 +6,7 @@ interface ProfileViewProps {
     emailVerified: boolean
     memberSince: Date
     avatarUrl: string | null
+    hasPassword: boolean
 }
 
 const initialsOf = (name: string): string => {
@@ -21,6 +22,7 @@ export const ProfileView = ({
     emailVerified,
     memberSince,
     avatarUrl,
+    hasPassword,
 }: ProfileViewProps) => (
     <main className="container mx-auto max-w-4xl space-y-6 px-6 py-8">
         <div>
@@ -37,5 +39,6 @@ export const ProfileView = ({
             memberSince={memberSince}
             avatarUrl={avatarUrl}
         />
+        <SecurityCard hasPassword={hasPassword} />
     </main>
 )

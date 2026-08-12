@@ -6,10 +6,16 @@
 
 import type { ICreditRepository } from '../../repositories/credit/credit.repository.interface'
 
-import { CREDIT_PACKS } from '../payment/credit-pricing'
+import { CREDIT_PACKS, getCreditPricing } from '../payment/credit-pricing'
 import type { IWalletService } from './wallet.service.interface'
 import type { CreditsSummary } from '@/shared/dashboard'
-import type { CreditPack, WalletData, WalletTransaction, WalletTransactionType } from '@/shared/wallet'
+import type {
+    CreditPack,
+    CreditPricing,
+    WalletData,
+    WalletTransaction,
+    WalletTransactionType,
+} from '@/shared/wallet'
 
 type CreditEventKind = NonNullable<CreditsSummary['latestEvent']>['kind']
 
@@ -100,5 +106,11 @@ export class WalletService implements IWalletService {
 
     getPacks(): CreditPack[] {
         return [...CREDIT_PACKS]
+    }
+
+    // Rate ladder + limits for the custom-amount input. The client quotes with
+    // it for the live preview; checkout re-derives the credits server-side.
+    getPricing(): CreditPricing {
+        return getCreditPricing()
     }
 }

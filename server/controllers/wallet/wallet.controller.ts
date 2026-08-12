@@ -36,6 +36,14 @@ export class WalletController implements IWalletController {
         }
     }
 
+    async getPricing(): Promise<Response> {
+        try {
+            return Response.json(this.walletService.getPricing())
+        } catch (error) {
+            return this.handleError(error)
+        }
+    }
+
     private handleError(error: unknown): Response {
         if (error instanceof ApiError) {
             return error.toResponse()

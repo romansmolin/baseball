@@ -17,13 +17,18 @@ import type { ICreditRepository } from '../../repositories/credit/credit.reposit
 import type { IPaymentRepository } from '../../repositories/payment/payment.repository.interface'
 import { CreditTransactionType } from '../../../src/generated/prisma/enums'
 
-import { getCreditPack } from './credit-pricing'
+import {
+    CUSTOM_MAX_AMOUNT_CENTS,
+    CUSTOM_MIN_AMOUNT_CENTS,
+    getCreditPack,
+    quoteCustomPurchase,
+} from './credit-pricing'
 import {
     secureProcessorClient,
     verifyWebhookBasicAuth,
     verifyWebhookSignature,
 } from './secure-processor.client'
-import type { IPaymentService } from './payment.service.interface'
+import type { CreateCheckoutInput, IPaymentService } from './payment.service.interface'
 
 type NormalizedStatus = 'CREATED' | 'PENDING' | 'SUCCESSFUL' | 'FAILED' | 'DECLINED' | 'EXPIRED' | 'ERROR'
 
@@ -55,33 +60,28 @@ export class PaymentService implements IPaymentService {
         this.creditRepository = creditRepository
     }
 
-    async createCheckout(userId: string, credits: number): Promise<{ redirectUrl: string }> {
-        const pack = getCreditPack(credits)
-
-        if (!pack) {
-            throw new ApiError(
-                400,
-                ErrorCode.INVALID_CREDIT_PACK,
-                `Invalid credit pack: ${credits}`,
-            )
-        }
+    async createCheckout(
+        userId: string,
+        input: CreateCheckoutInput,
+    ): Promise<{ redirectUrl: string }> {
+        const purchase = this.resolvePurchase(input)
 
         const token = randomUUID()
 
         const payment = await this.paymentRepository.create({
             userId,
             token,
-            amountCents: pack.priceCents,
-            currency: pack.currency,
-            creditAmount: pack.credits,
-            description: `Purchase ${pack.credits} credits`,
+            amountCents: purchase.priceCents,
+            currency: purchase.currency,
+            creditAmount: purchase.credits,
+            description: `Purchase ${purchase.credits} credits`,
         })
 
         try {
             const checkout = await secureProcessorClient.createCheckout({
-                amountCents: pack.priceCents,
-                currency: pack.currency,
-                description: `Purchase ${pack.credits} Diamond Fantasy credits`,
+                amountCents: purchase.priceCents,
+                currency: purchase.currency,
+                description: `Purchase ${purchase.credits} Diamond Fantasy credits`,
                 trackingId: payment.token,
                 userId,
             })
@@ -103,6 +103,45 @@ export class PaymentService implements IPaymentService {
                 'Could not start checkout. Please try again.',
             )
         }
+    }
+
+    // Turns whatever the client asked for into the amount actually charged and
+    // the credits actually granted. Both branches are derived from the
+    // server-owned pricing table — the client never supplies a price.
+    private resolvePurchase(input: CreateCheckoutInput): {
+        credits: number
+        priceCents: number
+        currency: string
+    } {
+        if (input.credits != null) {
+            const pack = getCreditPack(input.credits)
+
+            if (!pack) {
+                throw new ApiError(
+                    400,
+                    ErrorCode.INVALID_CREDIT_PACK,
+                    `Invalid credit pack: ${input.credits}`,
+                )
+            }
+
+            return {
+                credits: pack.credits,
+                priceCents: pack.priceCents,
+                currency: pack.currency,
+            }
+        }
+
+        const quote = input.amountCents != null ? quoteCustomPurchase(input.amountCents) : undefined
+
+        if (!quote) {
+            throw new ApiError(
+                400,
+                ErrorCode.INVALID_CREDIT_AMOUNT,
+                `Amount must be between ${CUSTOM_MIN_AMOUNT_CENTS} and ${CUSTOM_MAX_AMOUNT_CENTS} cents`,
+            )
+        }
+
+        return quote
     }
 
     async handleWebhook(

@@ -64,18 +64,6 @@ export const ProfileCard = ({
                 icon={Mail01Icon}
                 label="Email"
                 value={email}
-                trailing={
-                    emailVerified ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                            <HugeiconsIcon icon={Tick02Icon} className="size-3" />
-                            Verified
-                        </span>
-                    ) : (
-                        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
-                            Unverified
-                        </span>
-                    )
-                }
             />
             <InfoTile
                 icon={UserCircleIcon}

@@ -11,6 +11,7 @@ import type { CreditPack } from '@/shared/wallet'
 
 import { useBuyCredits } from '../model/buy-credits-context'
 import { useCheckout } from '../model/use-checkout'
+import { CustomCreditAmount } from './custom-credit-amount'
 
 const formatPrice = (pack: CreditPack): string =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: pack.currency }).format(
@@ -59,7 +60,7 @@ export const BuyCreditsModal = () => {
                                         continue.
                                     </>
                                 ) : (
-                                    <>Pick a pack to top up your balance.</>
+                                    <>Pick a pack, or enter your own amount.</>
                                 )}
                             </Dialog.Description>
                         </div>
@@ -107,6 +108,8 @@ export const BuyCreditsModal = () => {
                                 </div>
                             ))
                         )}
+
+                        <CustomCreditAmount />
                     </div>
                 </Dialog.Popup>
             </Dialog.Portal>

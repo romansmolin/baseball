@@ -94,6 +94,12 @@ export const SignUpForm = () => {
                 </FieldSet>
 
                 <FieldSet className="flex-1 flex-col gap-4 justify-end">
+                    {errors.root?.message && (
+                        <Field data-invalid>
+                            <FieldError errors={[errors.root]} />
+                        </Field>
+                    )}
+
                     <Field orientation="horizontal">
                         <Checkbox
                             id="sign-up-agree-to-terms"
@@ -101,7 +107,26 @@ export const SignUpForm = () => {
                             onCheckedChange={(checked) => setAgreeToTerms(!!checked)}
                         />
                         <FieldLabel htmlFor="sign-up-agree-to-terms" className="font-normal">
-                            I agree to the Terms and Privacy Policy
+                            I agree to the{' '}
+                            <Link
+                                href="/legal/terms"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-primary underline underline-offset-4"
+                            >
+                                Terms
+                            </Link>{' '}
+                            and{' '}
+                            <Link
+                                href="/legal/privacy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-primary underline underline-offset-4"
+                            >
+                                Privacy Policy
+                            </Link>
                         </FieldLabel>
                     </Field>
 

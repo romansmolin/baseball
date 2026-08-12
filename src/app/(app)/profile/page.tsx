@@ -19,6 +19,13 @@ export default async function ProfilePage() {
     })
     if (!user) redirect('/auth/sign-in')
 
+    // Only email/password accounts have a password to change — a social-only
+    // account gets an explanation instead of the form.
+    const credentialAccount = await prisma.account.findFirst({
+        where: { userId: session.user.id, providerId: 'credential', password: { not: null } },
+        select: { id: true },
+    })
+
     return (
         <ProfileView
             name={user.name}
@@ -26,6 +33,7 @@ export default async function ProfilePage() {
             emailVerified={user.emailVerified}
             memberSince={user.createdAt}
             avatarUrl={user.image}
+            hasPassword={credentialAccount !== null}
         />
     )
 }

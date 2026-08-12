@@ -62,6 +62,12 @@ export const SignInForm = () => {
                 </FieldSet>
 
                 <FieldSet className="flex-1 flex-col gap-4 justify-end">
+                    {errors.root?.message && (
+                        <Field data-invalid>
+                            <FieldError errors={[errors.root]} />
+                        </Field>
+                    )}
+
                     <Button type="submit" disabled={isSubmitting} size={'lg'}>
                         {isSubmitting ? (
                             <div className="flex items-center gap-2">

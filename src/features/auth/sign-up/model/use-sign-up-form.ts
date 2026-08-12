@@ -35,7 +35,10 @@ export const useSignUpForm = () => {
         })
 
         if (error) {
-            toast.error(error.message || 'Something went wrong! Please try again.')
+            const message = error.message || 'Something went wrong! Please try again.'
+
+            form.setError('root', { message })
+            toast.error(message)
             return
         }
 

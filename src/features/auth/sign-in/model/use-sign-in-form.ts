@@ -28,7 +28,10 @@ export const useSignInForm = () => {
         })
 
         if (error) {
-            toast.error(error.message || 'Invalid email or password. Please try again.')
+            const message = error.message || 'Invalid email or password. Please try again.'
+
+            form.setError('root', { message })
+            toast.error(message)
             return
         }
 

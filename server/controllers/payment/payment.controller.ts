@@ -27,10 +27,10 @@ export class PaymentController implements IPaymentController {
                 return ApiError.validationError(result.error.issues[0].message).toResponse()
             }
 
-            const { redirectUrl } = await this.paymentService.createCheckout(
-                userId,
-                result.data.credits,
-            )
+            const { redirectUrl } = await this.paymentService.createCheckout(userId, {
+                credits: result.data.credits,
+                amountCents: result.data.amountCents,
+            })
             return Response.json({ redirectUrl })
         } catch (error) {
             return this.handleError(error)

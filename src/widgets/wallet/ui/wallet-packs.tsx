@@ -4,7 +4,7 @@ import { Coins01Icon, ShoppingCart02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import { useCreditPacksData } from '@/entities/wallet'
-import { useCheckout } from '@/features/buy-credits'
+import { CustomCreditAmount, useCheckout } from '@/features/buy-credits'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { CreditPack } from '@/shared/wallet'
@@ -61,6 +61,8 @@ export const WalletPacks = () => {
                         </div>
                     ))
                 )}
+
+                <CustomCreditAmount />
             </CardContent>
         </Card>
     )
