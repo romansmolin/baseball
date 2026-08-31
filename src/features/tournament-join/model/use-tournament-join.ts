@@ -60,6 +60,8 @@ const ERROR_CODE_TO_MESSAGE: Record<string, string> = {
         "You've already joined this tournament with another team.",
     VALIDATION_ERROR: 'Invalid request — please try again.',
     UNAUTHENTICATED: 'Please sign in to join a tournament.',
+    INSUFFICIENT_CREDITS:
+        "You don't have enough credits for this tournament's entry fee.",
 }
 
 const FALLBACK_ERROR = 'Something went wrong. Please try again.'

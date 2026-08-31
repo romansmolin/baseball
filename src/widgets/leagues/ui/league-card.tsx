@@ -45,7 +45,13 @@ export const LeagueCard = ({ league, onSelect }: LeagueCardProps) => {
                         {league.country}
                     </div>
                     <div className="mt-2">
-                        <SeasonBadge season={league.season} />
+                        {league.providerBacked ? (
+                            <SeasonBadge season={league.season} />
+                        ) : (
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                                Coming soon
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

@@ -2,11 +2,15 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
+import {
+    BASEBALL_LEAGUES,
+    UNBACKED_BASEBALL_LEAGUES,
+    type BaseballLeagueRegion,
+} from '@/shared/baseball'
 import { useTournamentsData } from '@/entities/tournaments'
 
-import { leagues as baseLeagues } from './mock-data'
 import { filterLeagues, sortLeagues } from './league-filters'
-import type { League, RegionFilter, SortKey } from './league.type'
+import type { League, LeagueFormat, RegionFilter, SortKey } from './league.type'
 
 export interface LeaguesState {
     leagues: League[]
@@ -27,6 +31,38 @@ export interface LeaguesState {
     clearFilters: () => void
 }
 
+const REGION_COUNTRY: Record<BaseballLeagueRegion, string> = {
+    'north-america': 'USA / Canada',
+    'japan-korea': 'Japan / South Korea',
+    'latin-america': 'Latin America',
+}
+
+const DESCRIPTIONS: Record<string, string> = {
+    mlb: 'The premier professional league. Deepest player pool and the biggest tournament prize pools on the platform.',
+    'triple-a': 'One step from the majors. Polished prospects and veteran depth — real box scores, real scoring.',
+    'double-a': 'Where top prospects break out. High-variance slates that reward sharp research.',
+    'high-a': 'Full-season A-ball. Younger rosters, live schedules, and a growing tournament calendar.',
+    'single-a': 'Early-career pro ball. Prospect-heavy pools for managers who like to draft on upside.',
+    rookie: 'Complex and rookie-level ball. Rosters churn fast and box-score coverage is partial.',
+    npb: "Japan's top circuit. Distinct scoring tendencies and a passionate weekly tournament scene.",
+    kbo: 'High-offense Korean league with fast games — popular for daily slates.',
+    lvbp: 'Venezuelan winter ball. A fan favorite during the North American off-season.',
+    lmb: 'The Mexican League. Summer schedule with a deep, competitive field.',
+}
+
+const DEFAULT_FORMATS: LeagueFormat[] = ['Daily', 'Weekly', 'Tournament']
+
+interface TournamentAgg {
+    count: number
+    prizeCredits: number
+}
+
+function formatPrize(credits: number): string {
+    if (credits <= 0) return '—'
+    if (credits >= 1000) return `${(credits / 1000).toFixed(1)}k cr`
+    return `${credits} cr`
+}
+
 export const useLeaguesState = (): LeaguesState => {
     const [search, setSearch] = useState('')
     const [region, setRegion] = useState<RegionFilter>('all')
@@ -34,25 +70,64 @@ export const useLeaguesState = (): LeaguesState => {
     const [sortKey, setSortKey] = useState<SortKey>('tournaments')
     const [selectedLeagueSlug, setSelectedLeagueSlug] = useState<string | null>(null)
 
-    // Hard truth — what the API actually has. The mock data's openTournaments
-    // counts are decorative numbers; we override them with the real count per
-    // league so the badge, sort, and Browse-tournaments CTA all reflect what
-    // the catalog will actually show.
+    // Real, current tournament counts + prize pools per league.
     const { data: tournamentsList } = useTournamentsData({ visibility: ['PUBLIC'] })
 
-    const leagues = useMemo<League[]>(() => {
-        const counts = new Map<string, number>()
+    const aggByLeague = useMemo(() => {
+        const map = new Map<string, TournamentAgg>()
         for (const t of tournamentsList?.items ?? []) {
-            counts.set(t.leagueSlug, (counts.get(t.leagueSlug) ?? 0) + 1)
+            const agg = map.get(t.leagueSlug) ?? { count: 0, prizeCredits: 0 }
+            agg.count += 1
+            agg.prizeCredits += t.prizePoolCredits
+            map.set(t.leagueSlug, agg)
         }
-        // Until the tournaments fetch resolves, fall back to the mock count
-        // so the UI doesn't flicker to 0 on first paint.
-        if (counts.size === 0) return baseLeagues
-        return baseLeagues.map((league) => ({
-            ...league,
-            openTournaments: counts.get(league.slug) ?? 0,
-        }))
+        return map
     }, [tournamentsList])
+
+    const leagues = useMemo<League[]>(() => {
+        const backed: League[] = BASEBALL_LEAGUES.map((l) => {
+            const agg = aggByLeague.get(l.slug)
+            return {
+                slug: l.slug,
+                name: l.name,
+                full: l.fullName,
+                region: l.region,
+                color: l.color,
+                country: REGION_COUNTRY[l.region],
+                proTeams: l.proTeams,
+                season: 'live',
+                providerBacked: true,
+                myTeams: 0,
+                openTournaments: agg?.count ?? 0,
+                prizePool: formatPrize(agg?.prizeCredits ?? 0),
+                formats: DEFAULT_FORMATS,
+                topScorer: '—',
+                topPoints: 0,
+                description: DESCRIPTIONS[l.slug] ?? '',
+            }
+        })
+
+        const unbacked: League[] = UNBACKED_BASEBALL_LEAGUES.map((l) => ({
+            slug: l.slug,
+            name: l.name,
+            full: l.fullName,
+            region: l.region,
+            color: l.color,
+            country: REGION_COUNTRY[l.region],
+            proTeams: l.proTeams,
+            season: 'offseason',
+            providerBacked: false,
+            myTeams: 0,
+            openTournaments: 0,
+            prizePool: '—',
+            formats: DEFAULT_FORMATS,
+            topScorer: '—',
+            topPoints: 0,
+            description: DESCRIPTIONS[l.slug] ?? '',
+        }))
+
+        return [...backed, ...unbacked]
+    }, [aggByLeague])
 
     const visibleLeagues = useMemo(
         () => sortLeagues(filterLeagues(leagues, { search, region, liveOnly }), sortKey),
@@ -65,7 +140,7 @@ export const useLeaguesState = (): LeaguesState => {
     )
 
     const liveLeagues = useMemo(
-        () => leagues.filter((l) => l.season === 'live').length,
+        () => leagues.filter((l) => l.providerBacked).length,
         [leagues],
     )
 

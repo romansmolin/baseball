@@ -11,12 +11,21 @@ export interface WeeklyMemberScore {
     awarded: boolean
 }
 
+export interface MemberScoresSummary {
+    membersNeedingRefresh: string[]
+    totals: Map<string, number>
+}
+
 // Slimmer per-league input — the scoring engine no longer needs the live
 // roster from the caller. Roster snapshots are loaded internally per-week
 // from WeeklyLineup, so historical weeks stay reproducible even when the
 // live lineup changes.
 export interface ScoringInputLeague {
     id: string
+    // League slug + season drive which MLB Stats API level the scoring engine
+    // pulls schedules and box scores from (MLB vs a Minor League level).
+    leagueSlug: string
+    season: number
     startsAt: Date
     totalWeeks: number
 }
@@ -27,6 +36,24 @@ export interface IWeeklyScoringService {
      * Convenience for callers that don't already have the rule loaded.
      */
     findRuleForLeague(leagueId: string): Promise<ScoringRuleRecord | null>
+
+    /**
+     * Best-effort warm of the provider's schedule + box-score caches. Call
+     * once before scoring a whole roster of members so they share one cold
+     * pass instead of stampeding the provider. Skips weeks every member has
+     * already settled in the cache. Never throws.
+     */
+    warmProviderCache(
+        league: ScoringInputLeague,
+        throughWeek: number,
+        memberIds: string[],
+    ): Promise<void>
+
+    /** Batched cache read used to both identify stale members and rank standings. */
+    summarizeScoresForMembers(
+        memberIds: string[],
+        throughWeek: number,
+    ): Promise<MemberScoresSummary>
 
     /**
      * Ensures the WeeklyScoreCache contains a fresh row for the member for
@@ -50,4 +77,7 @@ export interface IWeeklyScoringService {
 
     /** Sum of cached points across weeks 1..throughWeek. */
     totalThroughWeek(memberId: string, throughWeek: number): Promise<number>
+
+    /** Batched counterpart to totalThroughWeek for tournament standings. */
+    totalsThroughWeek(memberIds: string[], throughWeek: number): Promise<Map<string, number>>
 }

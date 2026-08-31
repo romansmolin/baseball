@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { baseballLeagueEnum } from '../../../../../../server/entities/baseball-league.schema'
 import { ApiError } from '../../../../../../server/errors/api.error'
 import { getSportsProvider } from '../../../../../../server/providers/sports-provider.factory'
 import { prisma } from '../../../../../../server/lib/prisma'
@@ -23,6 +24,7 @@ function buildOrchestrator() {
 }
 
 const requestSchema = z.object({
+    league: baseballLeagueEnum.optional(),
     mlbTeamIds: z.array(z.number().int().positive()).min(1),
     salaryCap: z.number().int().positive(),
     riskProfile: z.enum(['safe', 'balanced', 'high_ceiling']).optional(),
@@ -77,6 +79,7 @@ export async function POST(request: Request) {
     try {
         const { orchestrator, feature } = buildOrchestrator()
         const result = await orchestrator.invoke(user.id, feature, {
+            league: parsed.data.league,
             mlbTeamIds: parsed.data.mlbTeamIds,
             salaryCap: parsed.data.salaryCap,
             riskProfile: parsed.data.riskProfile,

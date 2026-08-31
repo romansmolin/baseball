@@ -17,10 +17,10 @@ import {
 import { useBuyCredits } from '@/features/buy-credits'
 import { autofillTeamBuilder } from '@/features/team-builder-autofill'
 import { ApiError } from '@/shared/api/api-error'
+import type { SupportedBaseballLeague } from '@/shared/baseball'
 import {
     CAPTAIN_MULTIPLIER,
     FIELD_SLOTS,
-    filterTeamsByLeague,
     ROSTER_SIZE,
     SALARY_CAP_DEFAULT,
     type BuilderBudget,
@@ -161,7 +161,6 @@ export const useTeamBuilderState = (
     const { mutate: globalMutate } = useSWRConfig()
 
     const leaguesQuery = useLeaguesData()
-    const teamsQuery = useBuilderTeamsData()
     const budgetQuery = useBudgetData()
     const myTeamsQuery = useMyTeamsData()
 
@@ -190,7 +189,12 @@ export const useTeamBuilderState = (
         !myTeamsQuery.error &&
         existingTeam == null
 
+    // Teams and the player pool are both scoped to the selected league — the
+    // API serves the right sport level, so no client-side league filtering.
+    const teamsQuery = useBuilderTeamsData(selectedLeagueSlug)
+
     const playersQuery = usePlayersByTeamData({
+        leagueSlug: selectedLeagueSlug ?? '',
         teamId: selectedTeamId ?? undefined,
         search: poolSearch.trim() || undefined,
         position: poolPosition === 'all' ? undefined : poolPosition,
@@ -349,6 +353,7 @@ export const useTeamBuilderState = (
         setIsAutofilling(true)
         try {
             const response = await autofillTeamBuilder({
+                league: selectedLeagueSlug as SupportedBaseballLeague,
                 mlbTeamIds,
                 salaryCap,
                 filledSlots,
@@ -369,7 +374,10 @@ export const useTeamBuilderState = (
             )
             const hydratedRosters = await Promise.all(
                 teamsToHydrate.map((teamId) =>
-                    fetchPlayersByTeam({ teamId }).catch(() => [] as PoolPlayer[]),
+                    fetchPlayersByTeam({
+                        leagueSlug: selectedLeagueSlug ?? '',
+                        teamId,
+                    }).catch(() => [] as PoolPlayer[]),
                 ),
             )
             const poolById = new Map<number, PoolPlayer>()
@@ -564,7 +572,7 @@ export const useTeamBuilderState = (
     // that league's teams, so the AI can only draw players from within it.
     const selectedLeagueName =
         (leaguesQuery.data ?? []).find((l) => l.slug === selectedLeagueSlug)?.name ?? null
-    const autofillTeams = filterTeamsByLeague(teamsQuery.data ?? [], selectedLeagueSlug)
+    const autofillTeams = teamsQuery.data ?? []
     const canAutofill = !!selectedLeagueSlug
 
     return {

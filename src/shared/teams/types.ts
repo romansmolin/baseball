@@ -11,8 +11,10 @@ export const REGION_ORDER: Region[] = ['north-america', 'japan-korea', 'latin-am
 export interface League {
     slug: string
     name: string
+    shortName?: string
     region: Region
     dotColor: string
+    providerBacked?: boolean
 }
 
 export type TeamStatus = 'active' | 'draft'

@@ -1,5 +1,6 @@
 import { TournamentsJoinsController } from '../../../../../../server/controllers/tournaments/joins/tournaments-joins.controller'
 import { ApiError } from '../../../../../../server/errors/api.error'
+import { CreditRepository } from '../../../../../../server/repositories/credit/credit.repository'
 import { FantasyTeamRepository } from '../../../../../../server/repositories/fantasy-team/fantasy-team.repository'
 import { LeagueMemberRepository } from '../../../../../../server/repositories/league-member/league-member.repository'
 import { LeagueRepository } from '../../../../../../server/repositories/league/league.repository'
@@ -22,6 +23,7 @@ const tournamentsJoinsController = new TournamentsJoinsController(
         new LeagueMemberRepository(),
         fantasyTeamRepository,
         weeklyLineupSnapshotService,
+        new CreditRepository(),
     ),
 )
 

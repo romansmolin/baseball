@@ -43,8 +43,12 @@ export const FIELD_SLOTS: FieldSlot[] = [
 export interface BuilderLeague {
     slug: string
     name: string
+    shortName: string
     region: 'north-america' | 'japan-korea' | 'latin-america'
     dotColor: string
+    // Whether a real data provider stands behind this league. `false` leagues
+    // still list in pickers but are shown as "coming soon" and can't be picked.
+    providerBacked: boolean
 }
 
 export interface BuilderTeam {

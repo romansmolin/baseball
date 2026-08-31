@@ -59,14 +59,6 @@ export const PlayersSidebar = ({
                     League
                 </div>
                 <div className="space-y-0.5">
-                    <FilterRow
-                        active={league === 'all'}
-                        onClick={() => onLeagueChange('all')}
-                        label="All leagues"
-                        count={totalPlayers}
-                        leading={null}
-                        bold
-                    />
                     {leagues.map((lg) => (
                         <FilterRow
                             key={lg.slug}

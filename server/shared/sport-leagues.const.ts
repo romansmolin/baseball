@@ -1,10 +1,29 @@
-import type { League } from '@/shared/teams'
+import type { BuilderLeague } from '@/shared/team-builder'
+import { BASEBALL_LEAGUES, UNBACKED_BASEBALL_LEAGUES } from '@/shared/baseball'
 
-export const SPORT_LEAGUES: League[] = [
-    { slug: 'mlb', name: 'MLB', region: 'north-america', dotColor: '#3b82f6' },
-    { slug: 'milb', name: 'MiLB', region: 'north-america', dotColor: '#22c55e' },
-    { slug: 'npb', name: 'NPB', region: 'japan-korea', dotColor: '#ef4444' },
-    { slug: 'kbo', name: 'KBO', region: 'japan-korea', dotColor: '#ec4899' },
-    { slug: 'lvbp', name: 'LVBP', region: 'latin-america', dotColor: '#f59e0b' },
-    { slug: 'lmb', name: 'LMB', region: 'latin-america', dotColor: '#14b8a6' },
+// The league catalogue served by `GET /api/leagues`. Derived from the single
+// canonical baseball-league config so the API, team builder, tournament logic
+// and `/leagues` page can never drift apart. Provider-backed leagues come
+// first, then the "coming soon" ones.
+export const SPORT_LEAGUES: BuilderLeague[] = [
+    ...BASEBALL_LEAGUES.map(
+        (league): BuilderLeague => ({
+            slug: league.slug,
+            name: league.name,
+            shortName: league.shortName,
+            region: league.region,
+            dotColor: league.color,
+            providerBacked: true,
+        }),
+    ),
+    ...UNBACKED_BASEBALL_LEAGUES.map(
+        (league): BuilderLeague => ({
+            slug: league.slug,
+            name: league.name,
+            shortName: league.shortName,
+            region: league.region,
+            dotColor: league.color,
+            providerBacked: false,
+        }),
+    ),
 ]

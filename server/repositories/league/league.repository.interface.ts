@@ -7,6 +7,7 @@ export interface LeagueRecord {
     id: string
     name: string
     leagueSlug: string
+    externalSeasonId: number
     status: LeagueStatus
     startsAt: Date
     endsAt: Date

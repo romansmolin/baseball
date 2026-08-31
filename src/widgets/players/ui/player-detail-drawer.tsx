@@ -168,10 +168,13 @@ const DrawerContent = ({
                         {availability.label}
                     </span>
                     <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
-                        Age {player.age}
+                        Age {player.age ?? '—'}
                     </span>
                     <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
                         Bats {player.bats}
+                    </span>
+                    <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
+                        Throws {player.throws}
                     </span>
                 </div>
 

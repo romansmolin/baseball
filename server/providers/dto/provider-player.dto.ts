@@ -1,4 +1,5 @@
-import type { Position } from '@/shared/sports'
+import type { SupportedBaseballLeague } from '../../../src/shared/baseball'
+import type { Position } from '../../../src/shared/sports'
 import type { PaginationParams } from './provider-pagination.dto'
 
 export interface ProviderPlayer {
@@ -24,4 +25,5 @@ export interface ProviderPlayerFilters extends PaginationParams {
     position?: Position
     search?: string
     season?: number
+    league?: SupportedBaseballLeague
 }

@@ -28,7 +28,11 @@ function mapProviderTeamToBuilderTeam(dto: ProviderTeamDto): BuilderTeam {
     }
 }
 
-export async function fetchBuilderTeams(): Promise<BuilderTeam[]> {
-    const response = await httpClient.get<TeamsListResponseDto>('/api/teams')
+// Teams are fetched per league slug — the API scopes the response to that
+// league's sport level, so the client no longer filters a flat MLB list.
+export async function fetchBuilderTeams(leagueSlug: string): Promise<BuilderTeam[]> {
+    const response = await httpClient.get<TeamsListResponseDto>(
+        `/api/teams?league=${encodeURIComponent(leagueSlug)}&activeOnly=true`,
+    )
     return response.items.map(mapProviderTeamToBuilderTeam)
 }

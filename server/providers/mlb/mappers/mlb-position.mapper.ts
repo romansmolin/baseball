@@ -1,4 +1,4 @@
-import type { Position } from '@/shared/sports'
+import type { Position } from '../../../../src/shared/sports'
 
 const POSITION_TABLE: Record<string, Position> = {
     P: 'SP',

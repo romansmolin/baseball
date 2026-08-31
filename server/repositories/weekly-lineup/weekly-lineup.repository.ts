@@ -47,6 +47,30 @@ export class WeeklyLineupRepository implements IWeeklyLineupRepository {
         }
     }
 
+    async findRosterFootprintByMembers(
+        memberIds: string[],
+    ): Promise<{ teamNames: string[]; externalPlayerIds: number[] }> {
+        if (memberIds.length === 0) return { teamNames: [], externalPlayerIds: [] }
+        try {
+            const rows = await prisma.weeklyLineupSlot.findMany({
+                where: { weeklyLineup: { leagueMemberId: { in: memberIds } } },
+                select: { playerTeamName: true, externalPlayerId: true },
+            })
+            const teamNames = new Set<string>()
+            const externalPlayerIds = new Set<number>()
+            for (const row of rows) {
+                if (row.playerTeamName.length > 0) teamNames.add(row.playerTeamName)
+                externalPlayerIds.add(row.externalPlayerId)
+            }
+            return {
+                teamNames: [...teamNames],
+                externalPlayerIds: [...externalPlayerIds],
+            }
+        } catch (error) {
+            throw handleRepositoryError(error)
+        }
+    }
+
     async createIfMissing(
         input: CreateWeeklyLineupInput,
     ): Promise<WeeklyLineupRecord> {

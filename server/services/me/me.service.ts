@@ -459,19 +459,39 @@ export class MeService implements IMeService {
 
         const scoringLeague: ScoringInputLeague = {
             id: league.id,
+            leagueSlug: league.leagueSlug,
+            season: league.externalSeasonId,
             startsAt: league.startsAt,
             totalWeeks: league.totalWeeks,
         }
 
-        // Prepare the user's own member weeks first (their breakdown depends
-        // on the cache being fresh). The scoring engine reads its lineup
-        // snapshots from WeeklyLineup directly — no roster passed in.
-        await this.weeklyScoringService.prepareMemberWeeks(
-            membership.id,
-            scoringLeague,
-            rule,
+        const memberIds = allMembers.map((member) => member.id)
+        const scoreSummary = await this.weeklyScoringService.summarizeScoresForMembers(
+            memberIds,
             currentWeek,
         )
+        const membersNeedingRefresh = scoreSummary.membersNeedingRefresh
+
+        // This endpoint is mounted with the tournament detail panel. Never
+        // re-warm or re-score a fully cached tournament merely to show the
+        // current user's rank.
+        if (membersNeedingRefresh.length > 0) {
+            await this.weeklyScoringService.warmProviderCache(
+                scoringLeague,
+                currentWeek,
+                membersNeedingRefresh,
+            )
+            await Promise.all(
+                membersNeedingRefresh.map((memberId) =>
+                    this.weeklyScoringService.prepareMemberWeeks(
+                        memberId,
+                        scoringLeague,
+                        rule,
+                        currentWeek,
+                    ),
+                ),
+            )
+        }
 
         const breakdown = await this.weeklyScoringService.weeklyBreakdown(
             membership.id,
@@ -484,35 +504,15 @@ export class MeService implements IMeService {
             awarded: row.awarded && row.week <= currentWeek,
         }))
 
-        const totalPoints = await this.weeklyScoringService.totalThroughWeek(
-            membership.id,
-            currentWeek,
-        )
-
-        // For rank, score every other member too. The standings endpoint
-        // shares the same cache, so this loop typically reads cached rows
-        // after the first call.
-        const otherMembers = allMembers.filter((m) => m.id !== membership.id)
-        await Promise.all(
-            otherMembers.map(async (member) => {
-                await this.weeklyScoringService.prepareMemberWeeks(
-                    member.id,
-                    scoringLeague,
-                    rule,
-                    currentWeek,
-                )
-            }),
-        )
-
-        const totals = await Promise.all(
-            allMembers.map(async (member) => ({
-                memberId: member.id,
-                total: await this.weeklyScoringService.totalThroughWeek(
-                    member.id,
-                    currentWeek,
-                ),
-            })),
-        )
+        const totalByMember =
+            membersNeedingRefresh.length === 0
+                ? scoreSummary.totals
+                : await this.weeklyScoringService.totalsThroughWeek(memberIds, currentWeek)
+        const totalPoints = totalByMember.get(membership.id) ?? 0
+        const totals = allMembers.map((member) => ({
+            memberId: member.id,
+            total: totalByMember.get(member.id) ?? 0,
+        }))
 
         totals.sort((a, b) => {
             if (b.total !== a.total) return b.total - a.total

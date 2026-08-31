@@ -1,3 +1,4 @@
+import type { SupportedBaseballLeague } from '../../../src/shared/baseball'
 import { env } from '../../lib/env'
 import type { Paginated } from '../dto/provider-pagination.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from '../dto/provider-player.dto'
@@ -9,6 +10,7 @@ import type {
 } from '../dto/provider-schedule.dto'
 import type { ProviderTeam } from '../dto/provider-team.dto'
 import type {
+    GetBoxScoreOptions,
     GetPlayersByTeamOptions,
     GetTeamByIdOptions,
     GetTeamsFilters,
@@ -17,7 +19,8 @@ import type {
 import { ProviderNotFoundError } from '../sports-provider.error'
 
 import { mlbFetch } from './mlb.client'
-import { MLB_PEOPLE_HYDRATE_CHUNK, MLB_REVALIDATE, MLB_SPORT_ID, mlbTags } from './mlb.constants'
+import { MLB_PEOPLE_HYDRATE_CHUNK, MLB_REVALIDATE, mlbTags } from './mlb.constants'
+import { resolveSportId } from './mlb-leagues.config'
 import { mapMlbBoxScoreToProvider } from './mappers/mlb-boxscore.mapper'
 import { mapMlbPersonToProviderPlayer } from './mappers/mlb-person.mapper'
 import {
@@ -29,21 +32,27 @@ import type { MlbRawBoxScoreResponse } from './types/mlb-boxscore.raw'
 import type { MlbRawPeopleResponse, MlbRawPerson } from './types/mlb-person.raw'
 import type { MlbRawRosterResponse } from './types/mlb-roster.raw'
 import type { MlbRawScheduleResponse } from './types/mlb-schedule.raw'
-import type { MlbRawTeam, MlbRawTeamsResponse } from './types/mlb-team.raw'
+import type { MlbRawTeamsResponse } from './types/mlb-team.raw'
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 200
 
+// The MLB Stats API serves MLB *and* every Minor League level from the same
+// host — the only thing that changes per level is the `sportId` query
+// parameter (and, for the players endpoint, the `/sports/{sportId}/` path
+// segment). `resolveSportId` maps a league slug to that number and defaults to
+// MLB, so every method here stays a single code path regardless of level.
 export class MlbSportsProvider implements ISportsProvider {
     readonly name = 'mlb'
 
     async getTeams(filters: GetTeamsFilters = {}): Promise<ProviderTeam[]> {
         const season = filters.season ?? env.defaultSeason()
-        const path = `/teams?sportId=${MLB_SPORT_ID}&season=${season}`
+        const sportId = resolveSportId(filters.league)
+        const path = `/teams?sportId=${sportId}&season=${season}`
 
         const data = await mlbFetch<MlbRawTeamsResponse>(path, {
             revalidate: MLB_REVALIDATE.teams,
-            tags: [mlbTags.teams(season)],
+            tags: [mlbTags.teams(sportId, season)],
         })
 
         const teams = data.teams.map(mapMlbTeamToProviderTeam)
@@ -52,6 +61,8 @@ export class MlbSportsProvider implements ISportsProvider {
 
     async getTeamById(id: number, opts: GetTeamByIdOptions = {}): Promise<ProviderTeam | null> {
         const season = opts.season ?? env.defaultSeason()
+        // `/teams/{id}` is keyed by a globally-unique team id — no sportId needed,
+        // and it resolves teams at every level.
         const path = `/teams/${id}?season=${season}`
 
         try {
@@ -69,14 +80,15 @@ export class MlbSportsProvider implements ISportsProvider {
 
     async getPlayers(filters: ProviderPlayerFilters = {}): Promise<Paginated<ProviderPlayer>> {
         const season = filters.season ?? env.defaultSeason()
-        const path = `/sports/${MLB_SPORT_ID}/players?season=${season}`
+        const sportId = resolveSportId(filters.league)
+        const path = `/sports/${sportId}/players?season=${season}`
 
         const data = await mlbFetch<MlbRawPeopleResponse>(path, {
             revalidate: MLB_REVALIDATE.players,
-            tags: [mlbTags.players(season)],
+            tags: [mlbTags.players(sportId, season)],
         })
 
-        const teamLookup = await this.buildTeamLookup(season)
+        const teamLookup = await this.buildTeamLookup(season, filters.league)
 
         let players = data.people.map((person) =>
             mapMlbPersonToProviderPlayer(person, { teamLookup }),
@@ -102,6 +114,10 @@ export class MlbSportsProvider implements ISportsProvider {
     }
 
     async getPlayerById(id: number): Promise<ProviderPlayer | null> {
+        // `/people/{id}` is level-agnostic. We can't know the player's league
+        // here, so the team lookup used to enrich the response is the MLB team
+        // set — a MiLB player's team name still resolves via the raw
+        // `currentTeam` field, only the abbreviation may be absent.
         const path = `/people/${id}?hydrate=currentTeam`
 
         try {
@@ -123,12 +139,25 @@ export class MlbSportsProvider implements ISportsProvider {
         }
     }
 
+    async getPlayersByIds(ids: number[]): Promise<ProviderPlayer[]> {
+        if (ids.length === 0) return []
+        // Bulk `/people?personIds=…&hydrate=currentTeam` — one call per 100
+        // ids. No team lookup: callers of this path only need `teamId`
+        // (from the hydrated currentTeam), not the display name/abbreviation.
+        const peopleById = await this.hydratePeople(ids)
+        return Array.from(peopleById.values()).map((raw) =>
+            mapMlbPersonToProviderPlayer(raw),
+        )
+    }
+
     async getPlayersByTeam(
         teamId: number,
         opts: GetPlayersByTeamOptions = {},
     ): Promise<ProviderPlayer[]> {
         const season = opts.season ?? env.defaultSeason()
         const rosterType = opts.rosterType ?? 'active'
+        // Roster + team-by-id endpoints are keyed by the unique team id and
+        // resolve at every level, so no sportId is threaded here.
         const path = `/teams/${teamId}/roster?rosterType=${rosterType}&season=${season}`
 
         const roster = await mlbFetch<MlbRawRosterResponse>(path, {
@@ -138,7 +167,7 @@ export class MlbSportsProvider implements ISportsProvider {
 
         if (roster.roster.length === 0) return []
 
-        const team = await this.getTeamById(teamId, { season })
+        const team = await this.getTeamById(teamId, { season, league: opts.league })
         const teamLookup = team ? new Map<number, ProviderTeam>([[team.id, team]]) : undefined
 
         const personIds = roster.roster.map((entry) => entry.person.id)
@@ -164,15 +193,25 @@ export class MlbSportsProvider implements ISportsProvider {
     async getSchedule(filters: GetScheduleFilters): Promise<ProviderScheduledGame[]> {
         const startStr = toDateOnly(filters.startDateUtc)
         const endStr = toDateOnly(filters.endDateUtc)
+        const sportId = resolveSportId(filters.league)
+        const season = filters.season ?? env.defaultSeason()
 
-        let path = `/schedule?sportId=${MLB_SPORT_ID}&startDate=${startStr}&endDate=${endStr}`
-        if (filters.teamId != null) {
-            path += `&teamId=${filters.teamId}`
+        const teamIds =
+            filters.teamIds && filters.teamIds.length > 0
+                ? [...new Set(filters.teamIds)]
+                : filters.teamId != null
+                  ? [filters.teamId]
+                  : []
+        const teamKey = teamIds.length > 0 ? teamIds.join(',') : undefined
+
+        let path = `/schedule?sportId=${sportId}&season=${season}&startDate=${startStr}&endDate=${endStr}`
+        if (teamKey) {
+            path += `&teamId=${teamKey}`
         }
 
         const data = await mlbFetch<MlbRawScheduleResponse>(path, {
             revalidate: MLB_REVALIDATE.schedule,
-            tags: [mlbTags.schedule(startStr, endStr, filters.teamId)],
+            tags: [mlbTags.schedule(sportId, startStr, endStr, teamKey)],
         })
 
         const games: ProviderScheduledGame[] = []
@@ -184,15 +223,20 @@ export class MlbSportsProvider implements ISportsProvider {
         return games
     }
 
-    async getBoxScore(gamePk: number): Promise<ProviderBoxScore | null> {
+    async getBoxScore(
+        gamePk: number,
+        opts: GetBoxScoreOptions = {},
+    ): Promise<ProviderBoxScore | null> {
         // The /boxscore endpoint doesn't include the game's lifecycle status,
         // so we resolve it via a targeted schedule lookup (which the MLB API
-        // supports via the gamePks query param). If the schedule lookup
-        // doesn't return the game, treat the gamePk as unknown.
+        // supports via the gamePks query param). The sportId must match the
+        // game's level or the schedule filter excludes it — hence the league
+        // option threaded from the caller.
+        const sportId = resolveSportId(opts.league)
         let status: ProviderGameStatus
         try {
             const scheduleData = await mlbFetch<MlbRawScheduleResponse>(
-                `/schedule?sportId=${MLB_SPORT_ID}&gamePks=${gamePk}`,
+                `/schedule?sportId=${sportId}&gamePks=${gamePk}`,
                 {
                     revalidate: MLB_REVALIDATE.schedule,
                     tags: [mlbTags.boxscore(gamePk)],
@@ -221,8 +265,11 @@ export class MlbSportsProvider implements ISportsProvider {
         }
     }
 
-    private async buildTeamLookup(season: number): Promise<Map<number, ProviderTeam>> {
-        const teams = await this.getTeams({ season })
+    private async buildTeamLookup(
+        season: number,
+        league?: SupportedBaseballLeague,
+    ): Promise<Map<number, ProviderTeam>> {
+        const teams = await this.getTeams({ season, league })
         return new Map(teams.map((t) => [t.id, t]))
     }
 

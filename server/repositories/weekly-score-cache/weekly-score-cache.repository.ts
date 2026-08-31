@@ -31,6 +31,20 @@ export class WeeklyScoreCacheRepository implements IWeeklyScoreCacheRepository {
         }
     }
 
+    async findByMembers(leagueMemberIds: string[]): Promise<WeeklyScoreCacheRecord[]> {
+        if (leagueMemberIds.length === 0) return []
+        try {
+            const rows = await prisma.weeklyScoreCache.findMany({
+                where: { leagueMemberId: { in: leagueMemberIds } },
+                orderBy: { week: 'asc' },
+            })
+
+            return rows.map(this.toRecord)
+        } catch (error) {
+            throw handleRepositoryError(error)
+        }
+    }
+
     async upsert(input: WeeklyScoreCacheUpsertInput): Promise<WeeklyScoreCacheRecord> {
         try {
             const row = await prisma.weeklyScoreCache.upsert({

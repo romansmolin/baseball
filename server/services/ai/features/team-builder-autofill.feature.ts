@@ -13,6 +13,7 @@
 
 import { z } from 'zod'
 
+import { baseballLeagueEnum } from '../../../entities/baseball-league.schema'
 import type { ISportsProvider } from '../../../providers/sports-provider.interface'
 
 import { AI_FEATURE_KEYS } from '../types'
@@ -29,8 +30,11 @@ const SLOT_KEY_SCHEMA = z.enum([
 ])
 
 export const tbAutofillInputSchema = z.object({
-    // Candidate pool: union of these MLB teams' rosters. At least one
-    // required. Deduped server-side so a repeated id is harmless.
+    // Which baseball league the team ids below belong to (MLB or a MiLB
+    // level). Defaults to MLB when omitted so older callers keep working.
+    league: baseballLeagueEnum.optional(),
+    // Candidate pool: union of these teams' rosters, all within `league`. At
+    // least one required. Deduped server-side so a repeated id is harmless.
     mlbTeamIds: z.array(z.number().int().positive()).min(1),
     salaryCap: z.number().int().positive(),
     riskProfile: z.enum(['safe', 'balanced', 'high_ceiling']).optional(),
@@ -170,10 +174,14 @@ export class TeamBuilderAutofillFeature
         // teams we successfully looked up.
         const [rostersPerTeam, teamsPerId] = await Promise.all([
             Promise.all(
-                uniqueTeamIds.map((id) => this.sportsProvider.getPlayersByTeam(id)),
+                uniqueTeamIds.map((id) =>
+                    this.sportsProvider.getPlayersByTeam(id, { league: parsed.league }),
+                ),
             ),
             Promise.all(
-                uniqueTeamIds.map((id) => this.sportsProvider.getTeamById(id)),
+                uniqueTeamIds.map((id) =>
+                    this.sportsProvider.getTeamById(id, { league: parsed.league }),
+                ),
             ),
         ])
 

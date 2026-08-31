@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:seed-users": "jiti prisma/seed-users.ts",
+    "db:enroll-demo-users": "jiti prisma/enroll-demo-users.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

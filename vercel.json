@@ -12,6 +12,10 @@
         {
             "path": "/api/internal/cron/snapshot-weekly-lineups",
             "schedule": "0 5 * * *"
+        },
+        {
+            "path": "/api/internal/cron/settle-tournaments",
+            "schedule": "0 8 * * 1"
         }
     ]
 }

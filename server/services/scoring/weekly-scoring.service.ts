@@ -1,4 +1,10 @@
+import {
+    isSupportedBaseballLeague,
+    type SupportedBaseballLeague,
+} from '../../../src/shared/baseball'
 import { CAPTAIN_MULTIPLIER } from '../../../src/shared/team-builder'
+import { mapWithConcurrency } from '../../shared/concurrency.utils'
+import { canTeamScopeSchedule } from '../../providers/mlb/mlb-leagues.config'
 import type {
     ProviderBoxScore,
     ProviderGameStatus,
@@ -27,6 +33,7 @@ import { tournamentWeekRange } from '../tournaments/tournament-week-range.util'
 import { scoreGameForPlayer } from './scoring-engine'
 import type {
     IWeeklyScoringService,
+    MemberScoresSummary,
     ScoringInputLeague,
     WeeklyMemberScore,
 } from './weekly-scoring.service.interface'
@@ -37,6 +44,27 @@ import type {
 const STALE_IN_PROGRESS_MS = 30 * 60 * 1000 // 30 minutes
 const STALE_POSTPONED_TAIL_MS = 6 * 60 * 60 * 1000 // 6 hours
 const STALE_PROVIDER_OUTAGE_MS = 15 * 60 * 1000 // 15 minutes
+
+// A week's schedule can hold 100+ games. Fetch their box scores a batch at a
+// time rather than one-by-one (serial = tens of seconds cold) or all-at-once
+// (stampedes the provider and gets throttled). 16 is comfortably within what
+// the MLB Stats API tolerates from a single client.
+const BOX_SCORE_FETCH_CONCURRENCY = 16
+
+// A roster's frozen team names must resolve to at least this fraction of real
+// team ids before we trust the team-scoped schedule fetch. Below it (name
+// format drift, mid-season trades) we fall back to the full-league schedule so
+// no games are missed.
+const TEAM_RESOLUTION_MIN_RATIO = 0.75
+
+// Team-scope the schedule only for tournaments whose scored span is at most
+// this many weeks. Frozen-team ∪ current-team covers a player's whereabouts
+// over a short window; across a long (8–12 week) backfill enough players move
+// (early-season trades, IL stints, options to the minors) that only the
+// full-league schedule stays exact. Long backfills are COMPLETED / late
+// PLAYOFFS tournaments, warmed once by the cron — cold speed matters less
+// there than getting the historical total right.
+const MAX_TEAM_SCOPED_SPAN_WEEKS = 6
 
 // Sentinel for FINAL rows that should never re-read for staleness. Far-future
 // date keeps the column non-null without polluting query semantics.
@@ -56,6 +84,12 @@ export class WeeklyScoringService implements IWeeklyScoringService {
     private readonly sportsProvider: ISportsProvider
     private readonly weeklyLineupRepository: IWeeklyLineupRepository
 
+    // Per-instance memos. A scoring request touches one league/season and
+    // repeats the same player ids across members/weeks, so these collapse the
+    // provider lookups to roughly one call each per request.
+    private readonly teamIdByNameCache = new Map<string, Map<string, number>>()
+    private readonly currentTeamIdByPlayer = new Map<number, number | null>()
+
     constructor(
         weeklyScoreCacheRepository: IWeeklyScoreCacheRepository,
         scoringRuleRepository: IScoringRuleRepository,
@@ -70,6 +104,129 @@ export class WeeklyScoringService implements IWeeklyScoringService {
 
     async findRuleForLeague(leagueId: string): Promise<ScoringRuleRecord | null> {
         return this.scoringRuleRepository.findByLeagueId(leagueId)
+    }
+
+    /**
+     * Best-effort read-through warm of the provider's schedule + box-score
+     * caches. Every member of a tournament scores against the same games, so
+     * calling this ONCE before scoring a whole roster turns an N-member cold
+     * stampede (which the provider throttles) into a single cold pass the rest
+     * read from cache.
+     *
+     * Only warms weeks that actually need provider data — a week is skipped
+     * when every member already has a settled cache row for it (FINAL, or
+     * PARTIAL still within its staleAt window). So a fully-scored tournament
+     * warms nothing and a live one warms just the current week.
+     *
+     * Never throws — a provider outage just leaves the caches cold and the
+     * per-member path handles it via its existing fallback.
+     */
+    async warmProviderCache(
+        league: ScoringInputLeague,
+        throughWeek: number,
+        memberIds: string[],
+    ): Promise<void> {
+        if (throughWeek < 1 || memberIds.length === 0) return
+
+        const now = new Date()
+        const rows = await this.weeklyScoreCacheRepository.findByMembers(memberIds)
+        const settledMembersByWeek = new Map<number, Set<string>>()
+        for (const row of rows) {
+            const settled =
+                row.state === 'FINAL' || row.staleAt.getTime() > now.getTime()
+            if (!settled) continue
+            let set = settledMembersByWeek.get(row.week)
+            if (!set) {
+                set = new Set<string>()
+                settledMembersByWeek.set(row.week, set)
+            }
+            set.add(row.leagueMemberId)
+        }
+
+        const weeksToWarm: number[] = []
+        for (let week = 1; week <= throughWeek; week++) {
+            if ((settledMembersByWeek.get(week)?.size ?? 0) < memberIds.length) {
+                weeksToWarm.push(week)
+            }
+        }
+        if (weeksToWarm.length === 0) return
+
+        const providerLeague = isSupportedBaseballLeague(league.leagueSlug)
+            ? league.leagueSlug
+            : undefined
+
+        // Union of every roster's teams across the tournament — the seed pools
+        // draw from only a handful of real teams, so this scopes the warm to a
+        // fraction of the league's games.
+        const footprint =
+            await this.weeklyLineupRepository.findRosterFootprintByMembers(memberIds)
+        const teamIds =
+            throughWeek <= MAX_TEAM_SCOPED_SPAN_WEEKS
+                ? await this.resolveRosterTeamIds(footprint, providerLeague, league.season)
+                : null
+
+        for (const week of weeksToWarm) {
+            const { startUtc, endUtc } = tournamentWeekRange(league.startsAt, week)
+
+            let schedule: ProviderScheduledGame[]
+            try {
+                schedule = await this.sportsProvider.getSchedule({
+                    startDateUtc: startUtc,
+                    endDateUtc: endUtc,
+                    league: providerLeague,
+                    season: league.season,
+                    teamIds: teamIds ?? undefined,
+                })
+            } catch {
+                return
+            }
+
+            await mapWithConcurrency(
+                schedule,
+                BOX_SCORE_FETCH_CONCURRENCY,
+                async (game) => {
+                    try {
+                        await this.sportsProvider.getBoxScore(game.gamePk, {
+                            league: providerLeague,
+                        })
+                    } catch {
+                        // Warm is best-effort; ignore individual failures.
+                    }
+                },
+            )
+        }
+    }
+
+    async summarizeScoresForMembers(
+        memberIds: string[],
+        throughWeek: number,
+    ): Promise<MemberScoresSummary> {
+        const totals = new Map(memberIds.map((memberId) => [memberId, 0]))
+        if (throughWeek < 1 || memberIds.length === 0) {
+            return { membersNeedingRefresh: [], totals }
+        }
+
+        const rows = await this.weeklyScoreCacheRepository.findByMembers(memberIds)
+        const freshWeeksByMember = new Map<string, Set<number>>()
+        const now = new Date()
+        for (const row of rows) {
+            if (row.week < 1 || row.week > throughWeek) continue
+            totals.set(row.leagueMemberId, (totals.get(row.leagueMemberId) ?? 0) + row.points)
+            if (!this.isStale(row, now)) {
+                let weeks = freshWeeksByMember.get(row.leagueMemberId)
+                if (!weeks) {
+                    weeks = new Set<number>()
+                    freshWeeksByMember.set(row.leagueMemberId, weeks)
+                }
+                weeks.add(row.week)
+            }
+        }
+        return {
+            membersNeedingRefresh: memberIds.filter(
+                (memberId) => (freshWeeksByMember.get(memberId)?.size ?? 0) !== throughWeek,
+            ),
+            totals,
+        }
     }
 
     async prepareMemberWeeks(
@@ -118,6 +275,7 @@ export class WeeklyScoringService implements IWeeklyScoringService {
                 lineup,
                 rule,
                 week,
+                throughWeek,
                 now,
                 cached,
             )
@@ -170,11 +328,125 @@ export class WeeklyScoringService implements IWeeklyScoringService {
         return total
     }
 
+    async totalsThroughWeek(
+        memberIds: string[],
+        throughWeek: number,
+    ): Promise<Map<string, number>> {
+        const totals = new Map(memberIds.map((memberId) => [memberId, 0]))
+        if (throughWeek < 1 || memberIds.length === 0) return totals
+
+        const rows = await this.weeklyScoreCacheRepository.findByMembers(memberIds)
+        for (const row of rows) {
+            if (row.week < 1 || row.week > throughWeek) continue
+            totals.set(row.leagueMemberId, (totals.get(row.leagueMemberId) ?? 0) + row.points)
+        }
+        return totals
+    }
+
     // ------- internals -------
 
     private isStale(row: WeeklyScoreCacheRecord, now: Date): boolean {
         if (row.state === 'FINAL') return false
         return row.staleAt.getTime() <= now.getTime()
+    }
+
+    /**
+     * Resolve a roster footprint (frozen team names + player ids) to the set
+     * of real team ids whose games could contain any of those players — the
+     * union of each player's frozen team and their current team, so a
+     * mid-season trade doesn't hide a player's box scores.
+     *
+     * Returns `null` (→ caller uses the full-league schedule) when nothing
+     * resolves confidently or the provider is unavailable, so scoring output
+     * never silently changes.
+     */
+    private async resolveRosterTeamIds(
+        footprint: { teamNames: string[]; externalPlayerIds: number[] },
+        providerLeague: SupportedBaseballLeague | undefined,
+        season: number,
+    ): Promise<number[] | null> {
+        // Only levels with stable in-season rosters can be safely team-scoped;
+        // elsewhere the full-league schedule keeps scoring exact.
+        if (!canTeamScopeSchedule(providerLeague)) return null
+
+        const distinctNames = [...new Set(footprint.teamNames.filter((n) => n.length > 0))]
+        const distinctPlayerIds = [...new Set(footprint.externalPlayerIds)]
+        if (distinctNames.length === 0 && distinctPlayerIds.length === 0) return null
+
+        const ids = new Set<number>()
+
+        // 1) Frozen team names → ids.
+        const nameLookup = await this.getTeamNameLookup(providerLeague, season)
+        let nameMatched = 0
+        if (nameLookup) {
+            for (const name of distinctNames) {
+                const id = nameLookup.get(name)
+                if (id != null) {
+                    ids.add(id)
+                    nameMatched += 1
+                }
+            }
+        }
+
+        // 2) Each player's current team (catches post-lock trades).
+        const currentTeamIds = await this.currentTeamIdsFor(distinctPlayerIds)
+        let playerMatched = 0
+        for (const id of currentTeamIds) {
+            if (id != null) {
+                ids.add(id)
+                playerMatched += 1
+            }
+        }
+
+        // Bail to the full schedule unless we're confident we have every
+        // relevant team: names mostly matched AND every player's current team
+        // resolved (or there were no players to resolve).
+        const namesOk =
+            distinctNames.length === 0 ||
+            nameMatched >= Math.ceil(distinctNames.length * TEAM_RESOLUTION_MIN_RATIO)
+        const playersOk =
+            distinctPlayerIds.length === 0 || playerMatched === distinctPlayerIds.length
+        if (!namesOk || !playersOk || ids.size === 0) return null
+
+        return [...ids]
+    }
+
+    private async getTeamNameLookup(
+        providerLeague: SupportedBaseballLeague | undefined,
+        season: number,
+    ): Promise<Map<string, number> | null> {
+        const cacheKey = `${providerLeague ?? 'mlb'}:${season}`
+        const cached = this.teamIdByNameCache.get(cacheKey)
+        if (cached) return cached
+        try {
+            const teams = await this.sportsProvider.getTeams({ league: providerLeague, season })
+            const lookup = new Map(teams.map((t) => [t.name, t.id]))
+            this.teamIdByNameCache.set(cacheKey, lookup)
+            return lookup
+        } catch {
+            return null
+        }
+    }
+
+    private async currentTeamIdsFor(playerIds: number[]): Promise<(number | null)[]> {
+        const missing = playerIds.filter((id) => !this.currentTeamIdByPlayer.has(id))
+        if (missing.length > 0) {
+            try {
+                const players = await this.sportsProvider.getPlayersByIds(missing)
+                const byId = new Map(players.map((p) => [p.id, p.teamId]))
+                for (const id of missing) {
+                    this.currentTeamIdByPlayer.set(id, byId.get(id) ?? null)
+                }
+            } catch {
+                // Leave them unresolved — resolveRosterTeamIds treats that as
+                // "not confident" and falls back to the full schedule.
+            }
+        }
+        return playerIds.map((id) =>
+            this.currentTeamIdByPlayer.has(id)
+                ? (this.currentTeamIdByPlayer.get(id) ?? null)
+                : null,
+        )
     }
 
     /**
@@ -188,16 +460,41 @@ export class WeeklyScoringService implements IWeeklyScoringService {
         lineup: WeeklyLineupRecord,
         rule: ScoringRuleRecord,
         week: number,
+        throughWeek: number,
         now: Date,
         existing: WeeklyScoreCacheRecord | undefined,
     ): Promise<WeeklyScoreCacheUpsertInput | null> {
         const { startUtc, endUtc } = tournamentWeekRange(league.startsAt, week)
+
+        // Real tournaments always carry a supported slug; the guard keeps the
+        // engine safe (falls back to MLB) if an unexpected value slips through.
+        const providerLeague = isSupportedBaseballLeague(league.leagueSlug)
+            ? league.leagueSlug
+            : undefined
+
+        // Scope the schedule to the ~9 teams this roster references instead of
+        // the whole league — most box scores in a full-league week contain
+        // nobody from the roster.
+        const teamIds =
+            throughWeek <= MAX_TEAM_SCOPED_SPAN_WEEKS
+                ? await this.resolveRosterTeamIds(
+                      {
+                          teamNames: lineup.slots.map((s) => s.playerTeamName),
+                          externalPlayerIds: lineup.slots.map((s) => s.externalPlayerId),
+                      },
+                      providerLeague,
+                      league.season,
+                  )
+                : null
 
         let schedule: ProviderScheduledGame[] = []
         try {
             schedule = await this.sportsProvider.getSchedule({
                 startDateUtc: startUtc,
                 endDateUtc: endUtc,
+                league: providerLeague,
+                season: league.season,
+                teamIds: teamIds ?? undefined,
             })
         } catch {
             return this.providerOutageFallback({
@@ -209,15 +506,28 @@ export class WeeklyScoringService implements IWeeklyScoringService {
             })
         }
 
+        const fetched = await mapWithConcurrency(
+            schedule,
+            BOX_SCORE_FETCH_CONCURRENCY,
+            async (game) => {
+                try {
+                    return {
+                        box: await this.sportsProvider.getBoxScore(game.gamePk, {
+                            league: providerLeague,
+                        }),
+                        outage: false,
+                    }
+                } catch {
+                    return { box: null as ProviderBoxScore | null, outage: true }
+                }
+            },
+        )
+
         const boxScores: ProviderBoxScore[] = []
         let outageHit = false
-        for (const game of schedule) {
-            try {
-                const box = await this.sportsProvider.getBoxScore(game.gamePk)
-                if (box) boxScores.push(box)
-            } catch {
-                outageHit = true
-            }
+        for (const result of fetched) {
+            if (result.outage) outageHit = true
+            else if (result.box) boxScores.push(result.box)
         }
 
         if (outageHit && boxScores.length === 0) {

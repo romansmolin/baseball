@@ -7,6 +7,7 @@ const LEAGUE_SELECT = {
     id: true,
     name: true,
     leagueSlug: true,
+    externalSeasonId: true,
     status: true,
     startsAt: true,
     endsAt: true,

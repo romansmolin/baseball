@@ -1,8 +1,10 @@
+import type { SupportedBaseballLeague } from '@/shared/baseball'
 import { httpClient } from '@/shared/api/http-client'
 import { withErrorHandling } from '@/shared/api/with-error-handling'
 import type { SlotKey } from '@/shared/team-builder'
 
 export interface AutofillRequest {
+    league: SupportedBaseballLeague
     mlbTeamIds: number[]
     salaryCap: number
     riskProfile?: 'safe' | 'balanced' | 'high_ceiling'

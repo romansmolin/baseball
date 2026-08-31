@@ -20,6 +20,9 @@ export interface League {
     country: string
     proTeams: number
     season: SeasonStatus
+    // Real data provider stands behind this league. `false` → shown as
+    // "coming soon", not selectable for tournaments or teams.
+    providerBacked: boolean
     myTeams: number
     openTournaments: number
     prizePool: string

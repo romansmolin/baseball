@@ -53,6 +53,16 @@ export interface IWeeklyLineupRepository {
     findManyByMember(memberId: string): Promise<WeeklyLineupRecord[]>
 
     /**
+     * The distinct set of frozen team names + external player ids across every
+     * lineup slot of the given members. Used to scope schedule/box-score
+     * fetches to just the teams a tournament's rosters reference (frozen team
+     * plus each player's current team, to catch mid-season trades).
+     */
+    findRosterFootprintByMembers(
+        memberIds: string[],
+    ): Promise<{ teamNames: string[]; externalPlayerIds: number[] }>
+
+    /**
      * Idempotent: if a row already exists for (memberId, week), return it
      * without modification. The first snapshot wins — we never overwrite a
      * locked week.

@@ -51,6 +51,8 @@ export async function GET(request: Request) {
         where: { status: { in: ACTIVE_STATUSES as unknown as ('IN_SEASON' | 'PLAYOFFS')[] } },
         select: {
             id: true,
+            leagueSlug: true,
+            externalSeasonId: true,
             startsAt: true,
             endsAt: true,
             totalWeeks: true,
@@ -88,6 +90,21 @@ export async function GET(request: Request) {
 
         const members = await tournamentsRepo.findStandingsMembers(tournament.id)
 
+        const scoringLeague = {
+            id: tournament.id,
+            leagueSlug: tournament.leagueSlug,
+            season: tournament.externalSeasonId,
+            startsAt: tournament.startsAt,
+            totalWeeks: tournament.totalWeeks,
+        }
+
+        // One cold pass over the week's games; every member below reads it warm.
+        await scoringService.warmProviderCache(
+            scoringLeague,
+            currentWeek,
+            members.map((m) => m.id),
+        )
+
         for (const member of members) {
             if (Date.now() - startedAt > TIME_BUDGET_MS) {
                 timedOut = true
@@ -99,11 +116,7 @@ export async function GET(request: Request) {
             // pre-flight guard needed here.
             await scoringService.prepareMemberWeeks(
                 member.id,
-                {
-                    id: tournament.id,
-                    startsAt: tournament.startsAt,
-                    totalWeeks: tournament.totalWeeks,
-                },
+                scoringLeague,
                 rule,
                 currentWeek,
             )

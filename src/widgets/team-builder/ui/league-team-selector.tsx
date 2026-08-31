@@ -1,6 +1,5 @@
 'use client'
 
-import { hasLeagueTeamData } from '@/shared/team-builder'
 import type { BuilderLeague, BuilderTeam } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
@@ -70,7 +69,7 @@ export const LeagueTeamSelector = ({
                                   : 'Select a league'}
                         </option>
                         {leagues.map((league) => {
-                            const available = hasLeagueTeamData(league.slug)
+                            const available = league.providerBacked
                             return (
                                 <option
                                     key={league.slug}

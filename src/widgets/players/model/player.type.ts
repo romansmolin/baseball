@@ -88,8 +88,13 @@ export interface Player {
     team: string
     leagueSlug: string
     status: AvailabilityStatus
-    age: number
-    bats: 'L' | 'R' | 'S'
+    age: number | null
+    bats: 'L' | 'R' | 'S' | '—'
+    throws: 'L' | 'R' | '—'
+    jerseyNumber: string | null
+    photoUrl: string | null
+    // Game-economy / projection fields are not part of the real player feed.
+    // They default to 0 / empty and the UI degrades to empty states.
     proj: number
     avg: number
     salary: number

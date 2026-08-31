@@ -1,5 +1,8 @@
+import { ChartLineData01Icon } from '@hugeicons/core-free-icons'
+
 import { isPitcher } from '../../model/player.type'
 import type { Player } from '../../model/player.type'
+import { TabEmptyState } from './tab-empty-state'
 
 const BATTING_LABELS: Record<string, string> = {
     AVG: 'AVG',
@@ -26,7 +29,15 @@ export const PlayerStatsTab = ({ player }: { player: Player }) => {
     const stats = pitcher ? player.pitch : player.bat
     const labels = pitcher ? PITCHING_LABELS : BATTING_LABELS
 
-    if (!stats) return null
+    if (!stats) {
+        return (
+            <TabEmptyState
+                icon={ChartLineData01Icon}
+                title="No season stats yet"
+                description="Batting and pitching lines aren't available for this player from the sports provider."
+            />
+        )
+    }
 
     return (
         <>

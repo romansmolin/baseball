@@ -1,6 +1,7 @@
-import { LeagueStatus } from '../../../../src/generated/prisma/enums'
+import { CreditTransactionType, LeagueStatus } from '../../../../src/generated/prisma/enums'
 import { ApiError } from '../../../errors/api.error'
 import { ErrorCode } from '../../../errors/error-code.enum'
+import type { ICreditRepository } from '../../../repositories/credit/credit.repository.interface'
 import type { IFantasyTeamRepository } from '../../../repositories/fantasy-team/fantasy-team.repository.interface'
 import type { ILeagueMemberRepository } from '../../../repositories/league-member/league-member.repository.interface'
 import type { ILeagueRepository } from '../../../repositories/league/league.repository.interface'
@@ -25,17 +26,20 @@ export class TournamentsJoinsService implements ITournamentsJoinsService {
     private readonly leagueMemberRepository: ILeagueMemberRepository
     private readonly fantasyTeamRepository: IFantasyTeamRepository
     private readonly weeklyLineupSnapshotService: IWeeklyLineupSnapshotService
+    private readonly creditRepository: ICreditRepository
 
     constructor(
         leagueRepository: ILeagueRepository,
         leagueMemberRepository: ILeagueMemberRepository,
         fantasyTeamRepository: IFantasyTeamRepository,
         weeklyLineupSnapshotService: IWeeklyLineupSnapshotService,
+        creditRepository: ICreditRepository,
     ) {
         this.leagueRepository = leagueRepository
         this.leagueMemberRepository = leagueMemberRepository
         this.fantasyTeamRepository = fantasyTeamRepository
         this.weeklyLineupSnapshotService = weeklyLineupSnapshotService
+        this.creditRepository = creditRepository
     }
 
     async joinTournament(
@@ -99,11 +103,34 @@ export class TournamentsJoinsService implements ITournamentsJoinsService {
             )
         }
 
+        // Entry fee: check funds up front, debit after the member row exists.
+        const entryFee = tournament.entryFeeCredits
+        if (entryFee > 0) {
+            const balance = await this.creditRepository.getBalance(input.userId)
+            if (balance < entryFee) {
+                throw new ApiError(
+                    402,
+                    ErrorCode.INSUFFICIENT_CREDITS,
+                    `This tournament costs ${entryFee} credits to enter — you have ${balance}.`,
+                )
+            }
+        }
+
         const member = await this.leagueMemberRepository.createAndLinkTeam({
             leagueId: tournament.id,
             userId: input.userId,
             fantasyTeamId: team.id,
         })
+
+        if (entryFee > 0) {
+            await this.creditRepository.grantCredits({
+                userId: input.userId,
+                amount: -entryFee,
+                type: CreditTransactionType.TOURNAMENT_ENTRY_FEE,
+                referenceType: 'tournament_entry',
+                referenceId: member.id,
+            })
+        }
 
         // Snapshot the new member's lineup for the next un-locked week.
         // This is what gives mid-season joiners a real scoring footprint from

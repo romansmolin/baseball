@@ -1,8 +1,8 @@
+import { getBaseballLeague } from '@/shared/baseball'
 import { httpClient } from '@/shared/api/http-client'
 import type { PoolPlayer, PoolPosition } from '@/shared/team-builder'
 
-const MLB_LEAGUE_SLUG = 'mlb'
-const MLB_LEAGUE_COLOR = '#3b82f6'
+const FALLBACK_LEAGUE_COLOR = '#3b82f6'
 
 type ProviderPosition = 'SP' | 'RP' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'OF' | 'DH'
 
@@ -32,6 +32,7 @@ interface PlayersListResponseDto {
 }
 
 export interface PlayersByTeamFilters {
+    leagueSlug: string
     teamId?: number
     search?: string
     position?: PoolPosition
@@ -64,15 +65,19 @@ function fauxSalaryAndProjection(id: number): { salary: number; proj: number } {
     return { salary, proj }
 }
 
-function mapProviderPlayerToPoolPlayer(dto: ProviderPlayerDto): PoolPlayer {
+function mapProviderPlayerToPoolPlayer(
+    dto: ProviderPlayerDto,
+    leagueSlug: string,
+    leagueColor: string,
+): PoolPlayer {
     const { salary, proj } = fauxSalaryAndProjection(dto.id)
     return {
         id: dto.id,
         name: dto.fullName,
         pos: mapProviderPositionToPoolPosition(dto.primaryPosition),
         team: dto.teamAbbreviation ?? '—',
-        leagueSlug: MLB_LEAGUE_SLUG,
-        leagueColor: MLB_LEAGUE_COLOR,
+        leagueSlug,
+        leagueColor,
         salary,
         proj,
         photoUrl: dto.photoUrl,
@@ -82,7 +87,10 @@ function mapProviderPlayerToPoolPlayer(dto: ProviderPlayerDto): PoolPlayer {
 export async function fetchPlayersByTeam(
     filters: PlayersByTeamFilters,
 ): Promise<PoolPlayer[]> {
+    const leagueColor = getBaseballLeague(filters.leagueSlug)?.color ?? FALLBACK_LEAGUE_COLOR
+
     const params = new URLSearchParams()
+    params.set('league', filters.leagueSlug)
     if (filters.teamId != null) params.set('teamId', String(filters.teamId))
     if (filters.search) params.set('search', filters.search)
     if (filters.position) {
@@ -92,12 +100,13 @@ export async function fetchPlayersByTeam(
         }
     }
 
-    const query = params.toString()
-    const url = query ? `/api/players?${query}` : '/api/players'
+    const url = `/api/players?${params.toString()}`
 
     const response = await httpClient.get<PlayersListResponseDto>(url)
 
-    let items = response.items.map(mapProviderPlayerToPoolPlayer)
+    let items = response.items.map((dto) =>
+        mapProviderPlayerToPoolPlayer(dto, filters.leagueSlug, leagueColor),
+    )
 
     // For positions backed by multiple provider positions (P → SP/RP), filter client-side.
     if (filters.position) {

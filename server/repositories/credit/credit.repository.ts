@@ -55,6 +55,24 @@ export class CreditRepository implements ICreditRepository {
         }
     }
 
+    async existsByReference(
+        referenceType: string,
+        referenceIdPrefix: string,
+    ): Promise<boolean> {
+        try {
+            const row = await prisma.creditTransaction.findFirst({
+                where: {
+                    referenceType,
+                    referenceId: { startsWith: referenceIdPrefix },
+                },
+                select: { id: true },
+            })
+            return row != null
+        } catch (error) {
+            throw handleRepositoryError(error)
+        }
+    }
+
     async grantCredits(input: GrantCreditsInput): Promise<CreditTransactionRecord> {
         try {
             return await prisma.$transaction(async (tx) => {

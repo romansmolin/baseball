@@ -105,7 +105,13 @@ const DrawerContent = ({ league, onClose }: { league: League; onClose: () => voi
 
                 <div className="px-6 py-5">
                     <div className="flex flex-wrap items-center gap-1.5">
-                        <SeasonBadge season={league.season} />
+                        {league.providerBacked ? (
+                            <SeasonBadge season={league.season} />
+                        ) : (
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                                Coming soon
+                            </span>
+                        )}
                         <span className="flex items-center gap-1.5 rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
                             <span
                                 className="size-2 rounded-full"
@@ -150,7 +156,7 @@ const DrawerContent = ({ league, onClose }: { league: League; onClose: () => voi
                         </div>
                     </div>
 
-                    {isLive && (
+                    {isLive && league.topScorer !== '—' && (
                         <div className="mt-5 flex items-center justify-between rounded-xl border border-foreground/10 px-4 py-3">
                             <div className="flex items-center gap-2.5">
                                 <HugeiconsIcon icon={ChampionIcon} className="size-4 text-primary" />
@@ -188,12 +194,12 @@ const DrawerContent = ({ league, onClose }: { league: League; onClose: () => voi
                         title={
                             isLive
                                 ? 'No tournaments scheduled for this league yet'
-                                : 'This league is between seasons'
+                                : 'This league is not available yet'
                         }
                         className="flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground"
                     >
                         <HugeiconsIcon icon={GameController01Icon} className="size-4" />
-                        {isLive ? 'No tournaments yet' : 'Off-season'}
+                        {isLive ? 'No tournaments yet' : 'Coming soon'}
                     </button>
                 )}
                 <Link

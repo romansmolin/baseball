@@ -10,7 +10,6 @@ import type {
 } from '@/shared/tournaments'
 
 import type { IWeeklyScoringService } from '../scoring/weekly-scoring.service.interface'
-import type { ScoringInputLeague } from '../scoring/weekly-scoring.service.interface'
 import { computeTournamentCurrentWeek } from './tournament-week.util'
 import { mapTournamentToRecord } from './tournaments.mapper'
 import type {
@@ -104,51 +103,19 @@ export class TournamentsService implements ITournamentsService {
 
         const members = await this.tournamentsRepository.findStandingsMembers(id)
 
-        // Load the rule ONCE before iterating members — every member in the
-        // league scores against the same rule, so we avoid N round-trips.
-        let rule: Awaited<ReturnType<IScoringRuleRepository['findByLeagueId']>> = null
-        if (currentWeek > 0) {
-            rule = await this.scoringRuleRepository.findByLeagueId(tournament.id)
-            if (!rule) {
-                throw new ApiError(
-                    500,
-                    ErrorCode.SCORING_RULE_NOT_FOUND,
-                    'Scoring rule not configured for tournament',
-                )
-            }
-        }
-
-        const scoringLeague: ScoringInputLeague = {
-            id: tournament.id,
-            startsAt: tournament.startsAt,
-            totalWeeks: tournament.totalWeeks,
-        }
-
-        // Score, then sort stably (totalPoints DESC, leagueMemberId ASC on
-        // ties — the standings table renders in this exact order).
-        const scored = await Promise.all(
-            members.map(async (member) => {
-                if (currentWeek <= 0 || !rule) {
-                    return { member, totalPoints: 0 }
-                }
-
-                // The scoring engine now reads frozen WeeklyLineup snapshots
-                // internally — members without snapshots for a given week
-                // resolve to a settled 0, no DRY guard needed here.
-                await this.weeklyScoringService.prepareMemberWeeks(
-                    member.id,
-                    scoringLeague,
-                    rule,
-                    currentWeek,
-                )
-
-                const totalPoints = await this.weeklyScoringService.totalThroughWeek(
-                    member.id,
-                    currentWeek,
-                )
-                return { member, totalPoints }
-            }),
+        const memberIds = members.map((member) => member.id)
+        // GET standings is intentionally read-only. The scoring cron owns
+        // materialization; missing weeks contribute zero until it catches up.
+        const totals = await this.weeklyScoringService.totalsThroughWeek(
+            memberIds,
+            currentWeek,
         )
+        const scored = members.map((member) => {
+            if (currentWeek <= 0) {
+                return { member, totalPoints: 0 }
+            }
+            return { member, totalPoints: totals.get(member.id) ?? 0 }
+        })
 
         scored.sort((a, b) => {
             if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
@@ -167,11 +134,12 @@ export class TournamentsService implements ITournamentsService {
             totalPoints,
         }))
 
-        return {
+        const response = {
             tournamentId: tournament.id,
             currentWeek,
             totalWeeks: tournament.totalWeeks,
             items,
         }
+        return response
     }
 }

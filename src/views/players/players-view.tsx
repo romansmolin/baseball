@@ -22,6 +22,29 @@ export const PlayersView = () => {
 
     const hasResults = state.visiblePlayers.length > 0
 
+    let content: React.ReactNode
+    if (state.isLoading) {
+        content = <PlayersStatus message="Loading players…" />
+    } else if (state.error) {
+        content = (
+            <PlayersStatus
+                message="Couldn't load players from the sports provider."
+                actionLabel="Retry"
+                onAction={state.retry}
+            />
+        )
+    } else if (hasResults) {
+        content = (
+            <PlayersList
+                players={state.visiblePlayers}
+                leaguesBySlug={leaguesBySlug}
+                onSelect={state.setSelectedPlayerId}
+            />
+        )
+    } else {
+        content = <PlayersEmptyState onClearFilters={state.clearFilters} />
+    }
+
     return (
         <PlayersViewLayout
             header={<PlayersHeader totalPlayers={state.totalPlayers} />}
@@ -47,17 +70,7 @@ export const PlayersView = () => {
                     onSortChange={state.setSortKey}
                 />
             }
-            content={
-                hasResults ? (
-                    <PlayersList
-                        players={state.visiblePlayers}
-                        leaguesBySlug={leaguesBySlug}
-                        onSelect={state.setSelectedPlayerId}
-                    />
-                ) : (
-                    <PlayersEmptyState onClearFilters={state.clearFilters} />
-                )
-            }
+            content={content}
             drawer={
                 <PlayerDetailDrawer
                     player={state.selectedPlayer}
@@ -74,3 +87,26 @@ export const PlayersView = () => {
         />
     )
 }
+
+const PlayersStatus = ({
+    message,
+    actionLabel,
+    onAction,
+}: {
+    message: string
+    actionLabel?: string
+    onAction?: () => void
+}) => (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-foreground/15 py-20 text-center">
+        <p className="text-sm text-muted-foreground">{message}</p>
+        {actionLabel && onAction ? (
+            <button
+                type="button"
+                onClick={onAction}
+                className="mt-4 rounded-md border border-foreground/15 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+                {actionLabel}
+            </button>
+        ) : null}
+    </div>
+)

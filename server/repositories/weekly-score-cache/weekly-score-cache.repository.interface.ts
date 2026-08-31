@@ -50,5 +50,6 @@ export interface WeeklyScoreCacheUpsertInput {
 
 export interface IWeeklyScoreCacheRepository {
     findByMember(leagueMemberId: string): Promise<WeeklyScoreCacheRecord[]>
+    findByMembers(leagueMemberIds: string[]): Promise<WeeklyScoreCacheRecord[]>
     upsert(input: WeeklyScoreCacheUpsertInput): Promise<WeeklyScoreCacheRecord>
 }
