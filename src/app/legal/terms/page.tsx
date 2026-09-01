@@ -54,7 +54,7 @@ export default function TermsOfServicePage() {
                         'Be at least 18 years of age, or the age of majority in your jurisdiction, whichever is greater. In some jurisdictions, the minimum age for paid fantasy contests is 19 or 21 — you must meet that higher age to participate in paid contests there.',
                         'Reside in a jurisdiction where participation in fantasy sports contests is legal. The Service is not offered in jurisdictions where it is prohibited, and we reserve the right to restrict access based on geographic location, IP address, or regulatory requirements.',
                         'Have the legal capacity to enter into a binding contract.',
-                        'Not be barred from receiving the Service under the laws of the United States or any other applicable jurisdiction, including any sanctions list maintained by the U.S. Treasury Department’s Office of Foreign Assets Control.',
+                        'Not be barred from receiving the Service under the laws of Poland or any other applicable jurisdiction, including any sanctions list maintained by the relevant Polish authority.',
                         'Not be an employee, officer, director, contractor, or agent of BaseballFantasy or any of its affiliates, or an immediate family member of such a person, with respect to any paid contest.',
                     ]}
                 />
@@ -245,7 +245,7 @@ export default function TermsOfServicePage() {
                         text, images, audio, video, data compilations, and other materials
                         provided through it (collectively, "Our Content") are the
                         intellectual property of BaseballFantasy or our licensors and are
-                        protected by United States and international intellectual property
+                        protected by Polish and international intellectual property
                         laws. Except for the limited license granted below, all rights are
                         reserved.
                     </P>
@@ -299,11 +299,11 @@ export default function TermsOfServicePage() {
                 </Sub>
             </Section>
 
-            <Section id="copyright" title="9. Copyright and DMCA">
+            <Section id="copyright" title="9. Copyright Notices">
                 <P>
                     We respect intellectual property rights. If you believe that material on
                     the Service infringes your copyright, please send a notice that
-                    complies with the Digital Millennium Copyright Act (17 U.S.C. § 512) to
+                    complies with applicable Polish copyright law to
                     our designated agent at{' '}
                     <a className="font-medium text-primary underline" href="mailto:dmca@baseballfantasy.com">
                         dmca@baseballfantasy.com
@@ -398,7 +398,7 @@ export default function TermsOfServicePage() {
                     Our aggregate liability for any claim arising out of or relating to
                     these Terms or the Service will not exceed the greater of (a) the total
                     amount you paid to us in the twelve (12) months preceding the event
-                    giving rise to the claim, or (b) one hundred U.S. dollars ($100).
+                    giving rise to the claim, or (b) one hundred Polish zloty (PLN 100).
                 </P>
                 <P>
                     Some jurisdictions do not allow the exclusion of certain warranties or
@@ -422,7 +422,7 @@ export default function TermsOfServicePage() {
             <Section id="governing-law" title="15. Governing Law">
                 <P>
                     These Terms and any dispute arising out of or relating to them or the
-                    Service are governed by the laws of the State of Delaware, USA, without
+                    Service are governed by the laws of Poland, without
                     regard to its conflict of laws rules. The United Nations Convention on
                     Contracts for the International Sale of Goods does not apply.
                 </P>
@@ -449,9 +449,9 @@ export default function TermsOfServicePage() {
                 <Sub title="16.2 Arbitration">
                     <P>
                         Any dispute not resolved informally will be resolved by final and
-                        binding arbitration administered by the American Arbitration
-                        Association ("AAA") in accordance with its Consumer Arbitration
-                        Rules. The arbitration will be conducted in the English language in
+                        binding arbitration administered by a recognized Polish arbitration
+                        institution in accordance with its applicable consumer arbitration
+                        rules. The arbitration will be conducted in the English language in
                         a location reasonably convenient to you, or by videoconference. The
                         arbitrator's decision will be binding and may be entered as a
                         judgment in any court of competent jurisdiction.
