@@ -3,10 +3,12 @@
 // slots in the user's lineup, respecting the salary cap and any slots
 // they've already filled. Output mirrors the 9-slot field shape.
 
+import type { Position } from '@/shared/sports'
+
 export interface TBAutofillPromptPlayer {
     externalPlayerId: number
     fullName: string
-    primaryPosition: string
+    primaryPosition: Position
     teamName: string
     salary: number
     projectedPoints: number
@@ -33,7 +35,7 @@ export function buildTBAutofillPrompt(
         `The candidate pool is drawn from these MLB teams: ${ctx.mlbTeamNames.join(', ')}. Each player in the pool has a "teamName" field showing which team they come from — you may mix players from any of these teams.`,
         'Use ONLY players from the supplied `pool` where `available: true`. Never invent players or repeat IDs.',
         'Fill EVERY slot listed in `emptySlotKeys` — return exactly one pick per empty slot key. Do not change `filledSlots`.',
-        'Each slot accepts players by their `primaryPosition` value (note these are normalized codes, NOT raw baseball positions): slot "P" accepts primaryPosition "SP" or "RP" (any pitcher); slot "C" accepts "C"; slots "1B"/"2B"/"3B"/"SS" each accept the exact matching value; slots "LF"/"CF"/"RF" each accept primaryPosition "OF" (any outfielder). A player with primaryPosition "DH" fits no slot — do not place them.',
+        'Each slot accepts players by their `primaryPosition` value (note these are normalized codes, NOT raw baseball positions): slot "P" accepts primaryPosition "SP" or "RP" (any pitcher); slot "C" accepts "C"; slots "1B"/"2B"/"3B"/"SS" each accept the exact matching value; slots "LF"/"CF"/"RF" each accept primaryPosition "OF" or "DH". OF/DH players are eligible for any of the three outfield slots.',
         'LF, CF and RF are THREE SEPARATE slots — assign a DIFFERENT outfielder to each. Never reuse a slotKey across two picks, and never assign the same player to two slots.',
         'Stay within salaryRemaining. Leaving a slot empty is a LAST RESORT — only omit a slot if no eligible, available player can fit. To fit everyone, prefer cheaper eligible players at each slot rather than dropping a slot.',
         'Respect riskProfile: "safe" prefers steady veterans, "high_ceiling" prefers high-projection upside, "balanced" sits in between.',

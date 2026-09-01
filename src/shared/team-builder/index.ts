@@ -19,3 +19,8 @@ export {
     CAPTAIN_MULTIPLIER,
     FIELD_SLOTS,
 } from './types'
+export {
+    providerPositionToPoolPosition,
+    slotAcceptsPoolPosition,
+    slotAcceptsProviderPosition,
+} from './roster-rules'

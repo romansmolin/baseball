@@ -5,11 +5,11 @@ import { useState } from 'react'
 import type { PoolPlayer } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
+import type { PlayerPlacement } from '../model/team-builder-roster'
+
 interface PlayerPoolRowProps {
     player: PoolPlayer
-    isOnRoster: boolean
-    hasOpenSlot: boolean
-    isAffordable: boolean
+    placement: PlayerPlacement
     onAdd: () => void
 }
 
@@ -69,22 +69,22 @@ export { PlayerAvatar }
 
 export const PlayerPoolRow = ({
     player,
-    isOnRoster,
-    hasOpenSlot,
-    isAffordable,
+    placement,
     onAdd,
 }: PlayerPoolRowProps) => {
     let label = 'Add'
     let disabled = false
-    if (isOnRoster) {
+    if (!placement.allowed && placement.reason === 'duplicate') {
         label = 'In lineup'
         disabled = true
-    } else if (!hasOpenSlot) {
+    } else if (!placement.allowed && placement.reason === 'no-slot') {
         label = 'No slot'
         disabled = true
-    } else if (!isAffordable) {
+    } else if (!placement.allowed && placement.reason === 'over-budget') {
         label = 'Over cap'
         disabled = true
+    } else if (placement.allowed && placement.replacedPlayerId !== null) {
+        label = 'Replace'
     }
 
     const canAdd = !disabled
@@ -93,7 +93,7 @@ export const PlayerPoolRow = ({
         <div
             className={cn(
                 'flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors',
-                isOnRoster
+                !placement.allowed && placement.reason === 'duplicate'
                     ? 'border-primary/30 bg-primary/5'
                     : 'border-foreground/10 bg-card',
             )}

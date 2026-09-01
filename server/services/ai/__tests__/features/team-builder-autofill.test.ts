@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { ISportsProvider } from '../../../../providers/sports-provider.interface'
 import type { IOpenAIProvider } from '../../provider/openai.provider'
+import type { TBAutofillPromptPlayer } from '../../prompts/team-builder-autofill.prompt'
 import {
     completeAutofill,
     TeamBuilderAutofillFeature,
@@ -12,7 +13,7 @@ import {
 const ALL_SLOTS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'] as const
 
 // A pool with at least one cheap, available, eligible player for every slot.
-const fullPool = () => [
+const fullPool = (): TBAutofillPromptPlayer[] => [
     { externalPlayerId: 1, fullName: 'Pitcher', primaryPosition: 'SP', teamName: 'T', salary: 3000, projectedPoints: 10, available: true },
     { externalPlayerId: 2, fullName: 'Reliever', primaryPosition: 'RP', teamName: 'T', salary: 3000, projectedPoints: 9, available: true },
     { externalPlayerId: 3, fullName: 'Catcher', primaryPosition: 'C', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
@@ -215,15 +216,17 @@ describe('TeamBuilderAutofillFeature', () => {
             )
         })
 
-        it('never places a DH and never exceeds the budget', () => {
+        it('never selects an unavailable player and never exceeds the budget', () => {
+            const pool = fullPool()
+            pool[0] = { ...pool[0], available: false }
             const { suggestedPicks, salaryUsed } = completeAutofill({
-                modelPicks: [],
+                modelPicks: [{ slotKey: 'P', externalPlayerId: 1 }],
                 emptySlotKeys: [...ALL_SLOTS],
-                pool: fullPool(),
+                pool,
                 salaryBudget: 20000, // only enough for ~6 players at 3000 each
             })
             const ids = suggestedPicks.map((p) => p.externalPlayerId)
-            expect(ids).not.toContain(11) // the DH
+            expect(ids).not.toContain(1)
             expect(salaryUsed).toBeLessThanOrEqual(20000)
         })
 
@@ -240,6 +243,57 @@ describe('TeamBuilderAutofillFeature', () => {
             expect(suggestedPicks).toEqual([
                 { slotKey: 'C', externalPlayerId: 99, playerName: 'Star C' },
             ])
+        })
+
+        it('does not let an expensive model preference strand a later slot', () => {
+            const pool: TBAutofillPromptPlayer[] = [
+                { externalPlayerId: 21, fullName: 'AI Catcher', primaryPosition: 'C', teamName: 'T', salary: 6000, projectedPoints: 20, available: true },
+                { externalPlayerId: 22, fullName: 'Value Catcher', primaryPosition: 'C', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
+                { externalPlayerId: 23, fullName: 'Only First Baseman', primaryPosition: '1B', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
+            ]
+
+            const { suggestedPicks, salaryUsed } = completeAutofill({
+                modelPicks: [{ slotKey: 'C', externalPlayerId: 21 }],
+                emptySlotKeys: ['C', '1B'],
+                pool,
+                salaryBudget: 8000,
+            })
+
+            expect(new Set(suggestedPicks.map((pick) => pick.slotKey))).toEqual(
+                new Set(['C', '1B']),
+            )
+            expect(salaryUsed).toBeLessThanOrEqual(8000)
+        })
+
+        it('uses the same DH-to-outfield eligibility as manual team building', () => {
+            const dh = fullPool().find((player) => player.primaryPosition === 'DH')!
+            const { suggestedPicks } = completeAutofill({
+                modelPicks: [],
+                emptySlotKeys: ['LF'],
+                pool: [dh],
+                salaryBudget: 60000,
+            })
+
+            expect(suggestedPicks).toEqual([
+                { slotKey: 'LF', externalPlayerId: dh.externalPlayerId, playerName: dh.fullName },
+            ])
+        })
+
+        it('leaves only an unfillable position empty and keeps the rest valid', () => {
+            const poolWithoutCatcher = fullPool().filter(
+                (player) => player.primaryPosition !== 'C',
+            )
+            const { suggestedPicks, salaryUsed } = completeAutofill({
+                modelPicks: [],
+                emptySlotKeys: [...ALL_SLOTS],
+                pool: poolWithoutCatcher,
+                salaryBudget: 60000,
+            })
+
+            expect(suggestedPicks).toHaveLength(8)
+            expect(suggestedPicks.some((pick) => pick.slotKey === 'C')).toBe(false)
+            expect(new Set(suggestedPicks.map((pick) => pick.externalPlayerId)).size).toBe(8)
+            expect(salaryUsed).toBeLessThanOrEqual(60000)
         })
     })
 

@@ -21,6 +21,7 @@ import type { AIFeatureKey, AIFeatureModule, AIInvocationResult } from '../types
 import type { IOpenAIProvider } from '../provider/openai.provider'
 import { buildTBAutofillPrompt } from '../prompts/team-builder-autofill.prompt'
 import type { TBAutofillPromptPlayer } from '../prompts/team-builder-autofill.prompt'
+import { slotAcceptsProviderPosition } from '@/shared/team-builder'
 
 // Slot keys mirror src/shared/team-builder/types.ts FIELD_SLOTS so the
 // frontend can pass them through unchanged. We accept the team-builder's
@@ -69,22 +70,8 @@ type SlotKey = (typeof ALL_SLOT_KEYS)[number]
 
 // Which normalized primaryPosition values each slot accepts. The pool carries
 // the provider's Position enum ('SP'/'RP'/'C'/'1B'/'2B'/'3B'/'SS'/'OF'/'DH'),
-// NOT raw baseball codes — so the pitcher slot matches SP/RP and the three
-// outfield slots all match OF. 'DH' fits no slot.
-function slotAcceptsPosition(slotKey: SlotKey, primaryPosition: string): boolean {
-    switch (slotKey) {
-        case 'P':
-            return primaryPosition === 'SP' || primaryPosition === 'RP'
-        case 'LF':
-        case 'CF':
-        case 'RF':
-            return primaryPosition === 'OF'
-        default:
-            // C / 1B / 2B / 3B / SS — exact match.
-            return primaryPosition === slotKey
-    }
-}
-
+// NOT raw baseball codes. Eligibility is shared with the manual builder:
+// SP/RP map to P, and OF/DH can occupy any of LF/CF/RF.
 // Turns the model's suggestions into a complete, valid set of picks. The cheap
 // model is unreliable at enumerating all 9 slots, so we treat its picks as
 // preferences (good players per risk profile) and then deterministically
@@ -99,46 +86,97 @@ export function completeAutofill(args: {
 }): { suggestedPicks: TBAutofillOutput['suggestedPicks']; salaryUsed: number } {
     const { modelPicks, emptySlotKeys, pool, salaryBudget } = args
     const poolById = new Map(pool.map((p) => [p.externalPlayerId, p]))
-    const emptySet = new Set<SlotKey>(emptySlotKeys)
     const assigned = new Map<SlotKey, number>()
     const usedPlayers = new Set<number>()
     let spent = 0
 
-    const tryAssign = (slotKey: SlotKey, playerId: number): boolean => {
-        if (assigned.has(slotKey)) return false
-        const p = poolById.get(playerId)
-        if (!p || !p.available || usedPlayers.has(playerId)) return false
-        if (!slotAcceptsPosition(slotKey, p.primaryPosition)) return false
-        if (spent + p.salary > salaryBudget) return false
-        assigned.set(slotKey, playerId)
-        usedPlayers.add(playerId)
-        spent += p.salary
-        return true
+    const available = pool
+        .filter((player) => player.available)
+        .sort(
+            (a, b) =>
+                a.salary - b.salary ||
+                b.projectedPoints - a.projectedPoints ||
+                a.externalPlayerId - b.externalPlayerId,
+        )
+
+    const eligibleFor = (slotKey: SlotKey, player: TBAutofillPromptPlayer) =>
+        slotAcceptsProviderPosition(
+            slotKey,
+            player.primaryPosition,
+        )
+
+    // Build the cheapest maximum-cardinality roster first. Slots with fewer
+    // candidates are assigned first; shared-position slots (LF/CF/RF) then
+    // consume distinct players from the same ordered pool.
+    const slotsByScarcity = [...emptySlotKeys].sort((a, b) => {
+        const aCount = available.filter((player) => eligibleFor(a, player)).length
+        const bCount = available.filter((player) => eligibleFor(b, player)).length
+        return aCount - bCount || emptySlotKeys.indexOf(a) - emptySlotKeys.indexOf(b)
+    })
+
+    const cheapestAssignments: Array<{
+        slotKey: SlotKey
+        player: TBAutofillPromptPlayer
+    }> = []
+    for (const slotKey of slotsByScarcity) {
+        const player = available.find(
+            (candidate) =>
+                !usedPlayers.has(candidate.externalPlayerId) &&
+                eligibleFor(slotKey, candidate),
+        )
+        if (!player) continue
+        usedPlayers.add(player.externalPlayerId)
+        cheapestAssignments.push({ slotKey, player })
     }
 
-    // 1) Honor the model's picks first. If a pick's slot is taken or invalid,
-    //    try to reslot the player into any other eligible empty slot (handles
-    //    the model labelling two outfielders with the same slotKey).
+    // If the cap cannot fund every otherwise-fillable slot, retain the
+    // cheapest assignments. This maximizes the number of valid filled slots.
+    cheapestAssignments.sort(
+        (a, b) =>
+            a.player.salary - b.player.salary ||
+            emptySlotKeys.indexOf(a.slotKey) - emptySlotKeys.indexOf(b.slotKey),
+    )
+    usedPlayers.clear()
+    for (const { slotKey, player } of cheapestAssignments) {
+        if (spent + player.salary > salaryBudget) continue
+        assigned.set(slotKey, player.externalPlayerId)
+        usedPlayers.add(player.externalPlayerId)
+        spent += player.salary
+    }
+
+    // Treat model picks as preferences/upgrades only. A preference may replace
+    // the baseline player when it preserves roster cardinality and the cap;
+    // it can never strand a later required slot.
     for (const pick of modelPicks) {
-        const sk = pick.slotKey as SlotKey
-        if (emptySet.has(sk) && tryAssign(sk, pick.externalPlayerId)) continue
-        for (const alt of emptySlotKeys) {
-            if (tryAssign(alt, pick.externalPlayerId)) break
+        const preferred = poolById.get(pick.externalPlayerId)
+        if (!preferred?.available || usedPlayers.has(preferred.externalPlayerId)) {
+            continue
         }
+
+        const requested = pick.slotKey as SlotKey
+        const target =
+            (emptySlotKeys.includes(requested) && eligibleFor(requested, preferred)
+                ? requested
+                : emptySlotKeys.find((slotKey) => eligibleFor(slotKey, preferred))) ??
+            null
+        if (target == null) continue
+
+        const currentId = assigned.get(target)
+        const current = currentId == null ? undefined : poolById.get(currentId)
+        const nextSpent = spent - (current?.salary ?? 0) + preferred.salary
+        if (nextSpent > salaryBudget) continue
+
+        if (currentId != null) usedPlayers.delete(currentId)
+        assigned.set(target, preferred.externalPlayerId)
+        usedPlayers.add(preferred.externalPlayerId)
+        spent = nextSpent
     }
 
-    // 2) Backfill every slot the model left empty, cheapest eligible first.
-    const cheapestFirst = [...pool].sort((a, b) => a.salary - b.salary)
-    for (const slotKey of emptySlotKeys) {
-        if (assigned.has(slotKey)) continue
-        for (const p of cheapestFirst) {
-            if (tryAssign(slotKey, p.externalPlayerId)) break
-        }
-    }
-
-    const suggestedPicks = [...assigned.entries()].map(([slotKey, id]) => {
-        const p = poolById.get(id)!
-        return { slotKey, externalPlayerId: id, playerName: p.fullName }
+    const suggestedPicks = emptySlotKeys.flatMap((slotKey) => {
+        const id = assigned.get(slotKey)
+        if (id == null) return []
+        const player = poolById.get(id)!
+        return [{ slotKey, externalPlayerId: id, playerName: player.fullName }]
     })
     return { suggestedPicks, salaryUsed: spent }
 }

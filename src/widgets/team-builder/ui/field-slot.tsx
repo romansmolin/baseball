@@ -14,29 +14,18 @@ interface FieldSlotProps {
     slot: FieldSlotType
     player: PoolPlayer | null
     isCaptain: boolean
-    onFocusEmpty: () => void
+    isSelected: boolean
+    onFocus: () => void
     onRemove: () => void
     onToggleCaptain: () => void
-}
-
-const initials = (name: string) =>
-    name
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-
-const hexA = (hex: string, a: number) => {
-    const n = parseInt(hex.slice(1), 16)
-    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
 }
 
 export const FieldSlot = ({
     slot,
     player,
     isCaptain,
-    onFocusEmpty,
+    isSelected,
+    onFocus,
     onRemove,
     onToggleCaptain,
 }: FieldSlotProps) => {
@@ -49,7 +38,7 @@ export const FieldSlot = ({
         return (
             <button
                 type="button"
-                onClick={onFocusEmpty}
+                onClick={onFocus}
                 className="group absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-150 hover:scale-105"
                 style={positionStyle}
             >
@@ -73,7 +62,7 @@ export const FieldSlot = ({
             <div
                 className={cn(
                     'relative flex w-[96px] flex-col items-center rounded-xl border bg-card/95 px-1.5 py-1.5 shadow-md backdrop-blur',
-                    isCaptain ? 'border-primary' : 'border-white/70',
+                    isCaptain || isSelected ? 'border-primary' : 'border-white/70',
                 )}
             >
                 <button
@@ -102,19 +91,26 @@ export const FieldSlot = ({
                         fill={isCaptain ? 'currentColor' : 'none'}
                     />
                 </button>
-                <PlayerAvatar
-                    name={player.name}
-                    photoUrl={player.photoUrl}
-                    leagueColor={player.leagueColor}
-                    size={32}
-                />
-                <span className="mt-1 line-clamp-1 max-w-full text-center text-[11px] leading-tight font-medium">
-                    {player.name}
-                </span>
-                <span className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <span className="rounded bg-muted px-1 font-semibold">{slot.label}</span>
-                    <span className="font-anton text-primary">{displayPts.toFixed(1)}</span>
-                </span>
+                <button
+                    type="button"
+                    onClick={onFocus}
+                    title={`Replace ${player.name} at ${slot.label}`}
+                    className="flex w-full flex-col items-center"
+                >
+                    <PlayerAvatar
+                        name={player.name}
+                        photoUrl={player.photoUrl}
+                        leagueColor={player.leagueColor}
+                        size={32}
+                    />
+                    <span className="mt-1 line-clamp-1 max-w-full text-center text-[11px] leading-tight font-medium">
+                        {player.name}
+                    </span>
+                    <span className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <span className="rounded bg-muted px-1 font-semibold">{slot.label}</span>
+                        <span className="font-anton text-primary">{displayPts.toFixed(1)}</span>
+                    </span>
+                </button>
             </div>
         </div>
     )

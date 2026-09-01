@@ -1,6 +1,10 @@
 import { getBaseballLeague } from '@/shared/baseball'
 import { httpClient } from '@/shared/api/http-client'
-import type { PoolPlayer, PoolPosition } from '@/shared/team-builder'
+import {
+    providerPositionToPoolPosition,
+    type PoolPlayer,
+    type PoolPosition,
+} from '@/shared/team-builder'
 
 const FALLBACK_LEAGUE_COLOR = '#3b82f6'
 
@@ -48,12 +52,6 @@ const POOL_POSITION_TO_PROVIDER_POSITIONS: Record<PoolPosition, ProviderPosition
     OF: ['OF'],
 }
 
-function mapProviderPositionToPoolPosition(position: ProviderPosition): PoolPosition {
-    if (position === 'SP' || position === 'RP') return 'P'
-    if (position === 'DH') return 'OF'
-    return position
-}
-
 /**
  * FAUX salary/projection values — deterministic from player.id.
  * Replace once the scoring engine lands.
@@ -74,7 +72,7 @@ function mapProviderPlayerToPoolPlayer(
     return {
         id: dto.id,
         name: dto.fullName,
-        pos: mapProviderPositionToPoolPosition(dto.primaryPosition),
+        pos: providerPositionToPoolPosition(dto.primaryPosition),
         team: dto.teamAbbreviation ?? '—',
         leagueSlug,
         leagueColor,

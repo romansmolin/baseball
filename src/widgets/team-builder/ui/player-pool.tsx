@@ -4,13 +4,12 @@ import { Search01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import type {
-    FieldSlot,
     PoolPlayer,
     PoolPositionFilter,
 } from '@/shared/team-builder'
-import { SALARY_CAP_DEFAULT } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
+import type { PlayerPlacement } from '../model/team-builder-roster'
 import { PlayerPoolRow } from './player-pool-row'
 
 const POSITION_OPTIONS: { value: PoolPositionFilter; label: string }[] = [
@@ -26,8 +25,6 @@ const POSITION_OPTIONS: { value: PoolPositionFilter; label: string }[] = [
 
 interface PlayerPoolProps {
     pool: PoolPlayer[]
-    rosteredIds: number[]
-    salaryUsed: number
     search: string
     position: PoolPositionFilter
     isLoading: boolean
@@ -37,15 +34,13 @@ interface PlayerPoolProps {
     onSearch: (q: string) => void
     onPositionChange: (pos: PoolPositionFilter) => void
     onAdd: (id: number) => void
-    openSlotFor: (player: PoolPlayer) => FieldSlot | undefined
+    placementFor: (player: PoolPlayer) => PlayerPlacement
 }
 
 const SKELETON_ROWS = 7
 
 export const PlayerPool = ({
     pool,
-    rosteredIds,
-    salaryUsed,
     search,
     position,
     isLoading,
@@ -55,7 +50,7 @@ export const PlayerPool = ({
     onSearch,
     onPositionChange,
     onAdd,
-    openSlotFor,
+    placementFor,
 }: PlayerPoolProps) => {
     const showNoTeam = selectedTeamId == null
     const showError = !showNoTeam && !!error
@@ -159,17 +154,12 @@ export const PlayerPool = ({
 
                 {showRows
                     ? pool.map((player) => {
-                          const isOnRoster = rosteredIds.includes(player.id)
-                          const hasOpenSlot = !!openSlotFor(player)
-                          const isAffordable =
-                              salaryUsed + player.salary <= SALARY_CAP_DEFAULT
+                          const placement = placementFor(player)
                           return (
                               <PlayerPoolRow
                                   key={player.id}
                                   player={player}
-                                  isOnRoster={isOnRoster}
-                                  hasOpenSlot={hasOpenSlot}
-                                  isAffordable={isAffordable}
+                                  placement={placement}
                                   onAdd={() => onAdd(player.id)}
                               />
                           )

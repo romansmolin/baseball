@@ -10,8 +10,9 @@ interface FieldSlotsOverlayProps {
     slots: FieldSlotType[]
     roster: Roster
     captainId: number | null
+    targetSlotKey: SlotKey | null
     playerById: (id: number) => PoolPlayer | undefined
-    onFocusEmpty: (slotKey: SlotKey) => void
+    onFocusSlot: (slotKey: SlotKey) => void
     onRemove: (slotKey: SlotKey) => void
     onToggleCaptain: (id: number) => void
 }
@@ -20,8 +21,9 @@ export const FieldSlotsOverlay = ({
     slots,
     roster,
     captainId,
+    targetSlotKey,
     playerById,
-    onFocusEmpty,
+    onFocusSlot,
     onRemove,
     onToggleCaptain,
 }: FieldSlotsOverlayProps) => (
@@ -35,7 +37,8 @@ export const FieldSlotsOverlay = ({
                     slot={slot}
                     player={player}
                     isCaptain={playerId !== null && playerId === captainId}
-                    onFocusEmpty={() => onFocusEmpty(slot.key)}
+                    isSelected={targetSlotKey === slot.key}
+                    onFocus={() => onFocusSlot(slot.key)}
                     onRemove={() => onRemove(slot.key)}
                     onToggleCaptain={() => playerId !== null && onToggleCaptain(playerId)}
                 />
@@ -46,7 +49,7 @@ export const FieldSlotsOverlay = ({
 
 export const FieldHint = () => (
     <p className="mt-3 text-center text-xs text-muted-foreground">
-        Tap a position to fill it from the pool · tap a player's{' '}
+        Tap any position to fill or replace it · tap a player&apos;s{' '}
         <HugeiconsIcon icon={StarIcon} className="inline size-3.5 align-text-bottom" /> to make them
         captain (×1.5 pts)
     </p>

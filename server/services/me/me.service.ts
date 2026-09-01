@@ -33,6 +33,7 @@ import type {
 import {
     ROSTER_SIZE,
     SALARY_CAP_DEFAULT,
+    slotAcceptsPoolPosition,
 } from '@/shared/team-builder'
 import type {
     BuilderBudget,
@@ -260,6 +261,26 @@ export class MeService implements IMeService {
         players: BuilderRosterSlotPayload[],
         captainExternalPlayerId: number | undefined,
     ): void {
+        const playerIds = new Set(players.map((player) => player.externalPlayerId))
+        if (playerIds.size !== players.length) {
+            throw ApiError.validationError('A player can occupy only one roster slot')
+        }
+
+        const slotKeys = new Set(players.map((player) => player.slotKey))
+        if (slotKeys.size !== players.length) {
+            throw ApiError.validationError('Each roster position can be used only once')
+        }
+
+        const ineligible = players.find(
+            (player) =>
+                !slotAcceptsPoolPosition(player.slotKey, player.position),
+        )
+        if (ineligible) {
+            throw ApiError.validationError(
+                `${ineligible.position} is not eligible for ${ineligible.slotKey}`,
+            )
+        }
+
         const salaryUsed = players.reduce(
             (sum, player) => sum + player.salaryAtLock,
             0,

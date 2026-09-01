@@ -81,8 +81,9 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                             slots={state.slots}
                             roster={state.roster}
                             captainId={state.captainId}
+                            targetSlotKey={state.targetSlotKey}
                             playerById={state.playerById}
-                            onFocusEmpty={state.focusEmptySlot}
+                            onFocusSlot={state.focusSlot}
                             onRemove={state.removeSlot}
                             onToggleCaptain={state.toggleCaptain}
                         />
@@ -93,8 +94,6 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
             pool={
                 <PlayerPool
                     pool={state.visiblePool}
-                    rosteredIds={state.rosteredIds}
-                    salaryUsed={state.salaryUsed}
                     search={state.poolSearch}
                     position={state.poolPosition}
                     isLoading={state.playersLoading}
@@ -104,7 +103,7 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     onSearch={state.setPoolSearch}
                     onPositionChange={state.setPoolPosition}
                     onAdd={state.addPlayer}
-                    openSlotFor={state.openSlotFor}
+                    placementFor={state.placementFor}
                 />
             }
         />

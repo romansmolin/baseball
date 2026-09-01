@@ -38,6 +38,12 @@ import {
 } from '@/shared/team-builder'
 import type { Team, TeamRosterSlot } from '@/shared/teams'
 
+import {
+    evaluatePlayerPlacement,
+    mergeAutofillPicks,
+    type PlayerPlacement,
+} from './team-builder-roster'
+
 const emptyRoster = (): Roster =>
     FIELD_SLOTS.reduce<Roster>((acc, slot) => {
         acc[slot.key] = null
@@ -61,6 +67,7 @@ export interface TeamBuilderState {
     poolPosition: PoolPositionFilter
     selectedLeagueSlug: string | null
     selectedTeamId: number | null
+    targetSlotKey: SlotKey | null
     rosteredIds: number[]
     salaryUsed: number
     salaryLeft: number
@@ -96,9 +103,9 @@ export interface TeamBuilderState {
     setPoolPosition: (pos: PoolPositionFilter) => void
     setSelectedLeagueSlug: (slug: string | null) => void
     setSelectedTeamId: (id: number | null) => void
-    focusEmptySlot: (slotKey: SlotKey) => void
+    focusSlot: (slotKey: SlotKey) => void
     playerById: (id: number) => PoolPlayer | undefined
-    openSlotFor: (player: PoolPlayer) => FieldSlot | undefined
+    placementFor: (player: PoolPlayer) => PlayerPlacement
     retryLeagues: () => void
     retryTeams: () => void
     retryPlayers: () => void
@@ -173,6 +180,7 @@ export const useTeamBuilderState = (
     const [poolPosition, setPoolPosition] = useState<PoolPositionFilter>('all')
     const [isSaving, setIsSaving] = useState(false)
     const [isAutofilling, setIsAutofilling] = useState(false)
+    const [targetSlotKey, setTargetSlotKey] = useState<SlotKey | null>(null)
     const prefilledTeamIdRef = useRef<string | null>(null)
 
     const { open: openBuyCredits } = useBuyCredits()
@@ -200,11 +208,14 @@ export const useTeamBuilderState = (
         position: poolPosition === 'all' ? undefined : poolPosition,
     })
 
-    const playerCacheRef = useRef<Map<number, PoolPlayer>>(new Map())
-    useEffect(() => {
-        if (!playersQuery.data) return
-        for (const p of playersQuery.data) playerCacheRef.current.set(p.id, p)
-    }, [playersQuery.data])
+    const [cachedPlayers, setCachedPlayers] = useState<Map<number, PoolPlayer>>(
+        () => new Map(),
+    )
+    const playerCache = useMemo(() => {
+        const next = new Map(cachedPlayers)
+        for (const player of playersQuery.data ?? []) next.set(player.id, player)
+        return next
+    }, [cachedPlayers, playersQuery.data])
 
     // Edit mode: when an existing team is loaded, prefill team name,
     // selected league, roster slots, and captain id. We seed the player
@@ -222,26 +233,32 @@ export const useTeamBuilderState = (
             return acc
         }, {} as Roster)
         let nextCaptain: number | null = null
+        const restoredPlayers: PoolPlayer[] = []
 
         for (const slot of existingTeam.rosterSlots) {
             if (!isSlotKey(slot.slotPosition)) continue
             const player = poolPlayerFromRosterSlot(slot)
             if (!player) continue
-            playerCacheRef.current.set(player.id, player)
+            restoredPlayers.push(player)
             nextRoster[slot.slotPosition] = player.id
             if (slot.isCaptain) nextCaptain = player.id
         }
 
+        setCachedPlayers((previous) => {
+            const next = new Map(previous)
+            for (const player of restoredPlayers) next.set(player.id, player)
+            return next
+        })
         setRoster(nextRoster)
         setCaptainId(nextCaptain)
     }, [isEditMode, existingTeam])
 
     const playerById = useCallback(
-        (id: number) => playerCacheRef.current.get(id),
-        [],
+        (id: number) => playerCache.get(id),
+        [playerCache],
     )
 
-    const pool = playersQuery.data ?? []
+    const pool = useMemo(() => playersQuery.data ?? [], [playersQuery.data])
     const visiblePool = useMemo(
         () => [...pool].sort((a, b) => b.proj - a.proj),
         [pool],
@@ -272,29 +289,43 @@ export const useTeamBuilderState = (
     const filledCount = rosteredIds.length
     const isOverCap = salaryUsed > salaryCap
 
-    const openSlotFor = useCallback(
-        (player: PoolPlayer): FieldSlot | undefined =>
-            FIELD_SLOTS.find((s) => roster[s.key] === null && s.accept === player.pos),
-        [roster],
+    const placementFor = useCallback(
+        (player: PoolPlayer): PlayerPlacement =>
+            evaluatePlayerPlacement({
+                roster,
+                player,
+                targetSlotKey,
+                salaryUsed,
+                salaryCap,
+                playerById,
+            }),
+        [roster, targetSlotKey, salaryUsed, salaryCap, playerById],
     )
 
     const addPlayer = useCallback(
         (id: number) => {
             const player = playerById(id)
             if (!player) return
-            if (rosteredIds.includes(id)) return
-            const slot = openSlotFor(player)
-            if (!slot) {
+            const placement = placementFor(player)
+            if (!placement.allowed) {
+                if (placement.reason === 'duplicate') return
+                if (placement.reason === 'over-budget') {
+                    toast('That puts you over the cap')
+                    return
+                }
                 toast(`No open ${player.pos} slot`)
                 return
             }
-            if (salaryUsed + player.salary > salaryCap) {
-                toast('That puts you over the cap')
-                return
+            setRoster((prev) => ({ ...prev, [placement.slot.key]: id }))
+            if (
+                placement.replacedPlayerId !== null &&
+                placement.replacedPlayerId === captainId
+            ) {
+                setCaptainId(null)
             }
-            setRoster((prev) => ({ ...prev, [slot.key]: id }))
+            setTargetSlotKey(null)
         },
-        [rosteredIds, salaryUsed, salaryCap, openSlotFor, playerById],
+        [placementFor, captainId, playerById],
     )
 
     const removeSlot = useCallback(
@@ -312,7 +343,7 @@ export const useTeamBuilderState = (
         setCaptainId((prev) => {
             const next = prev === id ? null : id
             if (next !== null) {
-                const player = playerCacheRef.current.get(next)
+                const player = playerCache.get(next)
                 if (player) {
                     const lastName = player.name.split(' ').slice(-1)[0]
                     toast(`${lastName} is your captain (×1.5)`)
@@ -320,11 +351,12 @@ export const useTeamBuilderState = (
             }
             return next
         })
-    }, [])
+    }, [playerCache])
 
     const clearLineup = useCallback(() => {
         setRoster(emptyRoster())
         setCaptainId(null)
+        setTargetSlotKey(null)
     }, [])
 
     // Autofill is an AI call (POST /api/me/ai/team-builder-autofill). The
@@ -364,14 +396,12 @@ export const useTeamBuilderState = (
             // roster in parallel so we have full PoolPlayer metadata (name,
             // pos, salary, photo) to seed the cache — without this the
             // field would render blanks for picks from teams the user
-            // hasn't loaded yet. Skip the currently-visible team since its
-            // pool is already in playersQuery.data.
+            // hasn't loaded yet. Hydrate every selected team, including the
+            // visible one: its current pool may be narrowed by search/position.
             const pickedIds = new Set(
                 response.suggestedPicks.map((p) => p.externalPlayerId),
             )
-            const teamsToHydrate = mlbTeamIds.filter(
-                (id) => id !== selectedTeamId,
-            )
+            const teamsToHydrate = [...new Set(mlbTeamIds)]
             const hydratedRosters = await Promise.all(
                 teamsToHydrate.map((teamId) =>
                     fetchPlayersByTeam({
@@ -387,43 +417,37 @@ export const useTeamBuilderState = (
                     if (!poolById.has(p.id)) poolById.set(p.id, p)
                 }
             }
+            setCachedPlayers((previous) => {
+                const next = new Map(previous)
+                for (const player of poolById.values()) next.set(player.id, player)
+                return next
+            })
 
             // Surface a gentle warning if any pick is still unresolvable
-            // (e.g. roster fetch failed for that team). The slot still
-            // gets the id so the user can see something was picked, but
-            // metadata will be missing until they switch to that team.
+            // (e.g. roster fetch failed for that team). Those specific picks
+            // remain genuinely empty and editable; resolved picks still apply.
             const missing = [...pickedIds].filter((id) => !poolById.has(id))
             if (missing.length > 0) {
                 toast(
-                    `Couldn’t load player info for ${missing.length} pick(s). They’ll show once you select the source team.`,
+                    `Couldn’t load player info for ${missing.length} pick(s). Those slots were left open.`,
                 )
             }
 
             setRoster((prev) => {
-                const next: Roster = { ...prev }
-                for (const pick of response.suggestedPicks) {
-                    // The LF/CF/RF slots all accept outfielders, so the model
-                    // can label two outfield picks with the same slotKey. If
-                    // the requested slot is taken, redirect the pick to another
-                    // empty slot that accepts the same position rather than
-                    // dropping it — otherwise an outfield slot stays empty.
-                    let targetKey: SlotKey | null = next[pick.slotKey] == null ? pick.slotKey : null
-                    if (targetKey == null) {
-                        const accept = FIELD_SLOTS.find((s) => s.key === pick.slotKey)?.accept
-                        targetKey =
-                            FIELD_SLOTS.find(
-                                (s) => s.accept === accept && next[s.key] == null,
-                            )?.key ?? null
-                    }
-                    if (targetKey == null) continue
-                    next[targetKey] = pick.externalPlayerId
-                    const pooled = poolById.get(pick.externalPlayerId)
-                    if (pooled) playerCacheRef.current.set(pick.externalPlayerId, pooled)
-                }
-                return next
+                const merged = mergeAutofillPicks({
+                    roster: prev,
+                    picks: response.suggestedPicks,
+                    playersById: poolById,
+                })
+                return merged.roster
             })
+            setTargetSlotKey(null)
 
-            const filled = response.suggestedPicks.length
+            const filled = mergeAutofillPicks({
+                roster,
+                picks: response.suggestedPicks,
+                playersById: poolById,
+            }).assignedPicks.length
             if (filled === 0) {
                 toast('AI couldn’t fit any new picks under the cap')
             } else {
@@ -453,17 +477,21 @@ export const useTeamBuilderState = (
         roster,
         salaryCap,
         playersQuery.data,
-        selectedTeamId,
         selectedLeagueSlug,
         openBuyCredits,
     ])
 
-    const focusEmptySlot = useCallback((slotKey: SlotKey) => {
+    const focusSlot = useCallback((slotKey: SlotKey) => {
         const slot = FIELD_SLOTS.find((s) => s.key === slotKey)
         if (!slot) return
+        setTargetSlotKey(slotKey)
         setPoolPosition(slot.accept)
-        toast(`Pick a ${slotKey} from the pool`)
-    }, [])
+        toast(
+            roster[slotKey] == null
+                ? `Pick a ${slotKey} from the pool`
+                : `Pick a replacement for ${slotKey}`,
+        )
+    }, [roster])
 
     const canSave =
         filledCount === ROSTER_SIZE &&
@@ -476,6 +504,7 @@ export const useTeamBuilderState = (
         setSelectedTeamId(null)
         setPoolSearch('')
         setPoolPosition('all')
+        setTargetSlotKey(null)
     }, [])
 
     const handleTeamChange = useCallback((id: number | null) => {
@@ -490,7 +519,7 @@ export const useTeamBuilderState = (
         for (const slot of FIELD_SLOTS) {
             const id = roster[slot.key]
             if (id == null) continue
-            const player = playerCacheRef.current.get(id)
+            const player = playerCache.get(id)
             if (!player) {
                 toast('A player went missing — try re-adding them')
                 return
@@ -566,6 +595,7 @@ export const useTeamBuilderState = (
         router,
         isEditMode,
         existingTeamId,
+        playerCache,
     ])
 
     // Autofill is scoped to the league the user picked: the modal only offers
@@ -591,6 +621,7 @@ export const useTeamBuilderState = (
         poolPosition,
         selectedLeagueSlug,
         selectedTeamId,
+        targetSlotKey,
         rosteredIds,
         salaryUsed,
         salaryLeft: salaryCap - salaryUsed,
@@ -626,9 +657,9 @@ export const useTeamBuilderState = (
         setPoolPosition,
         setSelectedLeagueSlug: handleLeagueChange,
         setSelectedTeamId: handleTeamChange,
-        focusEmptySlot,
+        focusSlot,
         playerById,
-        openSlotFor,
+        placementFor,
         retryLeagues: () => void leaguesQuery.mutate(),
         retryTeams: () => void teamsQuery.mutate(),
         retryPlayers: () => void playersQuery.mutate(),
