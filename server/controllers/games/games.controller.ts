@@ -24,6 +24,18 @@ export class GamesController implements IGamesController {
             return ApiError.internal().toResponse()
         }
     }
+
+    async getRecentGames(searchParams: URLSearchParams): Promise<Response> {
+        try {
+            const limit = clampLimit(searchParams.get('limit'))
+            const games = await this.gamesService.getRecentGames(limit)
+            return Response.json(games)
+        } catch (error) {
+            if (error instanceof ApiError) return error.toResponse()
+            console.error('[GamesController]', error)
+            return ApiError.internal().toResponse()
+        }
+    }
 }
 
 function clampLimit(raw: string | null): number {

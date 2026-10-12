@@ -1,3 +1,4 @@
+import type { ProviderScheduledGame } from '../../providers/dto/provider-schedule.dto'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
 import type { UpcomingGameRecord } from '../../../src/shared/games'
 
@@ -7,6 +8,10 @@ import type { IGamesService } from './games.service.interface'
 // the next 5–10 games even if a team has an off-day.
 const UPCOMING_WINDOW_DAYS = 4
 const MS_PER_DAY = 24 * 60 * 60 * 1000
+// How far back the results list reaches.
+const RECENT_WINDOW_DAYS = 3
+// Short TTL so LIVE scores don't lag the default 15-minute schedule cache.
+const LIVE_SCORE_REVALIDATE_SECONDS = 60
 
 export class GamesService implements IGamesService {
     private readonly sportsProvider: ISportsProvider
@@ -29,14 +34,30 @@ export class GamesService implements IGamesService {
             .filter((g) => new Date(g.gameDateUtc).getTime() >= now.getTime() - 60 * 60 * 1000)
             .sort((a, b) => a.gameDateUtc.localeCompare(b.gameDateUtc))
 
-        if (upcoming.length === 0) return []
+        return this.toRecords(upcoming.slice(0, limit))
+    }
 
-        // Resolve team display names once, then enrich.
-        const teamIds = new Set<number>()
-        for (const game of upcoming) {
-            teamIds.add(game.homeTeamId)
-            teamIds.add(game.awayTeamId)
-        }
+    async getRecentGames(limit: number): Promise<UpcomingGameRecord[]> {
+        const now = new Date()
+        const start = new Date(now.getTime() - RECENT_WINDOW_DAYS * MS_PER_DAY)
+
+        const games = await this.sportsProvider.getSchedule({
+            startDateUtc: start,
+            endDateUtc: now,
+            revalidateSeconds: LIVE_SCORE_REVALIDATE_SECONDS,
+        })
+
+        // Newest first; only games that have actually started.
+        const started = games
+            .filter((g) => g.status === 'LIVE' || g.status === 'FINAL')
+            .sort((a, b) => b.gameDateUtc.localeCompare(a.gameDateUtc))
+
+        return this.toRecords(started.slice(0, limit))
+    }
+
+    private async toRecords(games: ProviderScheduledGame[]): Promise<UpcomingGameRecord[]> {
+        if (games.length === 0) return []
+
         const teams = await this.sportsProvider.getTeams()
         const teamById = new Map(teams.map((t) => [t.id, t]))
 
@@ -47,7 +68,7 @@ export class GamesService implements IGamesService {
             abbreviation: 'UNK',
         })
 
-        return upcoming.slice(0, limit).map((g) => {
+        return games.map((g) => {
             const home = teamById.get(g.homeTeamId)
             const away = teamById.get(g.awayTeamId)
             return {
@@ -71,6 +92,8 @@ export class GamesService implements IGamesService {
                       }
                     : fallback(g.awayTeamId),
                 venueName: home?.venueName ?? null,
+                homeScore: g.homeScore,
+                awayScore: g.awayScore,
             }
         })
     }

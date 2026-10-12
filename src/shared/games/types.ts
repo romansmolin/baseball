@@ -16,4 +16,7 @@ export interface UpcomingGameRecord {
     homeTeam: UpcomingGameTeam
     awayTeam: UpcomingGameTeam
     venueName: string | null
+    // Runs; null until the game has started.
+    homeScore: number | null
+    awayScore: number | null
 }

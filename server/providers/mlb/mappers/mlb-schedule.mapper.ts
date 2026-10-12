@@ -17,6 +17,8 @@ export function mapMlbScheduleGameToProvider(
             raw.status.abstractGameState,
         ),
         doubleHeader: raw.doubleHeader === 'Y' || raw.doubleHeader === 'S',
+        homeScore: raw.teams.home.score ?? null,
+        awayScore: raw.teams.away.score ?? null,
     }
 }
 

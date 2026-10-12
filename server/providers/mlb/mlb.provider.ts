@@ -210,7 +210,7 @@ export class MlbSportsProvider implements ISportsProvider {
         }
 
         const data = await mlbFetch<MlbRawScheduleResponse>(path, {
-            revalidate: MLB_REVALIDATE.schedule,
+            revalidate: filters.revalidateSeconds ?? MLB_REVALIDATE.schedule,
             tags: [mlbTags.schedule(sportId, startStr, endStr, teamKey)],
         })
 

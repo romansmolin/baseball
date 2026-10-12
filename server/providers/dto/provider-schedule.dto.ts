@@ -12,6 +12,9 @@ export interface ProviderScheduledGame {
     awayTeamId: number
     status: ProviderGameStatus
     doubleHeader: boolean
+    // Runs; null until the game has started.
+    homeScore: number | null
+    awayScore: number | null
 }
 
 export interface ProviderBatterLine {
@@ -53,4 +56,6 @@ export interface GetScheduleFilters {
     teamIds?: number[]
     league?: SupportedBaseballLeague
     season?: number
+    // Override the default schedule cache TTL (live scores need a short one).
+    revalidateSeconds?: number
 }

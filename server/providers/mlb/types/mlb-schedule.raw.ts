@@ -11,6 +11,8 @@ export interface MlbRawScheduleGameStatus {
 
 export interface MlbRawScheduleTeamSide {
     team: { id: number }
+    // Present once a game is LIVE or FINAL.
+    score?: number
 }
 
 export interface MlbRawScheduleGame {
