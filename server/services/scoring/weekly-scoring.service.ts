@@ -491,13 +491,23 @@ export class WeeklyScoringService implements IWeeklyScoringService {
 
         let schedule: ProviderScheduledGame[] = []
         try {
-            schedule = await this.sportsProvider.getSchedule({
+            // Same league-wide URL for every member, so the provider cache is
+            // hit after the first call; a per-roster teamIds URL is unique per
+            // member and made every member pay a cold MLB request.
+            const weekSchedule = await this.sportsProvider.getSchedule({
                 startDateUtc: startUtc,
                 endDateUtc: endUtc,
                 league: providerLeague,
                 season: league.season,
-                teamIds: teamIds ?? undefined,
             })
+            const rosterTeams = teamIds ? new Set(teamIds) : null
+            schedule = rosterTeams
+                ? weekSchedule.filter(
+                      (game) =>
+                          rosterTeams.has(game.homeTeamId) ||
+                          rosterTeams.has(game.awayTeamId),
+                  )
+                : weekSchedule
         } catch {
             return this.providerOutageFallback({
                 memberId,
