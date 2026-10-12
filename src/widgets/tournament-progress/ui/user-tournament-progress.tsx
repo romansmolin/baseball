@@ -207,13 +207,15 @@ const SlotList = ({ slots }: { slots: UserTournamentSlotScore[] }) => (
                         : slot.games
                               .map(
                                   (game, index) =>
-                                      `G${index + 1} ${game.points.toLocaleString()}${
+                                      `G${index + 1} ${game.points.toLocaleString()} pts${
+                                          game.stats ? ` — ${game.stats}` : ''
+                                      }${
                                           game.status === 'FINAL'
                                               ? ''
                                               : ` (${game.status.toLowerCase()})`
                                       }`,
                               )
-                              .join('  ·  ')}
+                              .join('   |   ')}
                 </span>
             </li>
         ))}

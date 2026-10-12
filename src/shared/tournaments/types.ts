@@ -73,6 +73,8 @@ export interface UserTournamentGameScore {
     gamePk: number
     points: number
     status: string
+    // Short box-score line for the game, e.g. "2 H · 1 HR · 3 RBI".
+    stats?: string
 }
 
 export interface UserTournamentSlotScore {

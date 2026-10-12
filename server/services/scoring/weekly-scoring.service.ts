@@ -30,6 +30,7 @@ import type {
 } from '../../repositories/weekly-lineup/weekly-lineup.repository.interface'
 import { tournamentWeekRange } from '../tournaments/tournament-week-range.util'
 
+import { formatGameStatLine } from './game-stat-line'
 import { scoreGameForPlayer } from './scoring-engine'
 import type {
     IWeeklyScoringService,
@@ -652,7 +653,12 @@ export class WeeklyScoringService implements IWeeklyScoringService {
                 // appearance, so we filter both — the FINAL state guarantees the
                 // total is settled either way.
                 if (pts !== 0) {
-                    games.push({ gamePk: box.gamePk, points: pts, status: box.status })
+                    games.push({
+                        gamePk: box.gamePk,
+                        points: pts,
+                        status: box.status,
+                        stats: formatGameStatLine(box, slot.externalPlayerId),
+                    })
                     rawPoints += pts
                 }
             }

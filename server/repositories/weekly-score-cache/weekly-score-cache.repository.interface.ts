@@ -7,6 +7,9 @@ export interface WeeklyScoreBreakdownSlotGame {
     gamePk: number
     points: number
     status: string
+    // Short box-score line for this game ("2 H · 1 HR"). Absent on weeks
+    // scored before this field existed.
+    stats?: string
 }
 
 export interface WeeklyScoreBreakdownSlot {
