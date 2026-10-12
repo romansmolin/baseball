@@ -7,18 +7,22 @@ import type { MlbRawScheduleGame } from '../types/mlb-schedule.raw'
 export function mapMlbScheduleGameToProvider(
     raw: MlbRawScheduleGame,
 ): ProviderScheduledGame {
+    const status = mapMlbDetailedStateToStatus(
+        raw.status.detailedState,
+        raw.status.abstractGameState,
+    )
+    // MLB sends score: 0 for games that haven't started; only LIVE/FINAL runs mean anything.
+    const hasScore = status === 'LIVE' || status === 'FINAL'
+
     return {
         gamePk: raw.gamePk,
         gameDateUtc: raw.gameDate,
         homeTeamId: raw.teams.home.team.id,
         awayTeamId: raw.teams.away.team.id,
-        status: mapMlbDetailedStateToStatus(
-            raw.status.detailedState,
-            raw.status.abstractGameState,
-        ),
+        status,
         doubleHeader: raw.doubleHeader === 'Y' || raw.doubleHeader === 'S',
-        homeScore: raw.teams.home.score ?? null,
-        awayScore: raw.teams.away.score ?? null,
+        homeScore: hasScore ? (raw.teams.home.score ?? null) : null,
+        awayScore: hasScore ? (raw.teams.away.score ?? null) : null,
     }
 }
 

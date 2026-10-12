@@ -18,11 +18,11 @@ describe('mapMlbScheduleGameToProvider scores', () => {
         expect(game.awayScore).toBe(3)
     })
 
-    it('returns null scores before the game starts', () => {
+    it('returns null scores before the game starts even if MLB sends 0', () => {
         const game = mapMlbScheduleGameToProvider({
             ...base,
             status: { abstractGameState: 'Preview', detailedState: 'Scheduled' },
-            teams: { home: { team: { id: 1 } }, away: { team: { id: 2 } } },
+            teams: { home: { team: { id: 1 }, score: 0 }, away: { team: { id: 2 }, score: 0 } },
         })
         expect(game.homeScore).toBeNull()
         expect(game.awayScore).toBeNull()
