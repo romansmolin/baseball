@@ -51,6 +51,12 @@ const STALE_PROVIDER_OUTAGE_MS = 15 * 60 * 1000 // 15 minutes
 // the MLB Stats API tolerates from a single client.
 const BOX_SCORE_FETCH_CONCURRENCY = 16
 
+// Members of one tournament share the same games, so a scoring pass would
+// otherwise re-read the same schedule/box score once per member and week.
+// Short TTL keeps LIVE games fresh on long-lived (module-level) instances.
+const PROVIDER_MEMO_TTL_MS = 60 * 1000
+const PROVIDER_MEMO_MAX_ENTRIES = 2000
+
 // A roster's frozen team names must resolve to at least this fraction of real
 // team ids before we trust the team-scoped schedule fetch. Below it (name
 // format drift, mid-season trades) we fall back to the full-league schedule so
@@ -89,6 +95,27 @@ export class WeeklyScoringService implements IWeeklyScoringService {
     // provider lookups to roughly one call each per request.
     private readonly teamIdByNameCache = new Map<string, Map<string, number>>()
     private readonly currentTeamIdByPlayer = new Map<number, number | null>()
+    private readonly providerMemo = new Map<string, { at: number; value: Promise<unknown> }>()
+
+    private memoizedProviderCall<T>(key: string, load: () => Promise<T>): Promise<T> {
+        const now = Date.now()
+        const hit = this.providerMemo.get(key)
+        if (hit && now - hit.at < PROVIDER_MEMO_TTL_MS) return hit.value as Promise<T>
+
+        if (this.providerMemo.size >= PROVIDER_MEMO_MAX_ENTRIES) {
+            for (const [k, entry] of this.providerMemo) {
+                if (now - entry.at >= PROVIDER_MEMO_TTL_MS) this.providerMemo.delete(k)
+            }
+        }
+
+        const value = load()
+        this.providerMemo.set(key, { at: now, value })
+        // Never cache a failure: the next caller should retry the provider.
+        value.catch(() => {
+            if (this.providerMemo.get(key)?.value === value) this.providerMemo.delete(key)
+        })
+        return value
+    }
 
     constructor(
         weeklyScoreCacheRepository: IWeeklyScoreCacheRepository,
@@ -494,12 +521,16 @@ export class WeeklyScoringService implements IWeeklyScoringService {
             // Same league-wide URL for every member, so the provider cache is
             // hit after the first call; a per-roster teamIds URL is unique per
             // member and made every member pay a cold MLB request.
-            const weekSchedule = await this.sportsProvider.getSchedule({
-                startDateUtc: startUtc,
-                endDateUtc: endUtc,
-                league: providerLeague,
-                season: league.season,
-            })
+            const weekSchedule = await this.memoizedProviderCall(
+                `schedule:${providerLeague ?? 'mlb'}:${league.season}:${startUtc.getTime()}:${endUtc.getTime()}`,
+                () =>
+                    this.sportsProvider.getSchedule({
+                        startDateUtc: startUtc,
+                        endDateUtc: endUtc,
+                        league: providerLeague,
+                        season: league.season,
+                    }),
+            )
             const rosterTeams = teamIds ? new Set(teamIds) : null
             schedule = rosterTeams
                 ? weekSchedule.filter(
@@ -524,9 +555,13 @@ export class WeeklyScoringService implements IWeeklyScoringService {
             async (game) => {
                 try {
                     return {
-                        box: await this.sportsProvider.getBoxScore(game.gamePk, {
-                            league: providerLeague,
-                        }),
+                        box: await this.memoizedProviderCall(
+                            `box:${providerLeague ?? 'mlb'}:${game.gamePk}`,
+                            () =>
+                                this.sportsProvider.getBoxScore(game.gamePk, {
+                                    league: providerLeague,
+                                }),
+                        ),
                         outage: false,
                     }
                 } catch {
