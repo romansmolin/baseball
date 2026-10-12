@@ -16,7 +16,13 @@ const currencySymbol = (currency: string): string =>
 
 // "Spend this much" purchase: the user types an amount, we show the credits it
 // buys at the current rate, and checkout charges exactly that amount.
-export const CustomCreditAmount = ({ className }: { className?: string }) => {
+export const CustomCreditAmount = ({
+    className,
+    disabled = false,
+}: {
+    className?: string
+    disabled?: boolean
+}) => {
     const {
         amount,
         setAmount,
@@ -73,7 +79,7 @@ export const CustomCreditAmount = ({ className }: { className?: string }) => {
                 <Button
                     size="sm"
                     className="gap-1.5"
-                    disabled={!canBuy}
+                    disabled={!canBuy || disabled}
                     onClick={() => void buy()}
                 >
                     <HugeiconsIcon icon={ShoppingCart02Icon} className="size-4" />

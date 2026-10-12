@@ -24,6 +24,4 @@ export type LeagueShowcase = {
     code: string
     name: string
     region: string
-    openContests: string
-    prizePool: string
 }

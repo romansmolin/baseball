@@ -42,7 +42,7 @@ export default function CookiesPolicyPage() {
                 <List
                     items={[
                         <><strong className="text-foreground">First-party cookies</strong> are set by BaseballFantasy directly.</>,
-                        <><strong className="text-foreground">Third-party cookies</strong> are set by service providers we use — for example, our analytics provider, error monitoring provider, payment processor, and content delivery network. These third parties may use cookies to recognize your device across different websites where their service is embedded.</>,
+                        <><strong className="text-foreground">Third-party cookies</strong> are set by service providers we use — for example, our payment processor on its hosted checkout page. These third parties may use cookies to recognize your device across different websites where their service is embedded.</>,
                     ]}
                 />
             </Section>
@@ -110,35 +110,25 @@ export default function CookiesPolicyPage() {
                 <Table
                     headers={['Name', 'Set by', 'Purpose', 'Duration', 'Category']}
                     rows={[
-                        { cells: ['baseball-fantasy-session', 'BaseballFantasy', 'Maintains your signed-in session.', '7 days', 'Strictly necessary'] },
-                        { cells: ['baseball-fantasy-csrf', 'BaseballFantasy', 'Mitigates cross-site request forgery on authenticated requests.', 'Session', 'Strictly necessary'] },
-                        { cells: ['baseball-fantasy-prefs', 'BaseballFantasy', 'Stores UI preferences (theme, view density, default league).', '1 year', 'Functional'] },
-                        { cells: ['baseball-fantasy-locale', 'BaseballFantasy', 'Stores your selected language and region.', '1 year', 'Functional'] },
-                        { cells: ['baseball-fantasy-analytics', 'BaseballFantasy / Analytics provider', 'Aggregated, pseudonymous usage analytics — pages viewed, time spent, feature interactions.', '13 months', 'Performance / analytics'] },
-                        { cells: ['baseball-fantasy-error', 'Error-monitoring provider', 'Associates client-side error reports with anonymous session identifiers for debugging.', '90 days', 'Performance / security'] },
-                        { cells: ['baseball-fantasy-cf', 'Content delivery network', 'Helps route requests to the nearest edge server and identify malicious traffic.', 'Up to 1 year', 'Strictly necessary / security'] },
+                        { cells: ['baseball-fantasy.session_token', 'BaseballFantasy', 'Maintains your signed-in session.', '7 days', 'Strictly necessary'] },
                     ]}
                 />
                 <P className="text-xs">
-                    This list is illustrative and may change as we add or remove
-                    functionality. You can inspect the cookies actually set on your device
-                    through your browser's developer tools.
+                    We do not currently set analytics, advertising or other
+                    non-essential cookies. You can inspect the cookies actually set on
+                    your device through your browser's developer tools.
                 </P>
             </Section>
 
             <Section id="third-parties" title="6. Third parties that may set cookies">
                 <P>
-                    We work with a limited set of trusted third-party service providers
-                    that may set cookies on your device when you use the Service,
-                    including:
+                    We may use the following service providers, which may process
+                    technical data (such as your IP address) when you use the Service:
                 </P>
                 <List
                     items={[
-                        'Cloud hosting and content delivery providers (for performance and security);',
-                        'Analytics providers (for aggregated usage statistics);',
-                        'Error-monitoring providers (for crash reports and debugging);',
-                        'Payment processors (for completing transactions and fraud screening);',
-                        'Authentication providers (if you sign in using a third-party single sign-on).',
+                        'Vercel Inc. (hosting and content delivery);',
+                        'An authorized third-party payment service provider (payment processing, on its hosted checkout page).',
                     ]}
                 />
                 <P>
@@ -148,16 +138,7 @@ export default function CookiesPolicyPage() {
             </Section>
 
             <Section id="manage" title="7. How to manage cookies">
-                <Sub title="7.1 In-product preference center">
-                    <P>
-                        Where required by law, we display a cookie banner the first time
-                        you visit the Service and offer a preference center in your
-                        Account Settings where you can grant or withdraw consent to non-
-                        essential cookies. Your preference is stored and respected across
-                        sessions.
-                    </P>
-                </Sub>
-                <Sub title="7.2 Browser controls">
+                <Sub title="7.1 Browser controls">
                     <P>
                         Most browsers allow you to view, delete, and block cookies. The
                         method varies by browser:
@@ -176,7 +157,7 @@ export default function CookiesPolicyPage() {
                         lineups, or enter contests.
                     </P>
                 </Sub>
-                <Sub title="7.3 Mobile devices">
+                <Sub title="7.2 Mobile devices">
                     <P>
                         Mobile operating systems provide controls to limit ad tracking and
                         reset advertising identifiers. On iOS, see Settings → Privacy &
@@ -184,7 +165,7 @@ export default function CookiesPolicyPage() {
                         Advertising. On Android, see Settings → Privacy → Ads.
                     </P>
                 </Sub>
-                <Sub title="7.4 Opt-out lists">
+                <Sub title="7.3 Opt-out lists">
                     <P>
                         For advertising-related cookies generally (we do not use these
                         today, but for completeness):{' '}
@@ -230,12 +211,12 @@ export default function CookiesPolicyPage() {
             <Section id="contact" title="10. Contact">
                 <P>
                     Questions about this Cookies Policy? Email{' '}
-                    <a className="font-medium text-primary underline" href="mailto:privacy@baseballfantasy.com">
-                        privacy@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
+                        privacy@mybaseballfantasy.com
                     </a>
                     . For general legal inquiries, write to{' '}
-                    <a className="font-medium text-primary underline" href="mailto:legal@baseballfantasy.com">
-                        legal@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:legal@mybaseballfantasy.com">
+                        legal@mybaseballfantasy.com
                     </a>
                     .
                 </P>

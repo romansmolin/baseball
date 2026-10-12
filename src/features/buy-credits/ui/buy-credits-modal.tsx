@@ -2,6 +2,7 @@
 
 import { Cancel01Icon, Coins01Icon, ShoppingCart02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { useState } from 'react'
 import { Dialog } from '@base-ui/react/dialog'
 
 import { useCreditPacksData, useWalletData } from '@/entities/wallet'
@@ -12,6 +13,7 @@ import type { CreditPack } from '@/shared/wallet'
 import { useBuyCredits } from '../model/buy-credits-context'
 import { useCheckout } from '../model/use-checkout'
 import { CustomCreditAmount } from './custom-credit-amount'
+import { WithdrawalConsent } from './withdrawal-consent'
 
 const formatPrice = (pack: CreditPack): string =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: pack.currency }).format(
@@ -23,6 +25,7 @@ export const BuyCreditsModal = () => {
     const { data: packs, isLoading } = useCreditPacksData()
     const { data: wallet } = useWalletData()
     const { buy, pendingCredits } = useCheckout()
+    const [consented, setConsented] = useState(false)
 
     const balance = wallet?.balance ?? 0
     // "Out of credits" framing whenever a feature triggered the prompt; the
@@ -99,7 +102,7 @@ export const BuyCreditsModal = () => {
                                     <Button
                                         size="sm"
                                         className="gap-1.5"
-                                        disabled={pendingCredits !== null}
+                                        disabled={pendingCredits !== null || !consented}
                                         onClick={() => void buy(pack.credits)}
                                     >
                                         <HugeiconsIcon icon={ShoppingCart02Icon} className="size-4" />
@@ -109,7 +112,13 @@ export const BuyCreditsModal = () => {
                             ))
                         )}
 
-                        <CustomCreditAmount />
+                        <CustomCreditAmount disabled={!consented} />
+
+                        <WithdrawalConsent
+                            id="withdrawal-consent"
+                            checked={consented}
+                            onCheckedChange={setConsented}
+                        />
                     </div>
                 </Dialog.Popup>
             </Dialog.Portal>

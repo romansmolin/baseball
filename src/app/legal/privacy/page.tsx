@@ -10,9 +10,15 @@ export default function PrivacyPolicyPage() {
     return (
         <LegalPageShell
             title="Privacy Policy"
-            intro="This Privacy Policy explains how BaseballFantasy (“we,” “us,” or “our”) collects, uses, shares, and protects information about you when you access or use our website, mobile applications, APIs, and related services (collectively, the “Service”)."
+            intro="This Privacy Policy explains how CODERUSH SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ, trading as BaseballFantasy (“BaseballFantasy,” “we,” “us,” or “our”), collects, uses, shares and protects personal information when you use the website at https://www.mybaseballfantasy.com/ and its related services."
             lastUpdated="June 4, 2026"
         >
+            <P>
+                <strong className="text-foreground">Data Controller:</strong> CODERUSH
+                SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ, ul. Zajęcza 15, 00-351 Warszawa,
+                Poland, KRS 0001188826, NIP 5253057317, REGON 542464145.
+            </P>
+
             <Callout>
                 <strong>Plain-English summary:</strong> We collect the account, payment,
                 gameplay, and device information needed to run the Service. We use it to
@@ -20,8 +26,8 @@ export default function PrivacyPolicyPage() {
                 fair. We do not sell your personal information. You have rights — including
                 the right to access, correct, export, and delete your data — and you can
                 exercise them by emailing{' '}
-                <a className="font-medium text-primary underline" href="mailto:privacy@baseballfantasy.com">
-                    privacy@baseballfantasy.com
+                <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
+                    privacy@mybaseballfantasy.com
                 </a>
                 .
             </Callout>
@@ -30,8 +36,8 @@ export default function PrivacyPolicyPage() {
                 <P>
                     This Policy applies to personal information processed by BaseballFantasy
                     in connection with your use of the Service, including the website at
-                    baseballfantasy.com, our mobile apps, our APIs, and any other product,
-                    feature, or experience we operate that links to this Policy.
+                    https://www.mybaseballfantasy.com/ and any related BaseballFantasy
+                    feature or service that links to this Privacy Policy.
                 </P>
                 <P>
                     This Policy does not cover information that you provide to, or that is
@@ -48,7 +54,7 @@ export default function PrivacyPolicyPage() {
                 <Sub title="2.1 Information you provide to us">
                     <List
                         items={[
-                            <><strong className="text-foreground">Account information.</strong> When you create an account, we collect your username, email address, password (stored as a hash), and date of birth (used for age verification).</>,
+                            <><strong className="text-foreground">Account information.</strong> When you create an account, we collect your username, email address, password in hashed form, date of birth and country of residence. Your date of birth and country of residence are used to verify age and geographical eligibility.</>,
                             <><strong className="text-foreground">Profile information.</strong> Display name, avatar, time zone, language preference, favorite leagues and teams, and any biographical information you choose to add.</>,
                             <><strong className="text-foreground">Payment information.</strong> When you purchase credits or paid features, our payment processor collects your billing name, billing address, payment method details (e.g., card brand, last four digits, expiration), and transaction history. We do not store full payment card numbers on our servers.</>,
                             <><strong className="text-foreground">Identity verification.</strong> If required by law (e.g., for jurisdictions that require age or location verification for fantasy contests), we may collect a government-issued ID, a selfie, or other documentation, and share it with a verification provider.</>,
@@ -73,11 +79,9 @@ export default function PrivacyPolicyPage() {
                 <Sub title="2.3 Information we receive from third parties">
                     <List
                         items={[
-                            <><strong className="text-foreground">Sports data providers</strong> (e.g., api-sports.io). We receive player names, stats, schedules, injury reports, and similar publicly available sports data. We do not receive your personal information from these providers.</>,
+                            <><strong className="text-foreground">Sports data providers</strong> (e.g., API-SPORTS). We receive player names, stats, schedules, injury reports, and similar publicly available sports data. We do not receive your personal information from these providers.</>,
                             <><strong className="text-foreground">Payment processors</strong> share back transaction-completion data, fraud-screening results, and refund status.</>,
-                            <><strong className="text-foreground">Identity verification providers</strong> return verification scores and pass/fail flags.</>,
                             <><strong className="text-foreground">Analytics, error tracking, and security partners</strong> share aggregated or pseudonymous data about how the Service is performing.</>,
-                            <><strong className="text-foreground">Social or single sign-on providers</strong> share basic profile information (name, email, avatar) if you choose to log in using their service.</>,
                         ]}
                     />
                 </Sub>
@@ -113,7 +117,7 @@ export default function PrivacyPolicyPage() {
                         <><strong className="text-foreground">Contract.</strong> Processing necessary to perform our agreement with you — for example, running contests you have entered, processing your credit purchases, and providing your account.</>,
                         <><strong className="text-foreground">Legitimate interests.</strong> Processing necessary for our legitimate interests, balanced against your rights — for example, securing the Service against fraud, improving our product, and direct marketing to existing users.</>,
                         <><strong className="text-foreground">Consent.</strong> Where we ask for your consent (e.g., marketing email opt-in, optional cookies, precise location). You may withdraw consent at any time.</>,
-                        <><strong className="text-foreground">Legal obligation.</strong> Processing necessary to comply with applicable law — for example, tax reporting, anti-money-laundering checks, and responding to lawful requests from authorities.</>,
+                        <><strong className="text-foreground">Legal obligation.</strong> Processing necessary to comply with applicable law — for example, tax and accounting compliance, sanctions compliance, fraud prevention and responding to lawful requests from authorities.</>,
                         <><strong className="text-foreground">Vital interests / public interest.</strong> In rare cases where processing is necessary to protect someone's life or for reasons of substantial public interest.</>,
                     ]}
                 />
@@ -127,7 +131,7 @@ export default function PrivacyPolicyPage() {
                 </P>
                 <List
                     items={[
-                        <><strong className="text-foreground">Service providers.</strong> We share information with third-party vendors that perform services on our behalf — cloud hosting, payment processing, fraud detection, identity verification, customer support tooling, analytics, error monitoring, transactional email delivery, and similar functions. These providers act on our instructions and are bound by contract to confidentiality and security obligations.</>,
+                        <><strong className="text-foreground">Service providers.</strong> We share information with third-party vendors that perform services on our behalf — cloud hosting, payment processing, fraud detection, customer support tooling, analytics, error monitoring, transactional email delivery, and similar functions. These providers act on our instructions and are bound by contract to confidentiality and security obligations.</>,
                         <><strong className="text-foreground">Other users.</strong> Your username, avatar, public display name, lineups in completed contests, leaderboard rank, and contest history may be visible to other users.</>,
                         <><strong className="text-foreground">Legal and safety.</strong> We may disclose information if required to comply with law, regulation, subpoena, or other legal process; to enforce our Terms; to protect our rights, property, or safety, or that of our users or third parties; or to investigate suspected fraud or wrongdoing.</>,
                         <><strong className="text-foreground">Business transfers.</strong> If we are involved in a merger, acquisition, reorganization, financing, or sale of assets, your information may be transferred as part of that transaction. We will notify you (e.g., by email and/or notice on the Service) before your information becomes subject to a different privacy policy.</>,
@@ -147,7 +151,7 @@ export default function PrivacyPolicyPage() {
                 <List
                     items={[
                         'Account information is retained for the lifetime of your account and for a limited period after deletion (typically 30–90 days) to allow for account recovery and fraud investigations.',
-                        'Transaction records are retained for at least 7 years to comply with tax and anti-money-laundering requirements.',
+                        'Transaction records are retained for the period required by applicable accounting, tax, payment and fraud-prevention laws.',
                         'Contest history and lineups associated with closed contests are retained for at least 3 years to enable dispute resolution and integrity audits.',
                         'Marketing preferences are retained for as long as you have an account or until you opt out.',
                         'Server logs containing IP address and similar diagnostics are typically retained for up to 90 days.',
@@ -179,11 +183,12 @@ export default function PrivacyPolicyPage() {
 
             <Section id="international-transfers" title="8. International Data Transfers">
                 <P>
-                    BaseballFantasy is operated from the United States and may use service
-                    providers located in other countries. Your personal information may be
-                    transferred to, stored in, and processed in countries other than the
-                    country in which you reside, including the United States, where data
-                    protection laws may differ from those in your country.
+                    BaseballFantasy is operated by CODERUSH SPÓŁKA Z OGRANICZONĄ
+                    ODPOWIEDZIALNOŚCIĄ from Poland. Some service providers may process
+                    personal information in countries outside the European Economic Area,
+                    including the United States. Where required, such transfers are
+                    protected by an adequacy decision, the European Commission’s Standard
+                    Contractual Clauses or another legally recognized transfer mechanism.
                 </P>
                 <P>
                     Where we transfer personal data from the European Economic Area, United
@@ -215,8 +220,8 @@ export default function PrivacyPolicyPage() {
                 />
                 <P>
                     To exercise any of these rights, please email{' '}
-                    <a className="font-medium text-primary underline" href="mailto:privacy@baseballfantasy.com">
-                        privacy@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
+                        privacy@mybaseballfantasy.com
                     </a>{' '}
                     or use the in-product controls available in your Account Settings. We
                     will respond within the time frame required by applicable law (typically
@@ -243,8 +248,8 @@ export default function PrivacyPolicyPage() {
                 />
                 <P>
                     To submit a verifiable consumer request, email{' '}
-                    <a className="font-medium text-primary underline" href="mailto:privacy@baseballfantasy.com">
-                        privacy@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
+                        privacy@mybaseballfantasy.com
                     </a>
                     . You may designate an authorized agent to make requests on your behalf.
                 </P>
@@ -262,8 +267,8 @@ export default function PrivacyPolicyPage() {
                 <P>
                     If you believe a child under 13 may have provided us with personal
                     information, please contact us at{' '}
-                    <a className="font-medium text-primary underline" href="mailto:privacy@baseballfantasy.com">
-                        privacy@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
+                        privacy@mybaseballfantasy.com
                     </a>
                     .
                 </P>
@@ -307,22 +312,28 @@ export default function PrivacyPolicyPage() {
                     Policy or our handling of your personal information, please contact:
                 </P>
                 <P>
-                    <strong className="text-foreground">BaseballFantasy — Privacy Team</strong>
+                    <strong className="text-foreground">Data Controller:</strong>
                     <br />
-                    Email:{' '}
-                    <a className="font-medium text-primary underline" href="mailto:privacy@baseballfantasy.com">
-                        privacy@baseballfantasy.com
-                    </a>
+                    CODERUSH SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ
                     <br />
-                    General legal:{' '}
-                    <a className="font-medium text-primary underline" href="mailto:legal@baseballfantasy.com">
-                        legal@baseballfantasy.com
-                    </a>
+                    ul. Zajęcza 15, 00-351 Warszawa, Poland
+                    <br />
+                    KRS: 0001188826
+                    <br />
+                    NIP: 5253057317
+                    <br />
+                    REGON: 542464145
                 </P>
                 <P>
-                    If you are an EEA/UK user and prefer to contact our designated Data
-                    Protection representative, please use the same email addresses above and
-                    indicate "GDPR / DPO request" in the subject line.
+                    Privacy enquiries:{' '}
+                    <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
+                        privacy@mybaseballfantasy.com
+                    </a>
+                    <br />
+                    General legal enquiries:{' '}
+                    <a className="font-medium text-primary underline" href="mailto:legal@mybaseballfantasy.com">
+                        legal@mybaseballfantasy.com
+                    </a>
                 </P>
             </Section>
         </LegalPageShell>

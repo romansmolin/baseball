@@ -17,10 +17,12 @@ import {
 } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 
+import { COUNTRIES } from '../model/countries.const'
 import { useSignUpForm } from '../model/use-sign-up-form'
 
 export const SignUpForm = () => {
-    const { onSubmit, form, agreeToTerms, setAgreeToTerms } = useSignUpForm()
+    const { onSubmit, form, agreeToTerms, setAgreeToTerms, confirmAge, setConfirmAge } =
+        useSignUpForm()
 
     const {
         register,
@@ -38,11 +40,11 @@ export const SignUpForm = () => {
             <FieldGroup className="h-full">
                 <FieldSet>
                     <FieldLegend className="font-audiowide text-2xl!">
-                        Welcome To Baseball Fantasy ⚾️
+                        Welcome to BaseballFantasy ⚾️
                     </FieldLegend>
 
                     <FieldDescription>
-                        Create you team, follow matches, analyze, and win.
+                        Create your team, follow games, analyze player performance, and compete.
                     </FieldDescription>
 
                     <FieldGroup>
@@ -90,6 +92,36 @@ export const SignUpForm = () => {
                             />
                             <FieldError errors={[errors.confirmPassword]} />
                         </Field>
+
+                        <Field data-invalid={!!errors.dateOfBirth}>
+                            <FieldLabel htmlFor="sign-up-date-of-birth">Date of birth</FieldLabel>
+                            <Input
+                                id="sign-up-date-of-birth"
+                                type="date"
+                                {...register('dateOfBirth')}
+                            />
+                            <FieldError errors={[errors.dateOfBirth]} />
+                        </Field>
+
+                        <Field data-invalid={!!errors.countryOfResidence}>
+                            <FieldLabel htmlFor="sign-up-country">Country of residence</FieldLabel>
+                            <select
+                                id="sign-up-country"
+                                defaultValue=""
+                                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                                {...register('countryOfResidence')}
+                            >
+                                <option value="" disabled>
+                                    Select your country
+                                </option>
+                                {COUNTRIES.map((c) => (
+                                    <option key={c.code} value={c.code}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <FieldError errors={[errors.countryOfResidence]} />
+                        </Field>
                     </FieldGroup>
                 </FieldSet>
 
@@ -99,6 +131,18 @@ export const SignUpForm = () => {
                             <FieldError errors={[errors.root]} />
                         </Field>
                     )}
+
+                    <Field orientation="horizontal">
+                        <Checkbox
+                            id="sign-up-confirm-age"
+                            checked={confirmAge}
+                            onCheckedChange={(checked) => setConfirmAge(!!checked)}
+                        />
+                        <FieldLabel htmlFor="sign-up-confirm-age" className="font-normal">
+                            I confirm that I am at least 18 years old, or have reached the minimum
+                            legal age required in my jurisdiction.
+                        </FieldLabel>
+                    </Field>
 
                     <Field orientation="horizontal">
                         <Checkbox
@@ -115,7 +159,7 @@ export const SignUpForm = () => {
                                 onClick={(e) => e.stopPropagation()}
                                 className="text-primary underline underline-offset-4"
                             >
-                                Terms
+                                Terms of Service
                             </Link>{' '}
                             and{' '}
                             <Link
@@ -130,7 +174,7 @@ export const SignUpForm = () => {
                         </FieldLabel>
                     </Field>
 
-                    <Button type="submit" disabled={isSubmitting || !agreeToTerms} size={'lg'}>
+                    <Button type="submit" disabled={isSubmitting || !agreeToTerms || !confirmAge} size={'lg'}>
                         {isSubmitting ? (
                             <div className="flex items-center gap-2">
                                 <HugeiconsIcon icon={LoaderCircle} className="animate-spin" />

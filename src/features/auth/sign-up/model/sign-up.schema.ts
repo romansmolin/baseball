@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { isAtLeastAge, MIN_AGE } from '@/shared/utils'
+
 export const signUpFormSchema = z
     .object({
         email: z
@@ -27,6 +29,18 @@ export const signUpFormSchema = z
                 message: 'Password must contain at least one special character',
             }),
         confirmPassword: z.string(),
+        dateOfBirth: z
+            .string()
+            .min(1, 'Date of birth is required')
+            .refine((val) => {
+                const d = new Date(val)
+                return !Number.isNaN(d.getTime()) && d <= new Date() && d.getFullYear() >= 1900
+            }, 'Enter a valid date of birth')
+            .refine(
+                (val) => isAtLeastAge(val),
+                `You must be at least ${MIN_AGE} years old to create an account`,
+            ),
+        countryOfResidence: z.string().length(2, 'Country of residence is required'),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords don't match",

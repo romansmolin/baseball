@@ -23,6 +23,10 @@ model User {
   emailVerified Boolean    @default(false)
   image         String?
   username      String?    @unique
+  // ISO date (YYYY-MM-DD) and ISO 3166-1 alpha-2 code, collected at sign-up
+  // for age and geographic eligibility checks. Null for legacy accounts.
+  dateOfBirth        String?
+  countryOfResidence String?
   passwordHash  String?
   provider      String?
   role          UserRole   @default(USER)

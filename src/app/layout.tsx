@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import {
     Anton,
     Geist,
@@ -49,11 +50,14 @@ export const metadata: Metadata = {
         'Daily fantasy baseball across MLB, NPB, KBO, LVBP and more. Build lineups under the salary cap, captain your star, take down the field.',
 }
 
-export default function RootLayout({
+// Nonce-based CSP needs per-request rendering; static HTML can't carry a nonce.
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode
 }>) {
+    await connection()
+
     return (
         <html
             lang="en"

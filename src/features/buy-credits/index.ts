@@ -1,5 +1,6 @@
 export { BuyCreditsProvider } from './ui/buy-credits-provider'
 export { CustomCreditAmount } from './ui/custom-credit-amount'
+export { WithdrawalConsent } from './ui/withdrawal-consent'
 export { useBuyCredits } from './model/buy-credits-context'
 export { useCheckout } from './model/use-checkout'
 export { useCustomAmount } from './model/use-custom-amount'

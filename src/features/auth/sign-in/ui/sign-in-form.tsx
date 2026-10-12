@@ -33,7 +33,7 @@ export const SignInForm = () => {
                 <FieldSet>
                     <FieldLegend className="font-audiowide text-2xl!">Welcome Back 👋</FieldLegend>
                     <FieldDescription>
-                        We happy to see you again, let&apos;s see what new day preapred for us.
+                        Welcome back! Sign in to continue.
                     </FieldDescription>
 
                     <FieldGroup>

@@ -10,7 +10,7 @@ export default function TermsOfServicePage() {
     return (
         <LegalPageShell
             title="Terms of Service"
-            intro="These Terms of Service (“Terms”) form a legally binding agreement between you and BaseballFantasy (“we,” “us,” or “our”) and govern your access to and use of our website, mobile applications, APIs, contests, credit economy, and all related services (collectively, the “Service”)."
+            intro="These Terms of Service (“Terms”) form a legally binding agreement between you and CODERUSH SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ, a company incorporated in Poland under KRS number 0001188826, trading as BaseballFantasy (“BaseballFantasy,” “we,” “us,” or “our”). These Terms govern your access to and use of the website at https://www.mybaseballfantasy.com/, including its fantasy baseball contests, virtual credit economy and related digital services (collectively, the “Service”)."
             lastUpdated="June 4, 2026"
         >
             <Callout>
@@ -27,9 +27,7 @@ export default function TermsOfServicePage() {
                 <a className="font-medium text-primary underline" href="/legal/refunds">
                     Refund & Return Policy
                 </a>
-                . If you do not agree, do not use the Service. These Terms contain an{' '}
-                <strong>arbitration agreement and a class-action waiver</strong> in
-                Section 16.
+                . If you do not agree, do not use the Service.
             </Callout>
 
             <Section id="acceptance" title="1. Acceptance of these Terms">
@@ -51,13 +49,19 @@ export default function TermsOfServicePage() {
                 <P>To use the Service, you must:</P>
                 <List
                     items={[
-                        'Be at least 18 years of age, or the age of majority in your jurisdiction, whichever is greater. In some jurisdictions, the minimum age for paid fantasy contests is 19 or 21 — you must meet that higher age to participate in paid contests there.',
+                        'Be at least 18 years of age, or the age of majority in your jurisdiction, whichever is greater. In some jurisdictions, the minimum age for credit-entry fantasy contests is 19 or 21 — you must meet that higher age to participate in credit-entry contests there.',
                         'Reside in a jurisdiction where participation in fantasy sports contests is legal. The Service is not offered in jurisdictions where it is prohibited, and we reserve the right to restrict access based on geographic location, IP address, or regulatory requirements.',
                         'Have the legal capacity to enter into a binding contract.',
-                        'Not be barred from receiving the Service under the laws of Poland or any other applicable jurisdiction, including any sanctions list maintained by the relevant Polish authority.',
-                        'Not be an employee, officer, director, contractor, or agent of BaseballFantasy or any of its affiliates, or an immediate family member of such a person, with respect to any paid contest.',
+                        'Not be subject to sanctions or restrictions imposed by the European Union, the United Nations, Poland or any other authority applicable to your use of the Service.',
+                        'Not be an employee, officer, director, contractor, or agent of BaseballFantasy or any of its affiliates, or an immediate family member of such a person, with respect to any credit-entry contest.',
                     ]}
                 />
+                <P>
+                    You must provide accurate information regarding your age and country
+                    of residence. We may use your IP address and other information to
+                    verify your geographical eligibility and restrict access from
+                    prohibited jurisdictions.
+                </P>
                 <P>
                     We may, at our discretion, refuse to offer the Service to any person and
                     may change our eligibility criteria at any time.
@@ -67,9 +71,10 @@ export default function TermsOfServicePage() {
             <Section id="account" title="3. Your Account">
                 <Sub title="3.1 Registration">
                     <P>
-                        To access most features of the Service, you must create an account.
-                        You agree to provide accurate, current, and complete information
-                        during registration and to keep that information up to date.
+                        To access most features of the Service, you must create an account
+                        and provide an email address, username, password, date of birth and
+                        country of residence. You agree to provide accurate, current and
+                        complete information and to keep that information up to date.
                     </P>
                 </Sub>
                 <Sub title="3.2 One account per person">
@@ -77,8 +82,8 @@ export default function TermsOfServicePage() {
                         You may register and maintain only one account. Multi-accounting,
                         creating accounts on behalf of others, sharing accounts, or
                         transferring accounts is strictly prohibited and grounds for
-                        immediate termination and forfeiture of any credit balance, entries,
-                        or winnings.
+                        immediate termination and cancellation of any credit balance, active
+                        entries or contest credit rewards, subject to applicable law.
                     </P>
                 </Sub>
                 <Sub title="3.3 Security">
@@ -110,6 +115,11 @@ export default function TermsOfServicePage() {
                     Builder, Contests, Leagues, and the My Teams dashboard.
                 </P>
                 <P>
+                    All salary caps, contest pools, points and rewards displayed within
+                    the Service are virtual gameplay values or platform credits. They do
+                    not represent cash, deposits, electronic money or monetary prizes.
+                </P>
+                <P>
                     The Service does <strong className="text-foreground">not</strong>{' '}
                     involve wagering on the outcome of a sporting event. The outcome of
                     each contest is determined predominantly by your skill in roster
@@ -122,7 +132,7 @@ export default function TermsOfServicePage() {
                 <Sub title="5.1 Nature of credits">
                     <P>
                         "Credits" are virtual, non-redeemable units used within the Service
-                        to enter paid contests, unlock optional features, and receive
+                        to enter credit-entry contests, unlock optional features, and receive
                         promotional rewards. Credits are <strong className="text-foreground">not</strong>{' '}
                         money, do not represent a deposit, do not earn interest, are not
                         redeemable for cash, gift cards, or other monetary value, and may
@@ -135,7 +145,7 @@ export default function TermsOfServicePage() {
                         items={[
                             'Purchasing them through the Service using a supported payment method;',
                             'Receiving them as promotional or referral rewards;',
-                            'Winning them in contests;',
+                            'Receiving them as non-monetary contest credit rewards;',
                             'Other means we may make available from time to time.',
                         ]}
                     />
@@ -170,9 +180,9 @@ export default function TermsOfServicePage() {
             <Section id="contests" title="6. Contests and Lineups">
                 <Sub title="6.1 Entry">
                     <P>
-                        Each contest has its own rules — entry fee (if any), maximum
-                        entries, scoring rules, roster format, lock time, and prize
-                        structure. By entering, you agree to those contest-specific rules in
+                        Each contest has its own rules, including any credit entry
+                        requirement, maximum number of entries, scoring rules, roster
+                        format, lock time and credit reward structure. By entering, you agree to those contest-specific rules in
                         addition to these Terms. Some contests are free to enter; others
                         require credits.
                     </P>
@@ -199,7 +209,7 @@ export default function TermsOfServicePage() {
                         If a real-world game underlying a contest is cancelled, postponed,
                         suspended, or otherwise materially affected, we may, in our
                         discretion: (a) leave the contest as scheduled, (b) adjust the
-                        scoring window, (c) refund entry fees in credits, or (d) cancel the
+                        scoring window, (c) refund credit entry requirements in credits, or (d) cancel the
                         contest and refund all entries. Contest-specific rules will explain
                         the treatment.
                     </P>
@@ -220,7 +230,7 @@ export default function TermsOfServicePage() {
                         'Use the Service for any illegal, fraudulent, or unauthorized purpose;',
                         'Create more than one account, use someone else’s account, or share your account credentials;',
                         'Collude with other users, share lineups for the purpose of gaining unfair advantage, or coordinate entries across multiple accounts;',
-                        'Use any bot, scraper, crawler, automated process, headless browser, or any other automated means to access, interact with, or extract data from the Service except for permitted public API access;',
+                        'Use any bot, scraper, crawler, automated process, headless browser, or any other automated means to access, interact with, or extract data from the Service;',
                         'Reverse engineer, decompile, disassemble, or otherwise attempt to derive source code from the Service or any portion of it;',
                         'Interfere with or disrupt the Service or any servers or networks connected to it, including by submitting malicious code, denial-of-service attacks, or excessive request volume;',
                         'Use the Service to harass, threaten, defame, or otherwise harm any other user or third party;',
@@ -233,8 +243,9 @@ export default function TermsOfServicePage() {
                 />
                 <P>
                     Violations may result in immediate suspension or termination,
-                    forfeiture of any credit balance, entries, and winnings, and may be
-                    reported to law enforcement.
+                    cancellation of any credit balance, active entries and contest credit
+                    rewards, subject to applicable law, and may be reported to law
+                    enforcement.
                 </P>
             </Section>
 
@@ -253,8 +264,7 @@ export default function TermsOfServicePage() {
                 <Sub title="8.2 Limited license">
                     <P>
                         Subject to your compliance with these Terms, we grant you a
-                        limited, personal, non-exclusive, non-transferable, non-
-                        sublicensable, revocable license to access and use the Service for
+                        limited, personal, non-exclusive, non-transferable, non-sublicensable, revocable license to access and use the Service for
                         your own personal, non-commercial use.
                     </P>
                 </Sub>
@@ -305,8 +315,8 @@ export default function TermsOfServicePage() {
                     the Service infringes your copyright, please send a notice that
                     complies with applicable Polish copyright law to
                     our designated agent at{' '}
-                    <a className="font-medium text-primary underline" href="mailto:dmca@baseballfantasy.com">
-                        dmca@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:dmca@mybaseballfantasy.com">
+                        dmca@mybaseballfantasy.com
                     </a>{' '}
                     with: (1) your physical or electronic signature; (2) identification of
                     the copyrighted work claimed to be infringed; (3) identification of the
@@ -324,11 +334,19 @@ export default function TermsOfServicePage() {
 
             <Section id="payment" title="10. Payments, Taxes, and Promotions">
                 <P>
-                    Prices for credits and paid features are displayed in the Service. All
-                    purchases are processed by our third-party payment processor and are
-                    subject to that processor's own terms. You authorize us (and our
-                    processor) to charge your selected payment method for all amounts due,
-                    including any applicable taxes.
+                    Prices for virtual credits and any optional paid features are
+                    displayed before purchase. All payments are one-off payments unless
+                    the user is expressly informed otherwise before completing a
+                    transaction. BaseballFantasy does not currently offer automatically
+                    renewable subscriptions. Payments are processed by an authorized
+                    third-party payment service provider. CODERUSH does not store
+                    complete payment card numbers or card security codes on its own
+                    servers.
+                </P>
+                <P>
+                    Virtual credits are made available to the user after successful
+                    payment confirmation. Credits are non-transferable, have no cash
+                    value and cannot be redeemed or withdrawn.
                 </P>
                 <P>
                     You are responsible for any taxes (including sales, use, value-added,
@@ -347,7 +365,7 @@ export default function TermsOfServicePage() {
             <Section id="termination" title="11. Suspension and Termination">
                 <P>
                     We may suspend, restrict, or terminate your account, withhold
-                    winnings, freeze credit balances, or refuse service at any time if we
+                    or cancel contest credit rewards, freeze credit balances, or refuse service at any time if we
                     determine, in our reasonable discretion, that you have violated these
                     Terms, applicable law, or that your conduct poses a risk to the
                     integrity of contests, the Service, or other users.
@@ -355,8 +373,8 @@ export default function TermsOfServicePage() {
                 <P>
                     You may terminate your account at any time by using the in-product
                     deletion flow or by contacting{' '}
-                    <a className="font-medium text-primary underline" href="mailto:support@baseballfantasy.com">
-                        support@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:support@mybaseballfantasy.com">
+                        support@mybaseballfantasy.com
                     </a>
                     . Upon termination: (a) your right to access the Service ends
                     immediately; (b) any remaining credit balance is forfeited, except as
@@ -428,67 +446,19 @@ export default function TermsOfServicePage() {
                 </P>
             </Section>
 
-            <Section id="arbitration" title="16. Binding Arbitration and Class-Action Waiver">
-                <Callout>
-                    <strong>Please read this section carefully.</strong> It requires you and
-                    BaseballFantasy to resolve disputes through binding individual
-                    arbitration and waives your right to participate in class actions or
-                    jury trials, except as provided below.
-                </Callout>
-                <Sub title="16.1 Informal resolution">
-                    <P>
-                        Before filing a claim, you and BaseballFantasy agree to attempt to
-                        resolve any dispute by contacting us at{' '}
-                        <a className="font-medium text-primary underline" href="mailto:legal@baseballfantasy.com">
-                            legal@baseballfantasy.com
-                        </a>{' '}
-                        with a written description of the dispute and to negotiate in good
-                        faith for at least sixty (60) days.
-                    </P>
-                </Sub>
-                <Sub title="16.2 Arbitration">
-                    <P>
-                        Any dispute not resolved informally will be resolved by final and
-                        binding arbitration administered by a recognized Polish arbitration
-                        institution in accordance with its applicable consumer arbitration
-                        rules. The arbitration will be conducted in the English language in
-                        a location reasonably convenient to you, or by videoconference. The
-                        arbitrator's decision will be binding and may be entered as a
-                        judgment in any court of competent jurisdiction.
-                    </P>
-                </Sub>
-                <Sub title="16.3 Class-action waiver">
-                    <P>
-                        You and BaseballFantasy agree that disputes will be brought only in
-                        an individual capacity, and not as a plaintiff or class member in
-                        any purported class, collective, consolidated, or representative
-                        proceeding. The arbitrator may not consolidate more than one
-                        person's claims and may not preside over any class or representative
-                        proceeding.
-                    </P>
-                </Sub>
-                <Sub title="16.4 Exceptions">
-                    <P>
-                        You and BaseballFantasy retain the right to (a) bring an individual
-                        action in small claims court for disputes within that court's
-                        jurisdiction, and (b) seek injunctive or other equitable relief in a
-                        court of competent jurisdiction to prevent the actual or threatened
-                        infringement, misappropriation, or violation of intellectual
-                        property rights.
-                    </P>
-                </Sub>
-                <Sub title="16.5 Opt-out">
-                    <P>
-                        You may opt out of this arbitration agreement by sending a written
-                        opt-out notice to{' '}
-                        <a className="font-medium text-primary underline" href="mailto:legal@baseballfantasy.com">
-                            legal@baseballfantasy.com
-                        </a>{' '}
-                        within thirty (30) days of first accepting these Terms. Your notice
-                        must include your name, the email associated with your account, and
-                        a clear statement that you wish to opt out.
-                    </P>
-                </Sub>
+            <Section id="arbitration" title="16. Dispute Resolution and Jurisdiction">
+                <P>
+                    Before initiating legal proceedings, users are encouraged to contact
+                    us at{' '}
+                    <a className="font-medium text-primary underline" href="mailto:legal@mybaseballfantasy.com">
+                        legal@mybaseballfantasy.com
+                    </a>{' '}
+                    so that we can attempt to resolve the dispute. These Terms are
+                    governed by Polish law. Any dispute shall be submitted to the
+                    competent courts of Poland, without prejudice to any mandatory
+                    jurisdiction or consumer-protection rights available to consumers
+                    under the laws of their country of residence.
+                </P>
             </Section>
 
             <Section id="changes" title="17. Changes to these Terms">
@@ -509,7 +479,7 @@ export default function TermsOfServicePage() {
                         <><strong className="text-foreground">No waiver.</strong> Our failure to enforce any right or provision is not a waiver of that right or provision.</>,
                         <><strong className="text-foreground">Assignment.</strong> You may not assign or transfer these Terms or any rights under them without our prior written consent. We may assign these Terms freely.</>,
                         <><strong className="text-foreground">Force majeure.</strong> We are not liable for any delay or failure to perform caused by events outside our reasonable control.</>,
-                        <><strong className="text-foreground">Notices.</strong> We may give notices to you by email, in-product notification, or posting on the Service. Notices to us must be sent to legal@baseballfantasy.com.</>,
+                        <><strong className="text-foreground">Notices.</strong> We may give notices to you by email, in-product notification, or posting on the Service. Notices to us must be sent to legal@mybaseballfantasy.com.</>,
                         <><strong className="text-foreground">Headings.</strong> Section headings are for reference only and do not affect interpretation.</>,
                     ]}
                 />
@@ -520,13 +490,13 @@ export default function TermsOfServicePage() {
                     <strong className="text-foreground">BaseballFantasy — Legal Team</strong>
                     <br />
                     General legal:{' '}
-                    <a className="font-medium text-primary underline" href="mailto:legal@baseballfantasy.com">
-                        legal@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:legal@mybaseballfantasy.com">
+                        legal@mybaseballfantasy.com
                     </a>
                     <br />
                     Support:{' '}
-                    <a className="font-medium text-primary underline" href="mailto:support@baseballfantasy.com">
-                        support@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:support@mybaseballfantasy.com">
+                        support@mybaseballfantasy.com
                     </a>
                 </P>
             </Section>

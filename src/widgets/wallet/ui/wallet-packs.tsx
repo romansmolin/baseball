@@ -2,9 +2,10 @@
 
 import { Coins01Icon, ShoppingCart02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { useState } from 'react'
 
 import { useCreditPacksData } from '@/entities/wallet'
-import { CustomCreditAmount, useCheckout } from '@/features/buy-credits'
+import { CustomCreditAmount, useCheckout, WithdrawalConsent } from '@/features/buy-credits'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { CreditPack } from '@/shared/wallet'
@@ -17,6 +18,7 @@ const formatPrice = (pack: CreditPack): string =>
 export const WalletPacks = () => {
     const { data: packs, isLoading } = useCreditPacksData()
     const { buy, pendingCredits } = useCheckout()
+    const [consented, setConsented] = useState(false)
 
     return (
         <Card>
@@ -52,7 +54,7 @@ export const WalletPacks = () => {
                             <Button
                                 size="sm"
                                 className="gap-1.5"
-                                disabled={pendingCredits !== null}
+                                disabled={pendingCredits !== null || !consented}
                                 onClick={() => void buy(pack.credits)}
                             >
                                 <HugeiconsIcon icon={ShoppingCart02Icon} className="size-4" />
@@ -62,7 +64,13 @@ export const WalletPacks = () => {
                     ))
                 )}
 
-                <CustomCreditAmount />
+                <CustomCreditAmount disabled={!consented} />
+
+                <WithdrawalConsent
+                    id="wallet-withdrawal-consent"
+                    checked={consented}
+                    onCheckedChange={setConsented}
+                />
             </CardContent>
         </Card>
     )

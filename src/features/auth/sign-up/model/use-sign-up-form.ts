@@ -14,6 +14,7 @@ type SignUpFormValues = z.infer<typeof signUpFormSchema>
 
 export const useSignUpForm = () => {
     const [agreeToTerms, setAgreeToTerms] = useState(false)
+    const [confirmAge, setConfirmAge] = useState(false)
 
     const form = useForm<SignUpFormValues>({
         resolver: zodResolver(signUpFormSchema),
@@ -22,16 +23,20 @@ export const useSignUpForm = () => {
             email: '',
             password: '',
             confirmPassword: '',
+            dateOfBirth: '',
+            countryOfResidence: '',
         },
     })
 
     const onSubmit = async (formData: SignUpFormValues) => {
-        const { username, email, password } = formData
+        const { username, email, password, dateOfBirth, countryOfResidence } = formData
 
         const { error } = await authClient.signUp.email({
             name: username,
             email,
             password,
+            dateOfBirth,
+            countryOfResidence,
         })
 
         if (error) {
@@ -48,7 +53,9 @@ export const useSignUpForm = () => {
     return {
         form,
         agreeToTerms,
+        confirmAge,
         onSubmit,
         setAgreeToTerms,
+        setConfirmAge,
     }
 }

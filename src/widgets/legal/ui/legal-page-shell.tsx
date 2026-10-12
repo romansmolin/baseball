@@ -17,6 +17,7 @@ const RELATED_LINKS: { href: string; label: string }[] = [
     { href: '/legal/privacy', label: 'Privacy Policy' },
     { href: '/legal/cookies', label: 'Cookies Policy' },
     { href: '/legal/refunds', label: 'Refund & Return Policy' },
+    { href: '/legal/pricing', label: 'Pricing and Payment Policy' },
 ]
 
 export const LegalPageShell = ({
@@ -80,10 +81,10 @@ export const LegalPageShell = ({
                 <p>
                     Questions? Contact us at{' '}
                     <a
-                        href="mailto:legal@baseballfantasy.com"
+                        href="mailto:legal@mybaseballfantasy.com"
                         className="font-medium text-primary hover:underline"
                     >
-                        legal@baseballfantasy.com
+                        legal@mybaseballfantasy.com
                     </a>
                     .
                 </p>

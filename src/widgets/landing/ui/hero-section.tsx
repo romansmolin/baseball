@@ -95,7 +95,7 @@ export function HeroSection() {
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-3 border border-white/10 bg-black/35 text-left backdrop-blur-sm md:w-[420px]">
+                            <div className="grid grid-cols-1 border border-white/10 bg-black/35 text-left backdrop-blur-sm md:w-[140px]">
                                 {HERO_STATS.map((stat) => (
                                     <div
                                         key={stat.label}

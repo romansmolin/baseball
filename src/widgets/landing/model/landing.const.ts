@@ -7,7 +7,7 @@ export const SCROLL_FRAMES_COUNT = 192
 export const SCROLL_FRAMES_EXT = 'webp'
 
 export const TICKER_ITEMS: TickerItem[] = [
-    { label: 'LIVE: 412 OPEN CONTESTS ACROSS 6 LEAGUES' },
+    { label: 'LIVE: CONTESTS ACROSS 6 LEAGUES' },
     { label: 'FREE-ENTRY CONTESTS EVERY DAY · CREDITS-ONLY ECONOMY' },
     { label: 'AUTOFILL · CAPTAIN ×1.5 · SAVE A LINEUP IN 30 SECONDS' },
 ]
@@ -21,7 +21,7 @@ export const SEQUENCE_STAGES: SequenceStage[] = [
     {
         eyebrow: 'Step Two',
         headline: 'Build',
-        body: 'Slot 9 players on the diamond. Captain your star for a 1.5× bonus. Stay under the $50K cap.',
+        body: 'Slot 9 players on the diamond. Captain your star for a 1.5× bonus. Stay under the 50,000-point virtual salary cap.',
     },
     {
         eyebrow: 'Step Three',
@@ -32,8 +32,6 @@ export const SEQUENCE_STAGES: SequenceStage[] = [
 
 export const HERO_STATS: HeroStat[] = [
     { label: 'Leagues', value: '6' },
-    { label: 'Daily Contests', value: '412' },
-    { label: 'Total Prize Pool', value: '$500K' },
 ]
 
 export const FEATURE_CARDS: FeatureCard[] = [
@@ -48,21 +46,15 @@ export const LEAGUES_SHOWCASE: LeagueShowcase[] = [
         code: 'MLB',
         name: 'Major League Baseball',
         region: 'USA / Canada',
-        openContests: '128 open',
-        prizePool: '$240K pool',
     },
     {
         code: 'NPB',
         name: 'Nippon Professional Baseball',
         region: 'Japan',
-        openContests: '74 open',
-        prizePool: '$118K pool',
     },
     {
         code: 'KBO',
         name: 'Korea Baseball Organization',
         region: 'South Korea',
-        openContests: '56 open',
-        prizePool: '$82K pool',
     },
 ]

@@ -4,7 +4,7 @@ import { Toaster } from 'sonner'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-    title: 'Basebal Fantasy - Authentication',
+    title: 'BaseballFantasy - Authentication',
 }
 
 export default function AuthLayout({
@@ -20,7 +20,7 @@ export default function AuthLayout({
                     <div className="relative hidden min-h-48 flex-1 overflow-hidden rounded-xl bg-primary md:block">
                         <Image
                             src="/image.png"
-                            alt="Basebal Fantasy"
+                            alt="BaseballFantasy"
                             fill
                             priority
                             sizes="(max-width: 768px) 0px, 50vw"

@@ -48,14 +48,7 @@ export function EliteContenders() {
                             </span>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <div className="flex justify-between items-center py-6 border-y border-white/10 mb-8">
-                                <span className="text-gray-500 uppercase font-bold tracking-[0.2em] text-[10px]">
-                                    {league.openContests}
-                                </span>
-                                <span className="text-lg font-anton tracking-widest text-white">
-                                    {league.prizePool}
-                                </span>
-                            </div>
+                            <div className="mb-8 border-t border-white/10" />
                             <Link
                                 href="/tournaments"
                                 className="flex w-full items-center justify-center bg-white text-black hover:bg-red-600 hover:text-white text-xs font-black uppercase tracking-[0.2em] h-14 rounded-none transition-all"

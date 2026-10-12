@@ -29,7 +29,7 @@ export default function RefundPolicyPage() {
                     items={[
                         'Purchases of virtual credits ("Credits") through the Service;',
                         'Optional paid features and subscriptions, where offered;',
-                        'Contest entry fees paid with Credits;',
+                        'Credit entry requirements paid with Credits;',
                         'Any other paid transaction processed through BaseballFantasy.',
                     ]}
                 />
@@ -50,7 +50,7 @@ export default function RefundPolicyPage() {
                     you acknowledge that you are receiving access to digital content that
                     begins performance immediately, and you may lose certain statutory
                     rights of withdrawal once you have used any portion of those Credits
-                    (see Section 6 below).
+                    (see Section 5 below).
                 </P>
             </Section>
 
@@ -77,9 +77,9 @@ export default function RefundPolicyPage() {
                 </Sub>
                 <Sub title="3.3 Cancelled contests with no replacement scoring window">
                     <P>
-                        If you entered a paid contest that we then cancel without offering
+                        If you entered a credit-entry contest that we then cancel without offering
                         an equivalent replacement (for example, because all underlying
-                        real-world games are cancelled), we will refund the entry fee in
+                        real-world games are cancelled), we will refund the credit entry requirement in
                         Credits to your account balance, in line with the specific contest
                         rules. We may, in our discretion, offer a cash refund instead of
                         Credits where the cancellation is attributable solely to us.
@@ -121,18 +121,19 @@ export default function RefundPolicyPage() {
                     Credits are digital content delivered immediately upon purchase, you
                     expressly consent to immediate performance and acknowledge that you
                     lose your right of withdrawal once you begin using the Credits (e.g.,
-                    by entering a paid contest).
+                    by entering a credit-entry contest).
                 </P>
                 <P>
-                    If you wish to exercise your withdrawal right within the 14-day window
-                    and you have <em>not</em> used any of the purchased Credits, please
-                    contact{' '}
-                    <a className="font-medium text-primary underline" href="mailto:billing@baseballfantasy.com">
-                        billing@baseballfantasy.com
+                    Before receiving purchased Credits immediately, EU and UK consumers
+                    will be asked to expressly consent to the immediate supply of the
+                    digital content and acknowledge that they may lose their statutory
+                    right of withdrawal once they begin using the Credits. If the
+                    purchased Credits have not been used, the consumer may exercise the
+                    applicable withdrawal right by contacting{' '}
+                    <a className="font-medium text-primary underline" href="mailto:billing@mybaseballfantasy.com">
+                        billing@mybaseballfantasy.com
                     </a>{' '}
-                    with your order details. We will refund the full amount paid using the
-                    same payment method, generally within fourteen (14) days of receiving
-                    your withdrawal notice.
+                    within fourteen days of purchase.
                 </P>
             </Section>
 
@@ -141,7 +142,7 @@ export default function RefundPolicyPage() {
                 <List
                     ordered
                     items={[
-                        <>Email <a className="font-medium text-primary underline" href="mailto:billing@baseballfantasy.com">billing@baseballfantasy.com</a> from the address associated with your account, or open a support ticket from your Account Settings.</>,
+                        <>Email <a className="font-medium text-primary underline" href="mailto:billing@mybaseballfantasy.com">billing@mybaseballfantasy.com</a> from the address associated with your account, or open a support ticket from your Account Settings.</>,
                         'Include the username on your account, the order or transaction ID, the date of the purchase, the amount, the payment method, and a clear explanation of why you are requesting a refund.',
                         'Provide any supporting information (e.g., screenshots of the error you experienced, or correspondence with your bank).',
                     ]}
@@ -157,8 +158,9 @@ export default function RefundPolicyPage() {
                 <P>
                     Approved refunds are processed back to the original payment method used
                     for the purchase. Where the original payment method is no longer
-                    available (e.g., expired card), we may credit your account balance
-                    instead. We do not issue refunds by cash, check, wire transfer, or
+                    available, we will contact you to agree on another lawful refund
+                    method. We will not issue a refund in platform Credits without your
+                    consent. We do not issue refunds by cash, check, wire transfer, or
                     cryptocurrency.
                 </P>
                 <P>
@@ -182,23 +184,17 @@ export default function RefundPolicyPage() {
 
             <Section id="chargebacks" title="9. Chargebacks and Payment Disputes">
                 <P>
-                    If you have a concern about a charge, please contact us first — we will
-                    do our best to resolve it quickly and fairly. Filing a chargeback or
-                    payment dispute with your bank without first contacting us may result
-                    in:
-                </P>
-                <List
-                    items={[
-                        'Immediate suspension or termination of your account while the dispute is investigated;',
-                        'Forfeiture of any unused Credit balance and any active contest entries;',
-                        'Permanent block from creating new accounts on the Service;',
-                        'Recovery of associated chargeback fees and administrative costs.',
-                    ]}
-                />
-                <P>
-                    If a chargeback is found in our favor, we may reinstate your account
-                    and balance at our discretion, subject to any administrative fees and
-                    additional identity verification.
+                    If you have a concern regarding a transaction, please contact{' '}
+                    <a className="font-medium text-primary underline" href="mailto:billing@mybaseballfantasy.com">
+                        billing@mybaseballfantasy.com
+                    </a>{' '}
+                    before initiating a chargeback so that we can attempt to resolve the
+                    matter. If a chargeback or payment dispute is submitted, we may
+                    temporarily restrict the relevant account while the transaction is
+                    investigated. We will provide the payment provider with relevant
+                    transaction, account and usage records where necessary. Any account
+                    action will be proportionate to the circumstances and taken in
+                    accordance with applicable law and payment-provider requirements.
                 </P>
             </Section>
 
@@ -216,8 +212,8 @@ export default function RefundPolicyPage() {
                 <P>
                     You may close your account at any time from your Account Settings or
                     by contacting{' '}
-                    <a className="font-medium text-primary underline" href="mailto:support@baseballfantasy.com">
-                        support@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:support@mybaseballfantasy.com">
+                        support@mybaseballfantasy.com
                     </a>
                     . Closing your account does not, by itself, entitle you to a refund of
                     any unused Credit balance. Where applicable law requires us to refund
@@ -248,18 +244,18 @@ export default function RefundPolicyPage() {
             <Section id="contact" title="14. Contact">
                 <P>
                     <strong className="text-foreground">Refund and billing inquiries:</strong>{' '}
-                    <a className="font-medium text-primary underline" href="mailto:billing@baseballfantasy.com">
-                        billing@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:billing@mybaseballfantasy.com">
+                        billing@mybaseballfantasy.com
                     </a>
                     <br />
                     <strong className="text-foreground">Support:</strong>{' '}
-                    <a className="font-medium text-primary underline" href="mailto:support@baseballfantasy.com">
-                        support@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:support@mybaseballfantasy.com">
+                        support@mybaseballfantasy.com
                     </a>
                     <br />
                     <strong className="text-foreground">General legal:</strong>{' '}
-                    <a className="font-medium text-primary underline" href="mailto:legal@baseballfantasy.com">
-                        legal@baseballfantasy.com
+                    <a className="font-medium text-primary underline" href="mailto:legal@mybaseballfantasy.com">
+                        legal@mybaseballfantasy.com
                     </a>
                 </P>
             </Section>
