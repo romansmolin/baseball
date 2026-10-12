@@ -18,13 +18,16 @@ import { isAuthorizedCron } from '../../../../../../server/shared/cron-auth.util
 import { WeeklyScoringService } from '../../../../../../server/services/scoring/weekly-scoring.service'
 import { computeTournamentCurrentWeek } from '../../../../../../server/services/tournaments/tournament-week.util'
 import { prisma } from '../../../../../../server/lib/prisma'
+import { mapWithConcurrency } from '../../../../../../server/shared/concurrency.utils'
 
 // 5 minutes — Vercel Pro caps at 300s. Hobby caps at 60s and silently truncates
 // past that. Our TIME_BUDGET_MS below keeps us inside even the 60s ceiling.
 export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
-const TIME_BUDGET_MS = 50_000
+// Leaves ~60s of headroom under maxDuration for the in-flight members to finish.
+const TIME_BUDGET_MS = 240_000
+const MEMBER_CONCURRENCY = 8
 
 const ACTIVE_STATUSES = ['IN_SEASON', 'PLAYOFFS'] as const
 
@@ -66,7 +69,7 @@ export async function GET(request: Request) {
     let tournamentsSkipped = 0
     let timedOut = false
 
-    outer: for (const tournament of tournaments) {
+    for (const tournament of tournaments) {
         if (Date.now() - startedAt > TIME_BUDGET_MS) {
             timedOut = true
             break
@@ -89,6 +92,18 @@ export async function GET(request: Request) {
         }
 
         const members = await tournamentsRepo.findStandingsMembers(tournament.id)
+        const memberIds = members.map((m) => m.id)
+
+        // Only members with a missing/stale week need work. Settled
+        // tournaments become one cheap query instead of ~500 member passes.
+        const { membersNeedingRefresh } = await scoringService.summarizeScoresForMembers(
+            memberIds,
+            currentWeek,
+        )
+        if (membersNeedingRefresh.length === 0) {
+            tournamentsProcessed++
+            continue
+        }
 
         const scoringLeague = {
             id: tournament.id,
@@ -102,26 +117,25 @@ export async function GET(request: Request) {
         await scoringService.warmProviderCache(
             scoringLeague,
             currentWeek,
-            members.map((m) => m.id),
+            membersNeedingRefresh,
         )
 
-        for (const member of members) {
+        await mapWithConcurrency(membersNeedingRefresh, MEMBER_CONCURRENCY, async (memberId) => {
             if (Date.now() - startedAt > TIME_BUDGET_MS) {
                 timedOut = true
-                break outer
+                return
             }
-
             // Scoring engine reads frozen WeeklyLineup snapshots internally —
-            // members without snapshots for a given week settle to 0, no
-            // pre-flight guard needed here.
+            // members without snapshots for a given week settle to 0.
             await scoringService.prepareMemberWeeks(
-                member.id,
+                memberId,
                 scoringLeague,
                 rule,
                 currentWeek,
             )
             membersWarmed++
-        }
+        })
+        if (timedOut) break
 
         tournamentsProcessed++
     }

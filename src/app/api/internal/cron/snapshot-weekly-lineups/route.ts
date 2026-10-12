@@ -14,7 +14,7 @@ import { WeeklyLineupRepository } from '../../../../../../server/repositories/we
 import { isAuthorizedCron } from '../../../../../../server/shared/cron-auth.utils'
 import { WeeklyLineupSnapshotService } from '../../../../../../server/services/weekly-lineup/weekly-lineup-snapshot.service'
 
-export const maxDuration = 60
+export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
