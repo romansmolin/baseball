@@ -1,3 +1,4 @@
+import type { WeeklyScoreBreakdownSlot } from '../../repositories/weekly-score-cache/weekly-score-cache.repository.interface'
 import type { ScoringRuleRecord } from '../../repositories/scoring-rule/scoring-rule.repository.interface'
 
 // Per-week score returned by `weeklyBreakdown` for the /me progress UI.
@@ -9,6 +10,8 @@ export interface WeeklyMemberScore {
     points: number
     state: 'PARTIAL' | 'FINAL'
     awarded: boolean
+    // Per-player / per-game audit trail from the cached breakdown.
+    slots: WeeklyScoreBreakdownSlot[]
 }
 
 export interface MemberScoresSummary {

@@ -305,6 +305,7 @@ export class WeeklyScoringService implements IWeeklyScoringService {
                     points: row.points,
                     state: row.state,
                     awarded: true,
+                    slots: row.breakdown?.slots ?? [],
                 })
             } else {
                 out.push({
@@ -312,6 +313,7 @@ export class WeeklyScoringService implements IWeeklyScoringService {
                     points: 0,
                     state: 'PARTIAL',
                     awarded: false,
+                    slots: [],
                 })
             }
         }

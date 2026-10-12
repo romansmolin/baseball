@@ -69,10 +69,28 @@ export interface TournamentStandingsResponse {
 // shape stays canonical across both halves of the tournaments domain.
 // Agent 1 owns the endpoints/UI that produce and consume these.
 
+export interface UserTournamentGameScore {
+    gamePk: number
+    points: number
+    status: string
+}
+
+export interface UserTournamentSlotScore {
+    externalPlayerId: number
+    playerName: string
+    slotPosition: string
+    isCaptain: boolean
+    // Points before the captain multiplier.
+    rawPoints: number
+    finalPoints: number
+    games: UserTournamentGameScore[]
+}
+
 export interface UserTournamentWeeklyScore {
     week: number
     points: number
     awarded: boolean
+    slots: UserTournamentSlotScore[]
 }
 
 export interface UserTournamentProgress {

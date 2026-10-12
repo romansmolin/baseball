@@ -450,7 +450,7 @@ export class MeService implements IMeService {
         if (currentWeek <= 0) {
             const weeklyScores: UserTournamentWeeklyScore[] = []
             for (let week = 1; week <= league.totalWeeks; week += 1) {
-                weeklyScores.push({ week, points: 0, awarded: false })
+                weeklyScores.push({ week, points: 0, awarded: false, slots: [] })
             }
             return {
                 tournamentId: league.id,
@@ -491,26 +491,26 @@ export class MeService implements IMeService {
             memberIds,
             currentWeek,
         )
-        const membersNeedingRefresh = scoreSummary.membersNeedingRefresh
+        // Opening the detail panel must only score the caller. Re-scoring every
+        // member (hundreds per tournament, each pulling box scores) made this
+        // endpoint take minutes; the refresh-scoring cron owns the rest.
+        const membersNeedingRefresh = scoreSummary.membersNeedingRefresh.includes(
+            membership.id,
+        )
+            ? [membership.id]
+            : []
 
-        // This endpoint is mounted with the tournament detail panel. Never
-        // re-warm or re-score a fully cached tournament merely to show the
-        // current user's rank.
         if (membersNeedingRefresh.length > 0) {
             await this.weeklyScoringService.warmProviderCache(
                 scoringLeague,
                 currentWeek,
                 membersNeedingRefresh,
             )
-            await Promise.all(
-                membersNeedingRefresh.map((memberId) =>
-                    this.weeklyScoringService.prepareMemberWeeks(
-                        memberId,
-                        scoringLeague,
-                        rule,
-                        currentWeek,
-                    ),
-                ),
+            await this.weeklyScoringService.prepareMemberWeeks(
+                membership.id,
+                scoringLeague,
+                rule,
+                currentWeek,
             )
         }
 
@@ -523,6 +523,7 @@ export class MeService implements IMeService {
             week: row.week,
             points: row.points,
             awarded: row.awarded && row.week <= currentWeek,
+            slots: row.awarded && row.week <= currentWeek ? row.slots : [],
         }))
 
         const totalByMember =

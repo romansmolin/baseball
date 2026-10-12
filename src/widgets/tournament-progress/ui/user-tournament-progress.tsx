@@ -4,6 +4,7 @@ import { Calendar03Icon, Medal01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import { ApiError } from '@/shared/api/api-error'
+import type { UserTournamentSlotScore } from '@/shared/tournaments'
 import { Button } from '@/shared/ui/button'
 import { cn } from '@/shared/utils'
 
@@ -52,6 +53,7 @@ export const UserTournamentProgress = ({
                             week={week.week}
                             points={week.points}
                             awarded={week.awarded}
+                            slots={week.slots}
                         />
                     ))}
                 </ul>
@@ -129,27 +131,91 @@ const WeekRow = ({
     week,
     points,
     awarded,
+    slots,
 }: {
     week: number
     points: number
     awarded: boolean
-}) => (
-    <li
-        className={cn(
-            'flex items-center justify-between rounded-lg border border-foreground/10 px-3 py-2 text-sm',
-            awarded ? 'bg-card' : 'bg-muted/30 text-muted-foreground',
-        )}
-    >
-        <span className={cn('font-medium', !awarded && 'text-muted-foreground')}>
-            Week {week}
-        </span>
-        <span
+    slots: UserTournamentSlotScore[]
+}) => {
+    const expandable = slots.length > 0
+    return (
+        <li
             className={cn(
-                'font-anton text-base',
-                awarded ? 'text-primary' : 'text-muted-foreground/60',
+                'rounded-lg border border-foreground/10 text-sm',
+                awarded ? 'bg-card' : 'bg-muted/30 text-muted-foreground',
             )}
         >
-            {awarded ? points.toLocaleString() : '—'}
-        </span>
-    </li>
+            <details className="group">
+                <summary
+                    className={cn(
+                        'flex items-center gap-2 px-3 py-2 marker:hidden [&::-webkit-details-marker]:hidden',
+                        expandable ? 'cursor-pointer' : 'pointer-events-none',
+                    )}
+                >
+                    <span
+                        aria-hidden
+                        className={cn(
+                            'text-xs text-muted-foreground transition-transform group-open:rotate-90',
+                            !expandable && 'invisible',
+                        )}
+                    >
+                        ▶
+                    </span>
+                    <span className="flex-1 font-medium">Week {week}</span>
+                    <span
+                        className={cn(
+                            'font-anton text-base tabular-nums',
+                            awarded ? 'text-primary' : 'text-muted-foreground/60',
+                        )}
+                    >
+                        {awarded ? points.toLocaleString() : '—'}
+                    </span>
+                </summary>
+                {expandable && <SlotList slots={slots} />}
+            </details>
+        </li>
+    )
+}
+
+const SlotList = ({ slots }: { slots: UserTournamentSlotScore[] }) => (
+    <ul className="divide-y divide-foreground/10 border-t border-foreground/10">
+        {slots.map((slot) => (
+            <li
+                key={`${slot.slotPosition}-${slot.externalPlayerId}`}
+                className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-baseline gap-x-3 gap-y-1 px-3 py-2"
+            >
+                <span className="text-xs font-semibold text-muted-foreground">
+                    {slot.slotPosition}
+                </span>
+                <span className="truncate font-medium">{slot.playerName}</span>
+                <span className="text-right tabular-nums">
+                    {slot.isCaptain && (
+                        <span className="mr-2 text-xs text-muted-foreground">
+                            Captain · {slot.rawPoints.toLocaleString()} ×{' '}
+                            {slot.rawPoints !== 0
+                                ? (slot.finalPoints / slot.rawPoints).toLocaleString()
+                                : '—'}
+                        </span>
+                    )}
+                    <span className="font-semibold">{slot.finalPoints.toLocaleString()}</span>
+                </span>
+                <span aria-hidden />
+                <span className="col-span-2 text-xs text-muted-foreground">
+                    {slot.games.length === 0
+                        ? 'No games this week'
+                        : slot.games
+                              .map(
+                                  (game, index) =>
+                                      `G${index + 1} ${game.points.toLocaleString()}${
+                                          game.status === 'FINAL'
+                                              ? ''
+                                              : ` (${game.status.toLowerCase()})`
+                                      }`,
+                              )
+                              .join('  ·  ')}
+                </span>
+            </li>
+        ))}
+    </ul>
 )

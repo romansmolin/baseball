@@ -1,4 +1,6 @@
 export type {
+    UserTournamentGameScore,
+    UserTournamentSlotScore,
     JoinTournamentPayload,
     JoinTournamentResult,
     TournamentRecord,
