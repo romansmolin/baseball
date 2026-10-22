@@ -81,7 +81,7 @@ export class PaymentService implements IPaymentService {
             const checkout = await secureProcessorClient.createCheckout({
                 amountCents: purchase.priceCents,
                 currency: purchase.currency,
-                description: `Purchase ${purchase.credits} Diamond Fantasy credits`,
+                description: '03ad5874-fd3d-4d43-ac56-0ff14f61d8ff',
                 trackingId: payment.token,
                 userId,
             })

@@ -85,6 +85,9 @@ class SecureProcessorClient {
                     return_url: `${this.appUrl}/api/payments/return?token=${data.trackingId}`,
                     notification_url: `${this.appUrl}/api/payments/webhook`,
                     language: 'en',
+                    customer_fields: {
+                        visible: ['email', 'birth_date'],
+                    },
                 },
                 order: {
                     amount: data.amountCents,
@@ -93,7 +96,7 @@ class SecureProcessorClient {
                     tracking_id: data.trackingId,
                 },
                 customer: {
-                    id: data.userId,
+                    external_id: data.userId,
                 },
                 metadata: {
                     payment_token_id: data.trackingId,

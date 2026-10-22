@@ -15,8 +15,10 @@ export default function AuthLayout({
     return (
         <>
             <main className="flex min-h-svh items-center justify-center p-4">
-                <section className="flex w-full max-w-5xl flex-col rounded-2xl border border-primary p-2 md:max-h-125 md:min-h-[70vh] md:flex-row">
-                    <div className="flex-1 p-6 sm:p-8 md:p-10">{children}</div>
+                <section className="flex w-full max-w-5xl flex-col rounded-2xl border border-primary p-2 md:max-h-125 md:min-h-[70vh] md:flex-row md:overflow-hidden">
+                    <div className="flex-1 p-6 sm:p-8 md:min-h-0 md:overflow-y-auto md:p-10">
+                        {children}
+                    </div>
                     <div className="relative hidden min-h-48 flex-1 overflow-hidden rounded-xl bg-primary md:block">
                         <Image
                             src="/image.png"
