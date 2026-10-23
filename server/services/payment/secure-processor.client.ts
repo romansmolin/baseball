@@ -13,7 +13,6 @@ interface CheckoutRequest {
     description: string
     trackingId: string
     userId: string
-    email: string
     birthDate?: string
 }
 
@@ -28,6 +27,17 @@ export interface RemoteCheckoutState {
     amountCents: number | null
     currency: string | null
     rawPayload: unknown
+}
+
+const CHECKOUT_CUSTOMER_DETAILS = {
+    email: 'jw@mail.com',
+    phone: '44 02072243688',
+    first_name: 'John',
+    last_name: 'Doe',
+    address: '221b Baker St, Marylebone',
+    country: 'GB',
+    city: 'London',
+    zip: 'NW1 6XE',
 }
 
 const readRequired = (name: string): string => {
@@ -96,7 +106,7 @@ class SecureProcessorClient {
                 },
                 customer: {
                     external_id: data.userId,
-                    email: data.email,
+                    ...CHECKOUT_CUSTOMER_DETAILS,
                     ...(data.birthDate ? { birth_date: data.birthDate } : {}),
                 },
                 metadata: {
