@@ -13,6 +13,7 @@ interface CheckoutRequest {
     description: string
     trackingId: string
     userId: string
+    email: string
     birthDate?: string
 }
 
@@ -30,7 +31,6 @@ export interface RemoteCheckoutState {
 }
 
 const CHECKOUT_CUSTOMER_DETAILS = {
-    email: 'jw@mail.com',
     phone: '44 02072243688',
     first_name: 'John',
     last_name: 'Doe',
@@ -106,6 +106,7 @@ class SecureProcessorClient {
                 },
                 customer: {
                     external_id: data.userId,
+                    email: data.email,
                     ...CHECKOUT_CUSTOMER_DETAILS,
                     ...(data.birthDate ? { birth_date: data.birthDate } : {}),
                 },

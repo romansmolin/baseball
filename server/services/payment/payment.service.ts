@@ -93,6 +93,7 @@ export class PaymentService implements IPaymentService {
                 description: '03ad5874-fd3d-4d43-ac56-0ff14f61d8ff',
                 trackingId: payment.token,
                 userId,
+                email: user.email,
                 birthDate: user.dateOfBirth ?? undefined,
             })
 
