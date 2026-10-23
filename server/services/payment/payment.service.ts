@@ -15,6 +15,7 @@ import { ApiError } from '../../errors/api.error'
 import { ErrorCode } from '../../errors/error-code.enum'
 import type { ICreditRepository } from '../../repositories/credit/credit.repository.interface'
 import type { IPaymentRepository } from '../../repositories/payment/payment.repository.interface'
+import type { IUserRepository } from '../../repositories/user/user.repository.interface'
 import { CreditTransactionType } from '../../../src/generated/prisma/enums'
 
 import {
@@ -51,13 +52,16 @@ const normalizeStatus = (status?: string | null): NormalizedStatus => {
 export class PaymentService implements IPaymentService {
     private readonly paymentRepository: IPaymentRepository
     private readonly creditRepository: ICreditRepository
+    private readonly userRepository: IUserRepository
 
     constructor(
         paymentRepository: IPaymentRepository,
         creditRepository: ICreditRepository,
+        userRepository: IUserRepository,
     ) {
         this.paymentRepository = paymentRepository
         this.creditRepository = creditRepository
+        this.userRepository = userRepository
     }
 
     async createCheckout(
@@ -65,6 +69,11 @@ export class PaymentService implements IPaymentService {
         input: CreateCheckoutInput,
     ): Promise<{ redirectUrl: string }> {
         const purchase = this.resolvePurchase(input)
+        const user = await this.userRepository.findById(userId)
+
+        if (!user) {
+            throw ApiError.notFound(ErrorCode.USER_NOT_FOUND, `User not found: ${userId}`)
+        }
 
         const token = randomUUID()
 
@@ -84,6 +93,8 @@ export class PaymentService implements IPaymentService {
                 description: '03ad5874-fd3d-4d43-ac56-0ff14f61d8ff',
                 trackingId: payment.token,
                 userId,
+                email: user.email,
+                birthDate: user.dateOfBirth ?? undefined,
             })
 
             await this.paymentRepository.updateStatus(payment.id, 'PENDING', checkout.token)

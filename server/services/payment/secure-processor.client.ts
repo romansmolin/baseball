@@ -13,6 +13,8 @@ interface CheckoutRequest {
     description: string
     trackingId: string
     userId: string
+    email: string
+    birthDate?: string
 }
 
 interface CheckoutResponse {
@@ -85,9 +87,6 @@ class SecureProcessorClient {
                     return_url: `${this.appUrl}/api/payments/return?token=${data.trackingId}`,
                     notification_url: `${this.appUrl}/api/payments/webhook`,
                     language: 'en',
-                    customer_fields: {
-                        visible: ['email', 'birth_date'],
-                    },
                 },
                 order: {
                     amount: data.amountCents,
@@ -97,6 +96,8 @@ class SecureProcessorClient {
                 },
                 customer: {
                     external_id: data.userId,
+                    email: data.email,
+                    ...(data.birthDate ? { birth_date: data.birthDate } : {}),
                 },
                 metadata: {
                     payment_token_id: data.trackingId,

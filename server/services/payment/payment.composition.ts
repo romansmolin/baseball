@@ -7,6 +7,7 @@ import { PaymentController } from '../../controllers/payment/payment.controller'
 import { WalletController } from '../../controllers/wallet/wallet.controller'
 import { CreditRepository } from '../../repositories/credit/credit.repository'
 import { PaymentRepository } from '../../repositories/payment/payment.repository'
+import { UserRepository } from '../../repositories/user/user.repository'
 
 import { PaymentService } from './payment.service'
 import { WalletService } from '../wallet/wallet.service'
@@ -14,7 +15,9 @@ import { WalletService } from '../wallet/wallet.service'
 export function buildPaymentController(): PaymentController {
     const paymentRepository = new PaymentRepository()
     const creditRepository = new CreditRepository()
-    return new PaymentController(new PaymentService(paymentRepository, creditRepository))
+    const userRepository = new UserRepository()
+    const paymentService = new PaymentService(paymentRepository, creditRepository, userRepository)
+    return new PaymentController(paymentService)
 }
 
 export function buildWalletController(): WalletController {

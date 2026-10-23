@@ -10,6 +10,7 @@ export interface UserModel {
     email: string
     name: string
     emailVerified: boolean
+    dateOfBirth: string | null
     image: string | null
     username: string | null
     passwordHash: string | null
