@@ -44,6 +44,20 @@ const MAX_LIMIT = 200
 // MLB, so every method here stays a single code path regardless of level.
 export class MlbSportsProvider implements ISportsProvider {
     readonly name = 'mlb'
+    async getGameRoster(gamePk: number) {
+        const data = await mlbFetch<MlbRawBoxScoreResponse>(`/game/${gamePk}/boxscore`, { revalidate: 86400 })
+        const players: import('../../../src/shared/daily-contests').DailyPlayer[] = []
+        for (const side of [data.teams.home, data.teams.away]) {
+            for (const raw of Object.values(side.players)) {
+                const position = (raw as typeof raw & { position?: { abbreviation?: string } }).position?.abbreviation
+                const pos = position === 'SP' || position === 'RP' ? 'P' : ['LF','CF','RF','DH'].includes(position ?? '') ? 'OF' : position
+                if (!['P','C','1B','2B','3B','SS','OF'].includes(pos ?? '')) continue
+                players.push({ externalPlayerId: raw.person.id, name: raw.person.fullName, position: pos as import('../../../src/shared/team-builder').PoolPosition, teamId: side.team.id, teamName: (side.team as { id:number; name?:string }).name ?? `Team ${side.team.id}`, salary: 4000 + (raw.person.id % 7) * 1000, photoUrl: `https://midfield.mlbstatic.com/v1/people/${raw.person.id}/spots/120` })
+            }
+        }
+        return { gamePk, players }
+    }
+
 
     async getTeams(filters: GetTeamsFilters = {}): Promise<ProviderTeam[]> {
         const season = filters.season ?? env.defaultSeason()
@@ -240,9 +254,13 @@ export class MlbSportsProvider implements ISportsProvider {
                 {
                     revalidate: MLB_REVALIDATE.schedule,
                     tags: [mlbTags.boxscore(gamePk)],
+                    deadline: opts.deadline,
                 },
             )
-            const game = scheduleData.dates.flatMap((d) => d.games).find((g) => g.gamePk === gamePk)
+            // A postponed game can reappear on its makeup date with the same ID.
+            // Prefer the latest schedule occurrence, not the original postponement.
+            const game = [...scheduleData.dates].sort((a, b) => b.date.localeCompare(a.date))
+                .flatMap((d) => d.games).find((g) => g.gamePk === gamePk)
             if (!game) return null
             status = mapMlbDetailedStateToStatus(
                 game.status.detailedState,
@@ -257,6 +275,7 @@ export class MlbSportsProvider implements ISportsProvider {
             const data = await mlbFetch<MlbRawBoxScoreResponse>(`/game/${gamePk}/boxscore`, {
                 revalidate: MLB_REVALIDATE.boxscore,
                 tags: [mlbTags.boxscore(gamePk)],
+                    deadline: opts.deadline,
             })
             return mapMlbBoxScoreToProvider(data, gamePk, status)
         } catch (error) {

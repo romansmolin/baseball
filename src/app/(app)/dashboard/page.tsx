@@ -1,3 +1,4 @@
+import { showcaseEnabled } from '../../../../server/shared/showcase-config'
 import { headers } from 'next/headers'
 
 import { auth } from '@/shared/lib/auth'
@@ -43,5 +44,5 @@ export default async function DashboardPage() {
         }
     }
 
-    return <DashboardView userName={session?.user.name ?? ''} view={view} />
+    return <DashboardView userName={session?.user.name ?? ''} view={view} showcaseEnabled={showcaseEnabled()} />
 }

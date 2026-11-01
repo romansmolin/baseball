@@ -32,10 +32,14 @@ export interface GetPlayersByTeamOptions {
 }
 
 export interface GetBoxScoreOptions {
+    deadline?: number
     league?: SupportedBaseballLeague
 }
 
+export interface ProviderGameRoster { gamePk: number; players: import('../../src/shared/daily-contests').DailyPlayer[] }
+
 export interface ISportsProvider {
+    getGameRoster?(gamePk: number, opts?: GetBoxScoreOptions): Promise<ProviderGameRoster | null>
     readonly name: string
     getTeams(filters?: GetTeamsFilters): Promise<ProviderTeam[]>
     getTeamById(id: number, opts?: GetTeamByIdOptions): Promise<ProviderTeam | null>

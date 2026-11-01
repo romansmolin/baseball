@@ -1,0 +1,46 @@
+model DemoProfile {
+ userId String @id
+ user User @relation(fields:[userId], references:[id])
+ demoKey String @unique
+ countryCode String
+ favoriteTeamId Int
+ strategy String
+ datasetSeed String
+ ordinal Int
+ createdAt DateTime @default(now())
+ @@unique([datasetSeed,ordinal])
+}
+model CommunityEvent {
+ id String @id @default(cuid())
+ sourceKey String @unique
+ kind String
+ userId String?
+ user User? @relation(fields:[userId], references:[id])
+ contestId String?
+ contest DailyContest? @relation(fields:[contestId], references:[id])
+ occurredAt DateTime
+ payload Json
+ @@index([occurredAt,id])
+}
+model ManagerStanding {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId], references:[id])
+ mode DailyContestMode
+ period String
+ periodKey String
+ points Decimal @db.Decimal(12,2)
+ rank Int
+ previousRank Int?
+ entries Int
+ updatedAt DateTime @updatedAt
+ @@unique([userId,mode,period,periodKey])
+ @@index([mode,period,periodKey,rank])
+}
+model ShowcaseJob {
+ key String @id
+ cursor Json?
+ leaseToken String?
+ leaseExpiresAt DateTime?
+ updatedAt DateTime @updatedAt
+}

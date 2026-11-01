@@ -10,9 +10,10 @@ import { cn } from '@/shared/utils'
 
 interface OnboardingChecklistProps {
     firstName: string
+    compact?: boolean
 }
 
-export const OnboardingChecklist = ({ firstName }: OnboardingChecklistProps) => {
+export const OnboardingChecklist = ({ firstName, compact = false }: OnboardingChecklistProps) => {
     const { data, error, isLoading } = useOnboardingData()
     const steps = data ?? []
     const doneCount = steps.filter((s) => s.status === 'done').length
@@ -20,7 +21,7 @@ export const OnboardingChecklist = ({ firstName }: OnboardingChecklistProps) => 
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-anton text-2xl tracking-wide">
+                <CardTitle className={cn("font-anton tracking-wide", compact ? "text-lg" : "text-2xl")}>
                     Welcome to <span className="text-primary">BaseballFantasy</span>, {firstName}
                 </CardTitle>
                 <CardDescription>Complete these steps to join your first tournament.</CardDescription>
@@ -38,7 +39,7 @@ export const OnboardingChecklist = ({ firstName }: OnboardingChecklistProps) => 
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className={cn("grid gap-3 md:grid-cols-3", compact && "[&>div]:p-3 [&>div>div:first-child]:hidden")}>
                     {isLoading
                         ? [0, 1, 2].map((i) => <OnboardingStepSkeleton key={i} />)
                         : steps.map((step) => <OnboardingStepCard key={step.id} step={step} />)}

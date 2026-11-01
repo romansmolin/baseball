@@ -83,6 +83,13 @@ beforeEach(() => {
     )
 })
 
+it('uses the completed occurrence when a postponed game is rescheduled under the same id', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.includes('/schedule')
+        ? jsonResponse({ dates: [{ date: '2025-07-02', games: [{ gamePk: 777284, status: { detailedState: 'Postponed', abstractGameState: 'Final' } }] }, { date: '2025-07-03', games: [{ gamePk: 777284, status: { detailedState: 'Final', abstractGameState: 'Final' } }] }] })
+        : jsonResponse({ teams: { home: { team: { id: 1 }, players: {} }, away: { team: { id: 2 }, players: {} } } })))
+    expect((await new MlbSportsProvider().getBoxScore(777284))?.status).toBe('FINAL')
+})
+
 afterEach(() => {
     vi.unstubAllGlobals()
 })

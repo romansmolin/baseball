@@ -1,39 +1,23 @@
-import type { TopPerformer } from '@/shared/dashboard'
-import type { ProviderPlayer } from '../../../providers/dto/provider-player.dto'
-import type { ISportsProvider } from '../../../providers/sports-provider.interface'
-import type { TopPerformersQuery } from '../../../entities/performers/top.schema'
-import type { ITopPerformersService } from './top-performers.service.interface'
-
-const DEFAULT_LIMIT = 5
-const REPRESENTATIVE_TEAM_ID = 119 // LAD — used as a source roster for stub fantasy scoring
-
-function fauxFantasyPoints(player: ProviderPlayer, rank: number): number {
-    const jitter = (player.id % 10) * 0.1
-    return Number((40 - rank * 1.3 + jitter).toFixed(1))
-}
-
+import type { TopPerformer } from '@/shared/dashboard';
+import type { DailyEntrySlot } from '@/shared/daily-contests';
+import type { ISportsProvider } from '../../../providers/sports-provider.interface';
+import type { TopPerformersQuery } from '../../../entities/performers/top.schema';
+import type { ITopPerformersService } from './top-performers.service.interface';
+import { prisma } from '../../../lib/prisma';
+import { showcaseEnabled } from '../../../shared/showcase-config';
+type PerformerSlot = {
+    player: {
+        externalPlayerId: number;
+        name: string;
+        position: string;
+        teamName: string;
+    };
+    rawPoints: number;
+};
+export function rankDailyPerformers(slots: PerformerSlot[], limit: number): TopPerformer[] { const unique = new Map(slots.map(s => [s.player.externalPlayerId, s])); return [...unique.values()].sort((a, b) => b.rawPoints - a.rawPoints || a.player.externalPlayerId - b.player.externalPlayerId).slice(0, limit).map((s, i) => ({ id: String(s.player.externalPlayerId), rank: i + 1, name: s.player.name, position: s.player.position, team: s.player.teamName, fantasyPoints: s.rawPoints })); }
 export class TopPerformersService implements ITopPerformersService {
-    private readonly provider: ISportsProvider
-
-    constructor(provider: ISportsProvider) {
-        this.provider = provider
-    }
-
-    async listTop(query: TopPerformersQuery): Promise<TopPerformer[]> {
-        const limit = query.limit ?? DEFAULT_LIMIT
-        const players = await this.provider.getPlayersByTeam(REPRESENTATIVE_TEAM_ID)
-
-        const performers: TopPerformer[] = players.slice(0, limit).map((player, i) => ({
-            id: String(player.id),
-            rank: i + 1,
-            name: player.fullName,
-            position: player.primaryPosition,
-            team: player.teamAbbreviation ?? '—',
-            fantasyPoints: fauxFantasyPoints(player, i + 1),
-        }))
-
-        performers.sort((a, b) => b.fantasyPoints - a.fantasyPoints)
-
-        return performers.map((performer, i) => ({ ...performer, rank: i + 1 }))
-    }
+    constructor(provider: ISportsProvider) { void provider; }
+    async listTop(query: TopPerformersQuery): Promise<TopPerformer[]> { if (!showcaseEnabled())
+        return []; const contest = await prisma.dailyContest.findFirst({ where: { mode: 'LIVE', status: 'COMPLETED' }, orderBy: { contestDate: 'desc' }, include: { entries: { select: { lineup: true } } } }); if (!contest)
+        return []; return rankDailyPerformers(contest.entries.flatMap(e => e.lineup as unknown as DailyEntrySlot[]), query.limit ?? 5); }
 }

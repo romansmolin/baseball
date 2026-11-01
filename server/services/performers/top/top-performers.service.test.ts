@@ -1,0 +1,3 @@
+import { it, expect } from 'vitest';
+import { rankDailyPerformers } from './top-performers.service';
+it('ranks actual player contributions once even across many manager lineups', () => { const slots = [{ player: { externalPlayerId: 1, name: 'Ace', position: 'P', teamName: 'Club' }, rawPoints: 12 }, { player: { externalPlayerId: 1, name: 'Ace', position: 'P', teamName: 'Club' }, rawPoints: 12 }, { player: { externalPlayerId: 2, name: 'Batter', position: 'OF', teamName: 'Other' }, rawPoints: 15 }]; expect(rankDailyPerformers(slots, 5).map(p => [p.name, p.fantasyPoints, p.rank])).toEqual([['Batter', 15, 1], ['Ace', 12, 2]]); });

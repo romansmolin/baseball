@@ -16,6 +16,10 @@
         {
             "path": "/api/internal/cron/settle-tournaments",
             "schedule": "0 8 * * 1"
+        },
+        {
+            "path": "/api/internal/cron/showcase",
+            "schedule": "0 4 * * *"
         }
     ]
 }

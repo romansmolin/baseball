@@ -1,3 +1,4 @@
+import { showcaseEnabled } from '../../../server/shared/showcase-config'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Toaster } from 'sonner'
@@ -29,7 +30,7 @@ export default async function DashboardLayout({
     return (
         <BuyCreditsProvider>
             <div className="flex min-h-svh flex-col">
-                <DashboardHeader initials={getInitials(session.user.name)} />
+                <DashboardHeader initials={getInitials(session.user.name)} showcaseEnabled={showcaseEnabled()} />
                 <main className="flex-1">{children}</main>
                 <Toaster richColors position="top-right" />
             </div>

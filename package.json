@@ -10,11 +10,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:seed": "prisma db seed",
-    "db:seed-users": "jiti prisma/seed-users.ts",
-    "db:enroll-demo-users": "jiti prisma/enroll-demo-users.ts"
+    "db:seed-users": "node prisma/showcase-cli.mjs seed-showcase-users",
+    "db:enroll-demo-users": "jiti prisma/enroll-demo-users.ts",
+    "showcase:seed-users": "node prisma/showcase-cli.mjs seed-showcase-users",
+    "showcase:seed-history": "node prisma/showcase-cli.mjs seed-showcase-history",
+    "showcase:tick": "node prisma/showcase-cli.mjs tick-showcase",
+    "showcase:prepare-archive": "node prisma/showcase-cli.mjs prepare-showcase-archive"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+    "@dicebear/core": "^10.7.0",
+    "@dicebear/styles": "^10.6.0",
     "@hookform/resolvers": "^5.2.2",
     "@hugeicons/core-free-icons": "^4.1.4",
     "@hugeicons/react": "^1.1.6",
@@ -49,6 +55,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "jiti": "^2.7.0",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5",

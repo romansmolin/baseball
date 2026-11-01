@@ -1,0 +1,58 @@
+enum DailyContestMode {
+  LIVE
+  REPLAY
+}
+enum DailyContestStatus {
+  OPEN
+  LOCKED
+  COMPLETED
+  CANCELLED
+}
+model DailyContest {
+ id String @id @default(cuid())
+ name String
+ mode DailyContestMode
+ status DailyContestStatus @default(OPEN)
+ leagueSlug String
+ contestDate String
+ sourceDate String
+ slateKey String @default("classic")
+ locksAt DateTime
+ salaryCap Int @default(80000)
+ captainMultiplier Float @default(1.5)
+ scoringRule Json
+ games Json
+ playerPool Json
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ entries DailyEntry[]
+ events CommunityEvent[]
+ @@unique([mode, leagueSlug, contestDate, slateKey])
+ @@index([status, locksAt])
+}
+model DailyEntry {
+ id String @id @default(cuid())
+ contestId String
+ contest DailyContest @relation(fields:[contestId], references:[id])
+ userId String
+ user User @relation(fields:[userId], references:[id])
+ teamName String
+ captainExternalPlayerId Int?
+ lineup Json
+ points Decimal @default(0) @db.Decimal(12,2)
+ isFinal Boolean @default(false)
+ revision Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([contestId,userId])
+ @@index([userId,createdAt])
+ @@index([contestId,points])
+}
+model DailyGameSnapshot {
+ gamePk Int @id
+ leagueSlug String
+ status String
+ boxScore Json?
+ complete Boolean @default(false)
+ observedAt DateTime @default(now())
+}

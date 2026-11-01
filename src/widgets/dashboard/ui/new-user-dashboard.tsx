@@ -5,11 +5,13 @@ import { OnboardingChecklist } from './onboarding-checklist'
 
 interface NewUserDashboardProps {
     firstName: string
+    compact?: boolean
 }
 
-export const NewUserDashboard = ({ firstName }: NewUserDashboardProps) => (
+export const NewUserDashboard = ({ firstName, compact = false }: NewUserDashboardProps) => (
     <div className="space-y-6">
-        <OnboardingChecklist firstName={firstName} />
+        <OnboardingChecklist firstName={firstName} compact={compact} />
+        {!compact && <>
         <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
                 <AIFeaturesGrid />
@@ -19,5 +21,6 @@ export const NewUserDashboard = ({ firstName }: NewUserDashboardProps) => (
             </div>
         </div>
         <NextGames />
+        </>}
     </div>
 )
