@@ -2,6 +2,7 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import { resolveDatabaseUrl } from './server/lib/database-url';
 
 export default defineConfig({
   schema: "prisma/schema",
@@ -10,6 +11,6 @@ export default defineConfig({
     seed: "jiti ./prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: resolveDatabaseUrl(),
   },
 });

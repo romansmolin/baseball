@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 
 import { PrismaClient } from '../src/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { resolveDatabaseUrl } from '../server/lib/database-url'
 import {
     CreditTransactionStatus,
     CreditTransactionType,
@@ -55,7 +56,7 @@ import type { SupportedBaseballLeague } from '../src/shared/baseball'
     }) as typeof fetch
 }
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg({ connectionString: resolveDatabaseUrl() })
 const prisma = new PrismaClient({ adapter, log: ['error'] })
 
 const HOUR = 60 * 60 * 1000

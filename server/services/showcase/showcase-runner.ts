@@ -6,17 +6,17 @@ import { validateDailyLineup } from '../daily-contests/daily-rules'
 import { chooseDemoLineup, dailyParticipants } from './demo-simulation'
 import { withShowcaseLease } from './showcase-lease'
 import { showcaseLeaseStore } from './showcase-lease.repository'
-import { assertWorkTime, remainingWorkMs, withWorkDeadline, WorkDeadlineError } from './work-deadline'
+import { assertWorkTime, canStartShowcaseBatch, remainingWorkMs, withWorkDeadline, WorkDeadlineError } from './work-deadline'
 import { runOfflineFirst } from './showcase-phases'
+import { writeDemoBatch } from './demo-batch'
 
-const json = (value: unknown): Prisma.InputJsonValue => JSON.parse(JSON.stringify(value))
 export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetMs = 20000 }: { now?: Date; budgetMs?: number } = {}) {
     if (process.env.SHOWCASE_ENABLED !== 'true') return { enabled: false, acquired: false }
     if (!Number.isFinite(budgetMs) || budgetMs < 1000 || budgetMs > 20000) throw new Error('Showcase budget must be between 1000 and 20000ms')
     const deadline = Date.now() + budgetMs
     try { return await withWorkDeadline(deadline, () => withShowcaseLease(showcaseLeaseStore(db), 'showcase:tick', now, async () => {
         const startedAt = Date.now()
-        const timeLeft = () => remainingWorkMs() > 1000
+        const timeLeft = canStartShowcaseBatch
         let published = 0
         const summary = await runOfflineFirst(async () => {
         const templates = await db.dailyContest.findMany({ where: { mode: 'REPLAY', status: 'COMPLETED' }, orderBy: { contestDate: 'desc' }, take: 30 })
@@ -51,12 +51,7 @@ export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetM
                 }
                 if (!rows.length) break
                 await db.$transaction(async tx => {
-                    for (const row of rows) {
-                        assertWorkTime(500)
-                        const entry = await tx.dailyEntry.upsert({ where: { contestId_userId: { contestId: contest.id, userId: row.profile.userId } }, create: { contestId: contest.id, userId: row.profile.userId, teamName: row.picks.teamName, captainExternalPlayerId: row.picks.captainExternalPlayerId, lineup: json(row.lineup), createdAt: row.at }, update: {} })
-                        const sourceKey = `entry_joined:${entry.id}`
-                        await tx.communityEvent.upsert({ where: { sourceKey }, create: { sourceKey, kind: 'ENTRY_JOINED', userId: row.profile.userId, contestId: contest.id, occurredAt: row.at, payload: { detail: `Joined ${contest.name}` } }, update: {} })
-                    }
+                    await writeDemoBatch(tx, contest, rows)
                     await tx.showcaseJob.upsert({ where: { key: jobKey }, create: { key: jobKey, cursor: { offset: offset + rows.length } }, update: { cursor: { offset: offset + rows.length } } })
                 }, { timeout: Math.max(1, Math.min(10000, remainingWorkMs() - 500)), maxWait: Math.max(1, Math.min(1000, remainingWorkMs() - 500)) })
                 offset += rows.length

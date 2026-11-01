@@ -8,7 +8,7 @@ import { refreshManagerStandings } from '../community/manager-standings.service'
 import { prepareReplayArchive } from './replay-archive'
 
 const json = (value: unknown): Prisma.InputJsonValue => JSON.parse(JSON.stringify(value))
-export async function seedShowcaseHistory(db: PrismaClient, input: { days: number; participantsPerDay: number; seed: string; dryRun: boolean; now?: Date }) {
+export async function seedShowcaseHistory(db: PrismaClient, input: { days: number; participantsPerDay: number; seed: string; dryRun: boolean; now?: Date }, loadArchive = prepareReplayArchive) {
     const now = input.now ?? new Date()
     if (!Number.isInteger(input.days) || input.days < 1 || input.days > 30 || !Number.isInteger(input.participantsPerDay) || input.participantsPerDay < 1) throw new Error('Invalid history size')
     const profiles = await db.demoProfile.findMany({ where: { datasetSeed: input.seed }, orderBy: { ordinal: 'asc' } })
@@ -18,7 +18,7 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
     const rule = parseScoringRule(ruleRow.rules)
     if (input.dryRun) return { days: input.days, profiles: profiles.length, entries: input.days * Math.min(profiles.length, input.participantsPerDay), dryRun: true }
     const calendar = new DailyCalendarService(undefined, db)
-    const archives = await prepareReplayArchive(calendar, input.days)
+    const archives = await loadArchive(calendar, input.days)
     let entriesCreated = 0
     for (let day = 0; day < input.days; day++) {
         const archive = archives[day]
@@ -32,8 +32,8 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
         for (const box of archive.boxScores) await db.dailyGameSnapshot.upsert({ where: { gamePk: box.gamePk }, create: { gamePk: box.gamePk, leagueSlug: 'mlb', status: box.status, boxScore: json(box), complete: true }, update: {} })
         const contest = await db.dailyContest.upsert({ where: { mode_leagueSlug_contestDate_slateKey: key }, create: { ...key, name: 'MLB Replay Classic', sourceDate, locksAt, games: json(archive.games), playerPool: json(archive.players), scoringRule: json(rule), createdAt: new Date(`${contestDate}T00:00:00Z`) }, update: {} })
         const selected = dailyParticipants(profiles.length, day, input.participantsPerDay)
-        for (let batchStart = 0; batchStart < selected.length; batchStart += 100) {
-            const rows = selected.slice(batchStart, batchStart + 100).map((index, n) => {
+        for (let batchStart = 0; batchStart < selected.length; batchStart += 500) {
+            const rows = selected.slice(batchStart, batchStart + 500).map((index, n) => {
                 const profile = profiles[index]
                 const picks = chooseDemoLineup(archive.players, `${profile.demoKey}:${sourceDate}`, profile.strategy)
                 const slots = validateDailyLineup(picks, archive.players as DailyPlayer[], 80000)
@@ -41,16 +41,19 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
                 const createdAt = new Date(locksAt.getTime() - 3600000 - ((batchStart + n) % 180) * 60000)
                 return { profile, picks, score, createdAt }
             })
-            await db.$transaction(async tx => {
-                for (const row of rows) {
-                    const entry = await tx.dailyEntry.upsert({ where: { contestId_userId: { contestId: contest.id, userId: row.profile.userId } }, create: { contestId: contest.id, userId: row.profile.userId, teamName: row.picks.teamName, captainExternalPlayerId: row.picks.captainExternalPlayerId, lineup: json(row.score.slots), points: row.score.points, isFinal: true, createdAt: row.createdAt }, update: {} })
-                    for (const [kind, at] of [['ENTRY_JOINED', row.createdAt], ['LINEUP_LOCKED', locksAt]] as const) {
-                        const sourceKey = `${kind.toLowerCase()}:${entry.id}`
-                        await tx.communityEvent.upsert({ where: { sourceKey }, create: { sourceKey, kind, userId: row.profile.userId, contestId: contest.id, occurredAt: at, payload: { detail: kind === 'ENTRY_JOINED' ? 'Joined MLB Replay Classic' : 'Daily lineup locked' } }, update: {} })
-                    }
-                }
+            const createdCount = await db.$transaction(async tx => {
+                const created = await tx.dailyEntry.createManyAndReturn({ data: rows.map(row => ({ contestId: contest.id, userId: row.profile.userId, teamName: row.picks.teamName, captainExternalPlayerId: row.picks.captainExternalPlayerId, lineup: json(row.score.slots), points: row.score.points, isFinal: true, createdAt: row.createdAt })), skipDuplicates: true, select: { id: true } })
+                const entries = await tx.dailyEntry.findMany({ where: { contestId: contest.id, userId: { in: rows.map(row => row.profile.userId) } }, select: { id: true, userId: true } })
+                const byUser = new Map(entries.map(entry => [entry.userId, entry.id]))
+                const events = rows.flatMap(row => {
+                    const entryId = byUser.get(row.profile.userId)
+                    if (!entryId) throw new Error('Unable to resolve imported daily entry')
+                    return ([['ENTRY_JOINED', row.createdAt], ['LINEUP_LOCKED', locksAt]] as const).map(([kind, at]) => ({ sourceKey: `${kind.toLowerCase()}:${entryId}`, kind, userId: row.profile.userId, contestId: contest.id, occurredAt: at, payload: { detail: kind === 'ENTRY_JOINED' ? 'Joined MLB Replay Classic' : 'Daily lineup locked' } }))
+                })
+                await tx.communityEvent.createMany({ data: events, skipDuplicates: true })
+                return created.length
             }, { timeout: 60000 })
-            entriesCreated += rows.length
+            entriesCreated += createdCount
         }
         await db.$transaction([
             db.dailyContest.update({ where: { id: contest.id }, data: { status: 'COMPLETED' } }),

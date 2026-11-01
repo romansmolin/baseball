@@ -13,6 +13,7 @@ import 'dotenv/config'
 import { randomUUID } from 'node:crypto'
 
 import { PrismaPg } from '@prisma/adapter-pg'
+import { resolveDatabaseUrl } from '../server/lib/database-url'
 import { PrismaClient } from '../src/generated/prisma/client'
 import {
     LeagueStatus,
@@ -117,7 +118,7 @@ async function main(): Promise<void> {
     }
 
     const prisma = new PrismaClient({
-        adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+        adapter: new PrismaPg({ connectionString: resolveDatabaseUrl() }),
         log: ['error'],
     })
 
