@@ -3,8 +3,10 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../../../../src/generated/prisma/client'
 import { resolveShowcaseDatabaseUrl } from '../../../lib/database-url'
 
-export function createTestDb() {
-    return new PrismaClient({ adapter: new PrismaPg({ connectionString: resolveShowcaseDatabaseUrl(process.env, false) }) })
+export function createTestDb(options: { readOnly?: boolean } = {}) {
+    const url = new URL(resolveShowcaseDatabaseUrl(process.env, false))
+    if (options.readOnly) url.searchParams.set('options', '-c default_transaction_read_only=on')
+    return new PrismaClient({ adapter: new PrismaPg({ connectionString: url.toString() }) })
 }
 
 export const scoringRules = {
