@@ -6,7 +6,7 @@ import { listTeamsQuerySchema } from '../teams/teams.schema'
 
 describe('baseball league query validation', () => {
     it('accepts every supported league slug', () => {
-        for (const slug of ['mlb', 'triple-a', 'double-a', 'high-a', 'single-a', 'rookie']) {
+        for (const slug of ['mlb', 'triple-a', 'double-a', 'high-a', 'single-a', 'rookie', 'winter-leagues']) {
             expect(baseballLeagueEnum.safeParse(slug).success).toBe(true)
         }
     })

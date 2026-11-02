@@ -179,9 +179,8 @@ export class WeeklyScoringService implements IWeeklyScoringService {
         }
         if (weeksToWarm.length === 0) return
 
-        const providerLeague = isSupportedBaseballLeague(league.leagueSlug)
-            ? league.leagueSlug
-            : undefined
+        if (!isSupportedBaseballLeague(league.leagueSlug)) throw new Error('Unsupported baseball league')
+        const providerLeague = league.leagueSlug
 
         // Union of every roster's teams across the tournament — the seed pools
         // draw from only a handful of real teams, so this scopes the warm to a
@@ -498,9 +497,8 @@ export class WeeklyScoringService implements IWeeklyScoringService {
 
         // Real tournaments always carry a supported slug; the guard keeps the
         // engine safe (falls back to MLB) if an unexpected value slips through.
-        const providerLeague = isSupportedBaseballLeague(league.leagueSlug)
-            ? league.leagueSlug
-            : undefined
+        if (!isSupportedBaseballLeague(league.leagueSlug)) throw new Error('Unsupported baseball league')
+        const providerLeague = league.leagueSlug
 
         // Scope the schedule to the ~9 teams this roster references instead of
         // the whole league — most box scores in a full-league week contain

@@ -13,6 +13,14 @@ describe('mlb-leagues.config', () => {
         expect(sportIdFor('rookie')).toBe(16)
     })
 
+    it('maps the Winter Leagues product league to the same baseball feed', async () => {
+        const { isSupportedBaseballLeague } = await import('../../../../src/shared/baseball')
+
+        expect(sportIdFor('winter-leagues')).toBe(17)
+        expect(BOX_SCORE_SUPPORT['winter-leagues']).toBe('full')
+        expect(isSupportedBaseballLeague('winter-leagues')).toBe(true)
+    })
+
     it('resolves an absent league to MLB (sportId 1)', () => {
         expect(resolveSportId()).toBe(1)
         expect(resolveSportId(undefined)).toBe(1)

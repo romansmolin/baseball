@@ -13,6 +13,10 @@ export type SupportedBaseballLeague =
     | 'high-a'
     | 'single-a'
     | 'rookie'
+    | 'winter-leagues'
+
+/** Sources accepted by the provider and the supported product catalogue. */
+export type BaseballProviderLeague = SupportedBaseballLeague
 
 export type BaseballLeagueRegion = 'north-america' | 'japan-korea' | 'latin-america'
 
@@ -34,6 +38,11 @@ export interface BaseballLeagueConfig {
 }
 
 export const BASEBALL_LEAGUES: readonly BaseballLeagueConfig[] = [
+    {
+        slug: 'winter-leagues', name: 'Winter Leagues', shortName: 'Winter',
+        fullName: 'Winter Leagues', region: 'latin-america', color: '#f97316',
+        proTeams: 0, providerBacked: true,
+    },
     {
         slug: 'mlb',
         name: 'MLB',

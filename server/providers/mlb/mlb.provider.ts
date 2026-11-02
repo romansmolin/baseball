@@ -44,8 +44,8 @@ const MAX_LIMIT = 200
 // MLB, so every method here stays a single code path regardless of level.
 export class MlbSportsProvider implements ISportsProvider {
     readonly name = 'mlb'
-    async getGameRoster(gamePk: number) {
-        const data = await mlbFetch<MlbRawBoxScoreResponse>(`/game/${gamePk}/boxscore`, { revalidate: 86400 })
+    async getGameRoster(gamePk: number, opts: GetBoxScoreOptions = {}) {
+        const data = await mlbFetch<MlbRawBoxScoreResponse>(`/game/${gamePk}/boxscore`, { revalidate: 86400, deadline: opts.deadline })
         const players: import('../../../src/shared/daily-contests').DailyPlayer[] = []
         for (const side of [data.teams.home, data.teams.away]) {
             for (const raw of Object.values(side.players)) {
