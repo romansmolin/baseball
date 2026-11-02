@@ -4,6 +4,7 @@ import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-te
 import { handleRepositoryError } from '../../shared/db/prisma-error.utils'
 import { ApiError } from '../../errors/api.error'
 import { ErrorCode } from '../../errors/error-code.enum'
+import { hasRecurringTournamentTable } from '../recurring-tournaments/recurring-schema'
 
 import type {
     CreateFantasyTeamInput,
@@ -96,7 +97,7 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
             // stay frozen; only the live RosterSlots are swapped.
             return await this.db.$transaction(async (tx) => {
                 await tx.$queryRaw`SELECT id FROM "FantasyTeam" WHERE id=${input.teamId} FOR UPDATE`
-                const current = await tx.fantasyTeam.findUnique({
+                const current = await hasRecurringTournamentTable(tx) ? await tx.fantasyTeam.findUnique({
                     where: { id: input.teamId },
                     select: {
                         leagueMember: {
@@ -107,7 +108,7 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                             },
                         },
                     },
-                })
+                }) : null
                 if (current?.leagueMember?.league.recurringTournament) throw ApiError.conflict(ErrorCode.TEAM_ALREADY_IN_LEAGUE, 'Team joined a recurring tournament; reload the lineup editor')
                 await tx.rosterSlot.deleteMany({
                     where: { fantasyTeamId: input.teamId },

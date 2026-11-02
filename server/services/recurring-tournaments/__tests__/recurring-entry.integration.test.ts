@@ -8,6 +8,7 @@ import { LeagueMemberRepository } from '../../../repositories/league-member/leag
 import { FantasyTeamRepository } from '../../../repositories/fantasy-team/fantasy-team.repository'
 import { LeagueRepository } from '../../../repositories/league/league.repository'
 import { TournamentsJoinsService } from '../../tournaments/joins/tournaments-joins.service'
+import type { PrismaClient } from '../../../../src/generated/prisma/client'
 
 const picks: RecurringLineupInput = { captainExternalPlayerId: 1, players: [
     { slotKey: 'P', externalPlayerId: 1 }, { slotKey: 'C', externalPlayerId: 2 },
@@ -117,6 +118,16 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('recurring entry transactions', 
         const service = new TournamentsJoinsService(new LeagueRepository(db), new LeagueMemberRepository(db), new FantasyTeamRepository(db), { snapshotMemberForWeek: unused, snapshotForJoin: async () => null, snapshotAllForCurrentWeek: unused, backfillMissingWeeks: unused }, { getBalance: unused, getTransactions: unused, grantCredits: unused, existsByReference: unused }, db)
         const result = await service.joinTournament({ userId: owner.user.id, tournamentId: league.id, fantasyTeamId: team.id })
         expect(await db.leagueMember.findUnique({ where: { id: result.leagueMemberId } })).toMatchObject({ leagueId: league.id, userId: owner.user.id })
+    })
+
+    it('reads an existing tournament when the recurring migration is unavailable', async () => {
+        const league = await db.league.create({ data: { commissionerId: owner.user.id, scoringRuleId: owner.rule.id, inviteCode: `${owner.user.id}-pre-migration`, name: 'Before migration', leagueSlug: 'mlb', externalSeasonId: 2026, draftType: 'AUTO', status: 'IN_SEASON', startsAt: new Date('2026-01-01'), endsAt: new Date('2026-01-08'), totalWeeks: 1 } })
+        const record = await db.$transaction(async tx => {
+            await tx.$executeRaw`SET LOCAL search_path TO pg_catalog`
+            return new LeagueRepository(tx as unknown as PrismaClient).findById(league.id)
+        })
+        expect(record).toMatchObject({ id: league.id, name: 'Before migration' })
+        expect(record?.recurringTournament).toBeUndefined()
     })
 
     it('rechecks the database clock after a concurrent lock held past registration', async () => {
