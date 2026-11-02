@@ -52,6 +52,9 @@ import type {
     UserTournamentWeeklyScore,
 } from '@/shared/tournaments'
 import type { IMeService } from './me.service.interface'
+import type { PrismaClient } from '../../../src/generated/prisma/client'
+import { prisma } from '../../lib/prisma'
+import { saveRecurringLineup } from '../recurring-tournaments/recurring-entry.service'
 
 const SLOT_KEY_TO_ROSTER_POSITION: Record<SlotKey, RosterSlotPosition> = {
     P: RosterSlotPosition.P,
@@ -124,6 +127,7 @@ export class MeService implements IMeService {
         leagueMemberRepository: ILeagueMemberRepository,
         weeklyScoringService: IWeeklyScoringService,
         scoringRuleRepository: IScoringRuleRepository,
+        private readonly db: PrismaClient = prisma,
     ) {
         this.fantasyTeamRepository = fantasyTeamRepository
         this.leagueRepository = leagueRepository
@@ -240,6 +244,17 @@ export class MeService implements IMeService {
                 ErrorCode.TEAM_NOT_OWNED,
                 `Team ${teamId} is not owned by this user`,
             )
+        }
+
+        if (existing.leagueMemberId) {
+            const member = (await this.leagueMemberRepository.findByUserId(userId)).find(row => row.id === existing.leagueMemberId)
+            const league = member ? await this.leagueRepository.findById(member.leagueId) : null
+            if (league?.recurringTournament) {
+                await saveRecurringLineup(this.db, { userId, teamId, input: { players: payload.players.map(p => ({ slotKey: p.slotKey, externalPlayerId: p.externalPlayerId })), captainExternalPlayerId: payload.captainExternalPlayerId } })
+                const updated = await this.fantasyTeamRepository.findById(teamId)
+                if (!updated) throw ApiError.notFound(ErrorCode.TEAM_NOT_FOUND, 'Team not found')
+                return this.toWidgetTeam(updated)
+            }
         }
 
         this.validateLineupPayload(payload.players, payload.captainExternalPlayerId)

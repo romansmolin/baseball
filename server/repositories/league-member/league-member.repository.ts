@@ -1,5 +1,8 @@
+import type { PrismaClient } from '../../../src/generated/prisma/client'
 import { prisma } from '../../lib/prisma'
 import { handleRepositoryError } from '../../shared/db/prisma-error.utils'
+import { ApiError } from '../../errors/api.error'
+import { ErrorCode } from '../../errors/error-code.enum'
 
 import type {
     CreateLeagueMemberAndLinkTeamInput,
@@ -35,12 +38,14 @@ function toModel(row: RawLeagueMember): LeagueMemberRecord {
 }
 
 export class LeagueMemberRepository implements ILeagueMemberRepository {
+    constructor(private readonly db: PrismaClient = prisma) {}
+
     async findByLeagueAndUser(
         leagueId: string,
         userId: string,
     ): Promise<LeagueMemberRecord | null> {
         try {
-            const row = await prisma.leagueMember.findUnique({
+            const row = await this.db.leagueMember.findUnique({
                 where: { leagueId_userId: { leagueId, userId } },
             })
             return row ? toModel(row as unknown as RawLeagueMember) : null
@@ -51,7 +56,7 @@ export class LeagueMemberRepository implements ILeagueMemberRepository {
 
     async findByUserId(userId: string): Promise<LeagueMemberRecord[]> {
         try {
-            const rows = await prisma.leagueMember.findMany({ where: { userId } })
+            const rows = await this.db.leagueMember.findMany({ where: { userId } })
             return rows.map((row) => toModel(row as unknown as RawLeagueMember))
         } catch (error) {
             throw handleRepositoryError(error)
@@ -60,7 +65,7 @@ export class LeagueMemberRepository implements ILeagueMemberRepository {
 
     async findAllByLeagueId(leagueId: string): Promise<LeagueMemberRecord[]> {
         try {
-            const rows = await prisma.leagueMember.findMany({ where: { leagueId } })
+            const rows = await this.db.leagueMember.findMany({ where: { leagueId } })
             return rows.map((row) => toModel(row as unknown as RawLeagueMember))
         } catch (error) {
             throw handleRepositoryError(error)
@@ -71,7 +76,7 @@ export class LeagueMemberRepository implements ILeagueMemberRepository {
         input: CreateLeagueMemberAndLinkTeamInput,
     ): Promise<LeagueMemberRecord> {
         try {
-            const member = await prisma.$transaction(async (tx) => {
+            const member = await this.db.$transaction(async (tx) => {
                 const created = await tx.leagueMember.create({
                     data: {
                         leagueId: input.leagueId,
@@ -82,16 +87,18 @@ export class LeagueMemberRepository implements ILeagueMemberRepository {
                     },
                 })
 
-                await tx.fantasyTeam.update({
-                    where: { id: input.fantasyTeamId },
+                const linked = await tx.fantasyTeam.updateMany({
+                    where: { id: input.fantasyTeamId, userId: input.userId, leagueMemberId: null },
                     data: { leagueMemberId: created.id },
                 })
+                if (linked.count !== 1) throw ApiError.conflict(ErrorCode.TEAM_ALREADY_IN_LEAGUE, 'Team is already entered')
 
                 return created
             })
 
             return toModel(member as unknown as RawLeagueMember)
         } catch (error) {
+            if (error instanceof ApiError) throw error
             throw handleRepositoryError(error)
         }
     }

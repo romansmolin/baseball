@@ -15,6 +15,7 @@ export interface LeagueRecord {
     entryFeeCredits: number
     prizePoolCredits: number
     visibility: 'PUBLIC' | 'PRIVATE'
+    recurringTournament?: { leagueId: string } | null
 }
 
 export interface ILeagueRepository {

@@ -1,3 +1,4 @@
+import type { PrismaClient } from '../../../src/generated/prisma/client'
 import { prisma } from '../../lib/prisma'
 import { handleRepositoryError } from '../../shared/db/prisma-error.utils'
 
@@ -15,12 +16,15 @@ const LEAGUE_SELECT = {
     entryFeeCredits: true,
     prizePoolCredits: true,
     visibility: true,
+    recurringTournament: { select: { leagueId: true } },
 } as const
 
 export class LeagueRepository implements ILeagueRepository {
+    constructor(private readonly db: PrismaClient = prisma) {}
+
     async findById(id: string): Promise<LeagueRecord | null> {
         try {
-            const league = await prisma.league.findUnique({
+            const league = await this.db.league.findUnique({
                 where: { id },
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 select: LEAGUE_SELECT as any,
@@ -35,7 +39,7 @@ export class LeagueRepository implements ILeagueRepository {
     async findManyByIds(ids: string[]): Promise<LeagueRecord[]> {
         if (ids.length === 0) return []
         try {
-            const rows = await prisma.league.findMany({
+            const rows = await this.db.league.findMany({
                 where: { id: { in: ids } },
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 select: LEAGUE_SELECT as any,

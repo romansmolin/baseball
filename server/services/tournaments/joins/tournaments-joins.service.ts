@@ -6,6 +6,9 @@ import type { IFantasyTeamRepository } from '../../../repositories/fantasy-team/
 import type { ILeagueMemberRepository } from '../../../repositories/league-member/league-member.repository.interface'
 import type { ILeagueRepository } from '../../../repositories/league/league.repository.interface'
 import type { IWeeklyLineupSnapshotService } from '../../weekly-lineup/weekly-lineup-snapshot.service.interface'
+import type { PrismaClient } from '../../../../src/generated/prisma/client'
+import { prisma } from '../../../lib/prisma'
+import { joinRecurringTournament } from '../../recurring-tournaments/recurring-entry.service'
 
 import type {
     ITournamentsJoinsService,
@@ -19,6 +22,7 @@ import type {
 const NON_JOINABLE_STATUSES: ReadonlySet<LeagueStatus> = new Set([
     LeagueStatus.COMPLETED,
     LeagueStatus.ARCHIVED,
+    LeagueStatus.CANCELLED,
 ])
 
 export class TournamentsJoinsService implements ITournamentsJoinsService {
@@ -34,6 +38,7 @@ export class TournamentsJoinsService implements ITournamentsJoinsService {
         fantasyTeamRepository: IFantasyTeamRepository,
         weeklyLineupSnapshotService: IWeeklyLineupSnapshotService,
         creditRepository: ICreditRepository,
+        private readonly db: PrismaClient = prisma,
     ) {
         this.leagueRepository = leagueRepository
         this.leagueMemberRepository = leagueMemberRepository
@@ -51,6 +56,10 @@ export class TournamentsJoinsService implements ITournamentsJoinsService {
                 ErrorCode.TOURNAMENT_NOT_FOUND,
                 'Tournament not found',
             )
+        }
+
+        if (tournament.recurringTournament) {
+            return joinRecurringTournament(this.db, { userId: input.userId, leagueId: input.tournamentId, teamId: input.fantasyTeamId })
         }
 
         if (NON_JOINABLE_STATUSES.has(tournament.status)) {
