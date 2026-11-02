@@ -25,6 +25,9 @@ export interface WeeklyScoreBreakdownSlot {
 export interface WeeklyScoreBreakdown {
     slots: WeeklyScoreBreakdownSlot[]
     rule: { name: string; version: number }
+    outcome?: 'STANDARD' | 'VOID'
+    exclusions?: { gamePk: number; reason: 'CANCELLED' | 'POSTPONED_TIMEOUT' }[]
+    observedGames?: number
     // Optional flag: this week pre-dates the member's join → the snapshot
     // service never wrote a frozen lineup, so the score is a settled 0.
     notJoinedYet?: boolean

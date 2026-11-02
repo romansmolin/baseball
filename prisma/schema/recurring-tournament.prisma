@@ -23,3 +23,15 @@ model RecurringTournament {
   @@unique([templateKey, sourceSlug, startsAt])
   @@index([lastScoredAt])
 }
+
+// Immutable shared observation used when a postponed game's played portion
+// is frozen. Multiple tournaments can refer to the same version.
+model ArchivedGameSnapshot {
+  id         String @id @default(cuid())
+  gamePk     Int
+  observedAt DateTime
+  boxScore   Json
+  createdAt  DateTime @default(now())
+
+  @@unique([gamePk, observedAt])
+}

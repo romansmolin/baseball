@@ -19,6 +19,7 @@ export interface RecurringGame extends DailyGame {
     originalStartUtc: string
     apiSeason: number
     week: number
+    exclusion?: { reason: 'CANCELLED' | 'POSTPONED_TIMEOUT'; frozenSnapshotId: string | null }
 }
 
 export interface RecurringSourceSnapshot {

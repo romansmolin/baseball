@@ -28,4 +28,16 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('shared game snapshots', () => {
         const [row] = await repository.findMany([gamePk])
         expect(row.observedAt.toISOString()).toBe('2026-11-01T20:00:00.000Z')
     })
+
+    it('retains earlier partial statistics when the next fetch has no box score', async () => {
+        const repository = new GameSnapshotsRepository(db)
+        const otherGame = gamePk + 1
+        try {
+            const partial = { ...box, gamePk: otherGame, status: 'LIVE' as const }
+            await repository.save({ gamePk: otherGame, leagueSlug: 'winter-leagues', status: 'LIVE', complete: false, boxScore: partial, observedAt: new Date('2026-11-01T20:00:00Z') }, permit)
+            await repository.save({ gamePk: otherGame, leagueSlug: 'winter-leagues', status: 'FINAL', complete: false, boxScore: null, observedAt: new Date('2026-11-01T21:00:00Z') }, permit)
+            const [saved] = await repository.findMany([otherGame])
+            expect(saved).toMatchObject({ status: 'FINAL', complete: false, boxScore: partial })
+        } finally { await db.dailyGameSnapshot.deleteMany({ where: { gamePk: otherGame } }) }
+    })
 })

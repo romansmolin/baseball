@@ -19,12 +19,19 @@ export interface RecurringWeekEvaluation {
     exclusions: { gamePk: number; reason: 'CANCELLED' | 'POSTPONED_TIMEOUT' }[]
 }
 
-export function evaluateRecurringWeek(games: RecurringGame[], observations: GameObservation[], endsAt: Date, now: Date): RecurringWeekEvaluation {
+export function evaluateRecurringWeek(games: RecurringGame[], observations: GameObservation[], endsAt: Date, now: Date, frozen: Map<string, ProviderBoxScore> = new Map()): RecurringWeekEvaluation {
     const byGame = new Map(observations.map(row => [row.gamePk, row]))
     const boxes: ProviderBoxScore[] = []
     const pendingGamePks: number[] = []
     const exclusions: RecurringWeekEvaluation['exclusions'] = []
     for (const game of games) {
+        if (game.exclusion) {
+            exclusions.push({ gamePk: game.gamePk, reason: game.exclusion.reason })
+            const frozenId = game.exclusion.frozenSnapshotId
+            if (frozenId && !frozen.has(frozenId)) pendingGamePks.push(game.gamePk)
+            else if (frozenId) boxes.push(frozen.get(frozenId)!)
+            continue
+        }
         const observation = byGame.get(game.gamePk)
         const status = observation?.status ?? game.status
         if (status === 'CANCELLED') {
@@ -61,4 +68,14 @@ export function scoreRecurringSlots(
         return { ...slot, isCaptain, rawPoints, finalPoints, games }
     })
     return { slots: results, points: Math.round(results.reduce((sum, slot) => sum + slot.finalPoints, 0) * 100) / 100 }
+}
+
+export function rankRecurringTotals<T extends { userId: string; points: number }>(rows: T[]): (T & { rank: number })[] {
+    let rank = 0
+    let previous: number | undefined
+    return [...rows].sort((a, b) => b.points - a.points || a.userId.localeCompare(b.userId)).map((row, index) => {
+        if (row.points !== previous) rank = index + 1
+        previous = row.points
+        return { ...row, rank }
+    })
 }

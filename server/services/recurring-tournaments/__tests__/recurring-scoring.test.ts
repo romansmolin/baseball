@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateRecurringWeek, scoreRecurringSlots } from '../recurring-lifecycle'
+import { evaluateRecurringWeek, rankRecurringTotals, scoreRecurringSlots } from '../recurring-lifecycle'
 import { box, game } from './fixtures'
 import { scoringRules } from './test-db'
 import type { RecurringGame } from '../recurring.types'
@@ -57,5 +57,9 @@ describe('recurring weekly scoring', () => {
         const result = scoreRecurringSlots([{ externalPlayerId: 1, playerName: 'Two-way player', slotPosition: 'P' }], 1, [dual, { ...dual, gamePk: dual.gamePk + 1 }], scoringRules)
         expect(result.points).toBe(156)
         expect(result.slots[0]).toMatchObject({ rawPoints: 104, finalPoints: 156, isCaptain: true })
+    })
+    it('shares ranks for equal points with a stable user order', () => {
+        const ranked = rankRecurringTotals([{ userId: 'b', points: 10 }, { userId: 'a', points: 10 }, { userId: 'c', points: 9 }])
+        expect(ranked.map(row => [row.userId, row.rank])).toEqual([['a', 1], ['b', 1], ['c', 3]])
     })
 })
