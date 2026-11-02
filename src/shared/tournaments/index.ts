@@ -17,3 +17,4 @@ export {
     TOURNAMENT_STATUS_SLUGS,
     TOURNAMENT_VISIBILITY_SLUGS,
 } from './types'
+export type { RecurringTemplateKey, RecurringTournamentInfo } from './recurring'

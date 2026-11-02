@@ -21,6 +21,7 @@ export function computeTournamentCurrentWeek(input: TournamentWeekInput): number
     const now = input.now ?? new Date()
 
     if (status === LeagueStatus.DRAFTING) return 0
+    if (status === LeagueStatus.CANCELLED) return 0
     if (status === LeagueStatus.COMPLETED || status === LeagueStatus.ARCHIVED) {
         return totalWeeks
     }

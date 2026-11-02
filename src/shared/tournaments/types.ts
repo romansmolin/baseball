@@ -15,6 +15,7 @@ export type TournamentStatus =
     | 'PLAYOFFS'
     | 'COMPLETED'
     | 'ARCHIVED'
+    | 'CANCELLED'
 
 export interface TournamentRecord {
     id: string
@@ -128,6 +129,7 @@ export const TOURNAMENT_STATUS_SLUGS: readonly TournamentStatus[] = [
     'PLAYOFFS',
     'COMPLETED',
     'ARCHIVED',
+    'CANCELLED',
 ] as const
 
 export const TOURNAMENT_VISIBILITY_SLUGS: readonly TournamentVisibility[] = [

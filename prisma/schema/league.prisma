@@ -15,6 +15,7 @@ enum LeagueStatus {
   PLAYOFFS
   COMPLETED
   ARCHIVED
+  CANCELLED
 }
 
 enum LeagueVisibility {
@@ -60,6 +61,7 @@ model League {
 
   members  LeagueMember[]
   matchups LeagueMatchup[]
+  recurringTournament RecurringTournament?
 
   @@index([commissionerId])
   @@index([scoringRuleId])

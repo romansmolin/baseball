@@ -8,6 +8,7 @@ const statusEnum = z.enum([
     'PLAYOFFS',
     'COMPLETED',
     'ARCHIVED',
+    'CANCELLED',
 ])
 
 const visibilityEnum = z.enum(['PUBLIC', 'PRIVATE'])
@@ -53,6 +54,7 @@ export const tournamentsListQuerySchema = z.object({
                 'PLAYOFFS',
                 'COMPLETED',
                 'ARCHIVED',
+                'CANCELLED',
             ]),
         ),
     visibility: z

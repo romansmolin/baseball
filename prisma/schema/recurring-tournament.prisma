@@ -1,0 +1,25 @@
+enum RecurringOutcome {
+  STANDARD
+  VOID
+}
+
+model RecurringTournament {
+  id                   String @id @default(cuid())
+  leagueId             String @unique
+  league               League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  templateKey          String
+  sourceSlug           String
+  startsAt             DateTime
+  configurationVersion Int @default(1)
+  games                Json
+  playerPool           Json
+  demoTarget           Int
+  outcome              RecurringOutcome @default(STANDARD)
+  sourceCheckedAt      DateTime
+  lastScoredAt         DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([templateKey, sourceSlug, startsAt])
+  @@index([lastScoredAt])
+}
