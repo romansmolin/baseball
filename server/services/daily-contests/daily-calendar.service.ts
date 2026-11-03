@@ -13,6 +13,7 @@ import { canPublishPool, dailyDate, dailyDateOffset } from './daily-rules'
 import { dailyContestName } from './daily-contest-names'
 import { loadDailySchedule, loadNorthAmericanContestSchedule } from './daily-schedule.service'
 import { mapWithConcurrency } from '../../shared/concurrency.utils'
+import { isPrismaError } from '../../shared/db/prisma-error.utils'
 
 export const DAILY_CALENDAR_DAYS = 7
 const DAY_MS = 86400000
@@ -216,7 +217,7 @@ export class DailyCalendarService {
             const locksAt = new Date(Math.min(...eligible.map(({ game }) => Date.parse(game.gameDateUtc))))
             if (locksAt <= now) continue
 
-            await this.db.dailyContest.upsert({
+            const created = await this.db.dailyContest.upsert({
                 where: { mode_leagueSlug_contestDate_slateKey: key },
                 create: {
                     ...key,
@@ -228,8 +229,12 @@ export class DailyCalendarService {
                     playerPool: JSON.parse(JSON.stringify(pool)),
                 },
                 update: {},
+            }).then(() => true, (error: unknown) => {
+                // A concurrent publisher created this slate first; keep its row.
+                if (isPrismaError(error, 'P2002')) return false
+                throw error
             })
-            published++
+            if (created) published++
         }
 
         return { published }

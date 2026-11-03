@@ -10,7 +10,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('recurring publication', () => {
     const permit = { assertInTransaction: async () => {} }
     beforeAll(async () => { owner = await createTestOwner(db); await db.scoringRule.update({ where: { id: owner.rule.id }, data: { isDefault: true } }) })
     afterAll(async () => {
-        await db.league.deleteMany({ where: { recurringTournament: { sourceSlug: 'winter-leagues', startsAt: { gte: new Date('2091-11-01'), lt: new Date('2091-12-01') } } } })
+        await db.league.deleteMany({ where: { recurringTournament: { sourceSlug: 'north-america', startsAt: { gte: new Date('2091-11-01'), lt: new Date('2091-12-01') } } } })
         if (owner) await removeTestOwner(db, owner.user.id)
         await db.$disconnect()
     })

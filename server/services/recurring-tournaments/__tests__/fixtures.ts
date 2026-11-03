@@ -17,7 +17,7 @@ export class FixtureProvider implements ISportsProvider {
     seasons = new Set<number>()
     afterRosterRead = () => {}
     async getSchedule(filters: GetScheduleFilters) {
-        if (filters.league !== 'winter-leagues') return []
+        if (filters.league !== 'winter-leagues' && filters.league !== 'mlb') return []
         if (filters.season) this.seasons.add(filters.season)
         return this.games.filter(g => new Date(g.gameDateUtc) >= filters.startDateUtc && new Date(g.gameDateUtc) <= filters.endDateUtc)
     }

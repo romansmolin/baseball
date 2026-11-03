@@ -29,7 +29,7 @@ const scopedDb = {
     scoringRule: prisma.scoringRule,
     dailyContest: {
         findUnique: prisma.dailyContest.findUnique.bind(prisma.dailyContest),
-        upsert: (args: Parameters<typeof prisma.dailyContest.upsert>[0]) => prisma.dailyContest.upsert({ ...args, create: { ...args.create, id: `${prefix}-${args.create.contestDate}` } }),
+        upsert: (args: Parameters<typeof prisma.dailyContest.upsert>[0]) => prisma.dailyContest.upsert({ ...args, create: { ...args.create, id: `${prefix}-${args.create.slateKey}-${args.create.contestDate}` } }),
     },
 }
 
@@ -47,12 +47,12 @@ suite('weekly calendar PostgreSQL integration', () => {
     })
 
     it('publishes the week repeatedly and concurrently without changing existing contests or entries', async () => {
-        expect(await prisma.dailyContest.count({ where: { mode: 'LIVE', leagueSlug: 'mlb', slateKey: 'classic', contestDate: { gte: '2038-11-01', lte: '2038-11-07' } } })).toBe(0)
-        const original = await prisma.dailyContest.create({ data: { id: `${prefix}-existing`, name: 'Existing classic', mode: 'LIVE', leagueSlug: 'mlb', contestDate: '2038-11-01', sourceDate: '2038-11-01', slateKey: 'classic', locksAt: new Date('2038-11-01T19:00:00Z'), scoringRule: {}, games: [{ original: true }], playerPool: [] } })
+        expect(await prisma.dailyContest.count({ where: { mode: 'LIVE', leagueSlug: 'north-america', slateKey: 'classic', contestDate: { gte: '2038-11-01', lte: '2038-11-07' } } })).toBe(0)
+        const original = await prisma.dailyContest.create({ data: { id: `${prefix}-existing`, name: 'Existing classic', mode: 'LIVE', leagueSlug: 'north-america', contestDate: '2038-11-01', sourceDate: '2038-11-01', slateKey: 'classic', locksAt: new Date('2038-11-01T19:00:00Z'), scoringRule: {}, games: [{ original: true }], playerPool: [] } })
         const entry = await prisma.dailyEntry.create({ data: { contestId: original.id, userId: prefix, teamName: 'Existing lineup', lineup: [{ original: true }] } })
         const service = new DailyCalendarService(provider, scopedDb as never)
         await Promise.all([service.publishDailyContests({ now }), service.publishDailyContests({ now })])
-        const rows = await prisma.dailyContest.findMany({ where: { mode: 'LIVE', leagueSlug: 'mlb', contestDate: { gte: '2038-11-01', lte: '2038-11-07' } }, orderBy: { contestDate: 'asc' } })
+        const rows = await prisma.dailyContest.findMany({ where: { mode: 'LIVE', leagueSlug: 'north-america', slateKey: 'classic', contestDate: { gte: '2038-11-01', lte: '2038-11-07' } }, orderBy: { contestDate: 'asc' } })
         expect(rows.map(row => row.contestDate)).toEqual(games.map(item => item.gameDateUtc.slice(0, 10)))
         expect(rows[0]).toMatchObject({ id: original.id, locksAt: original.locksAt, games: original.games, playerPool: original.playerPool })
         expect(await prisma.dailyEntry.findUnique({ where: { id: entry.id } })).toMatchObject({ id: entry.id, lineup: entry.lineup, contestId: original.id })
@@ -63,7 +63,7 @@ suite('weekly calendar PostgreSQL integration', () => {
 
     it('persists only games with rosters and locks before the first included game', async () => {
         const date = '2039-01-15'
-        expect(await prisma.dailyContest.count({ where: { mode: 'LIVE', leagueSlug: 'mlb', contestDate: date, slateKey: 'classic' } })).toBe(0)
+        expect(await prisma.dailyContest.count({ where: { mode: 'LIVE', leagueSlug: 'north-america', contestDate: date, slateKey: 'classic' } })).toBe(0)
         const filteredProvider = {
             getSchedule: async ({ league }: { league?: string }) => league === 'mlb' ? [
                 { ...games[0], gamePk: 1890000100, gameDateUtc: `${date}T18:00:00Z`, homeTeamId: 3 },
@@ -73,7 +73,7 @@ suite('weekly calendar PostgreSQL integration', () => {
             getPlayersByTeam: async (teamId: number) => teamId === 3 ? [] : roster,
         } as unknown as ISportsProvider
         await new DailyCalendarService(filteredProvider, scopedDb as never).publishDailyContests({ now: new Date(`${date}T17:00:00Z`) })
-        const contest = await prisma.dailyContest.findUniqueOrThrow({ where: { id: `${prefix}-${date}` } })
+        const contest = await prisma.dailyContest.findUniqueOrThrow({ where: { id: `${prefix}-classic-${date}` } })
         expect(contest.locksAt.toISOString()).toBe(`${date}T20:00:00.000Z`)
         expect(contest.games).toEqual([expect.objectContaining({ gamePk: 1890000101 })])
         expect(contest.playerPool).not.toEqual(expect.arrayContaining([expect.objectContaining({ teamId: 3 })]))
