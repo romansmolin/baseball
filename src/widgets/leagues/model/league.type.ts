@@ -1,12 +1,11 @@
-export type Region = 'north-america' | 'japan-korea' | 'latin-america'
+export type Region = 'north-america' | 'japan-korea'
 
 export const REGION_LABEL: Record<Region, string> = {
     'north-america': 'North America',
     'japan-korea': 'Japan & Korea',
-    'latin-america': 'Latin America',
 }
 
-export const REGION_ORDER: Region[] = ['north-america', 'japan-korea', 'latin-america']
+export const REGION_ORDER: Region[] = ['north-america', 'japan-korea']
 
 export type SeasonStatus = 'live' | 'offseason'
 export type LeagueFormat = 'Daily' | 'Weekly' | 'Tournament'

@@ -1,5 +1,6 @@
 import type { Prisma } from '../../../src/generated/prisma/client'
 import type { DailyGame, DailyPlayer, SaveDailyEntryInput } from '@/shared/daily-contests'
+import type { BaseballProviderLeague } from '@/shared/baseball'
 import type { RecurringTemplateKey } from '@/shared/tournaments/recurring'
 
 export interface MutationPermit {
@@ -8,7 +9,8 @@ export interface MutationPermit {
 
 export interface RecurringWindow {
     templateKey: RecurringTemplateKey
-    sourceSlug: 'winter-leagues'
+    /** north-america is used by new mixed-source series; winter is legacy-only. */
+    sourceSlug: 'north-america' | 'winter-leagues'
     startsAt: Date
     endsAt: Date
     totalWeeks: 1 | 2 | 4
@@ -16,6 +18,7 @@ export interface RecurringWindow {
 }
 
 export interface RecurringGame extends DailyGame {
+    sourceLeagueSlug?: BaseballProviderLeague
     originalStartUtc: string
     apiSeason: number
     week: number

@@ -5,14 +5,12 @@
 export type Region =
     | 'north-america'
     | 'japan-korea'
-    | 'latin-america'
     | 'caribbean'
     | 'australia'
 
 export const REGION_LABEL: Record<Region, string> = {
     'north-america': 'North America',
     'japan-korea': 'Japan & Korea',
-    'latin-america': 'Latin America',
     caribbean: 'Caribbean',
     australia: 'Australia',
 }
@@ -20,7 +18,6 @@ export const REGION_LABEL: Record<Region, string> = {
 export const REGION_ORDER: Region[] = [
     'north-america',
     'japan-korea',
-    'latin-america',
     'caribbean',
     'australia',
 ]

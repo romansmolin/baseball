@@ -42,6 +42,7 @@ export function mapTournamentsListToResponse(
         total: dto.total,
         limit: dto.limit,
         offset: dto.offset,
+        leagueCounts: dto.leagueCounts,
     }
 }
 

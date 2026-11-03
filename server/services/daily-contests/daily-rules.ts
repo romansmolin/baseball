@@ -5,6 +5,7 @@ import type { BaseballScoringRule } from '../scoring/scoring-rule.schema';
 import { scoreGameForPlayer } from '../scoring/scoring-engine';
 import { ApiError } from '../../errors/api.error';
 export function dailyDate(now: Date): string { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now); }
+export function dailyDateOffset(now: Date, offset: number): string { const date = new Date(`${dailyDate(now)}T12:00:00.000Z`); date.setUTCDate(date.getUTCDate() + offset); return date.toISOString().slice(0, 10); }
 export function validateDailyLineup(input: SaveDailyEntryInput, pool: DailyPlayer[], cap: number): DailyEntrySlot[] {
     if (input.players.length !== 9 || new Set(input.players.map(p => p.slotKey)).size !== 9 || new Set(input.players.map(p => p.externalPlayerId)).size !== 9)
         throw ApiError.validationError('Choose nine unique players and positions');

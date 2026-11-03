@@ -3,14 +3,14 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import {
-    BASEBALL_LEAGUES,
+    PRODUCT_BASEBALL_LEAGUES,
     UNBACKED_BASEBALL_LEAGUES,
     type BaseballLeagueRegion,
 } from '@/shared/baseball'
 import { useTournamentsData } from '@/entities/tournaments'
 
 import { filterLeagues, sortLeagues } from './league-filters'
-import type { League, LeagueFormat, RegionFilter, SortKey } from './league.type'
+import type { League, LeagueFormat, Region, RegionFilter, SortKey } from './league.type'
 
 export interface LeaguesState {
     leagues: League[]
@@ -44,10 +44,8 @@ const DESCRIPTIONS: Record<string, string> = {
     'high-a': 'Full-season A-ball. Younger rosters, live schedules, and a growing tournament calendar.',
     'single-a': 'Early-career pro ball. Prospect-heavy pools for managers who like to draft on upside.',
     rookie: 'Complex and rookie-level ball. Rosters churn fast and box-score coverage is partial.',
-    npb: "Japan's top circuit. Distinct scoring tendencies and a passionate weekly tournament scene.",
-    kbo: 'High-offense Korean league with fast games — popular for daily slates.',
-    lvbp: 'Venezuelan winter ball. A fan favorite during the North American off-season.',
-    lmb: 'The Mexican League. Summer schedule with a deep, competitive field.',
+    npb: 'Not yet available for contests. Provider coverage and data-use rights still need confirmation.',
+    kbo: 'Not yet available for contests. A complete approved schedule, roster and scoring source is still needed.',
 }
 
 const DEFAULT_FORMATS: LeagueFormat[] = ['Daily', 'Weekly', 'Tournament']
@@ -85,13 +83,13 @@ export const useLeaguesState = (): LeaguesState => {
     }, [tournamentsList])
 
     const leagues = useMemo<League[]>(() => {
-        const backed: League[] = BASEBALL_LEAGUES.map((l) => {
+        const backed: League[] = PRODUCT_BASEBALL_LEAGUES.map((l) => {
             const agg = aggByLeague.get(l.slug)
             return {
                 slug: l.slug,
                 name: l.name,
                 full: l.fullName,
-                region: l.region,
+                region: l.region as Region,
                 color: l.color,
                 country: REGION_COUNTRY[l.region],
                 proTeams: l.proTeams,
@@ -111,7 +109,7 @@ export const useLeaguesState = (): LeaguesState => {
             slug: l.slug,
             name: l.name,
             full: l.fullName,
-            region: l.region,
+            region: l.region as Region,
             color: l.color,
             country: REGION_COUNTRY[l.region],
             proTeams: l.proTeams,

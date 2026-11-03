@@ -45,7 +45,7 @@ export const TournamentDetailPanel = ({
             <div className="flex items-start justify-between gap-2 p-4">
                 <div className="min-w-0">
                     <div className="text-xs text-muted-foreground">
-                        {league?.name ?? tournament.leagueSlug.toUpperCase()} ·{' '}
+                        {league?.name ?? (tournament.leagueSlug === 'north-america' ? 'North American Leagues' : tournament.leagueSlug.toUpperCase())} ·{' '}
                         {formatTournamentStatus(tournament.status)}
                     </div>
                     <div className="mt-0.5 font-medium">{tournament.name}</div>

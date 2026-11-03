@@ -1,5 +1,7 @@
+import type { BaseballProviderLeague } from '@/shared/baseball';
 import type { PoolPosition, SlotKey } from '@/shared/team-builder';
 export type DailyContestMode = 'LIVE' | 'REPLAY';
+export type DailyContestView = 'current' | 'history';
 export type DailyContestStatus = 'OPEN' | 'LOCKED' | 'COMPLETED' | 'CANCELLED';
 export interface DailyPlayer {
     externalPlayerId: number;
@@ -12,6 +14,8 @@ export interface DailyPlayer {
 }
 export interface DailyGame {
     gamePk: number;
+    /** Actual provider league for contests whose saved pool combines leagues. */
+    sourceLeagueSlug?: BaseballProviderLeague;
     gameDateUtc: string;
     homeTeamId: number;
     awayTeamId: number;
@@ -27,6 +31,8 @@ export interface DailyContestSummary {
     mode: DailyContestMode;
     status: DailyContestStatus;
     leagueSlug: string;
+    /** Present for slate catalogs; omitted by legacy summaries. */
+    slateKey?: string;
     contestDate: string;
     sourceDate: string;
     locksAt: string;
@@ -63,6 +69,16 @@ export interface DailyEntryRecord {
     points: number;
     isFinal: boolean;
     updatedAt: string;
+}
+
+export interface MyActiveDailyEntry {
+    entryId: string
+    contestId: string
+    contestName: string
+    slateKey: string
+    leagueSlug: string
+    status: 'OPEN' | 'LOCKED'
+    locksAt: string
 }
 export interface DailyStanding {
     entryId: string;

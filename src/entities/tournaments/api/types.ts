@@ -26,6 +26,7 @@ export interface TournamentsListDto {
     total: number
     limit: number
     offset: number
+    leagueCounts?: Record<string, number>
 }
 
 export interface TournamentStandingRowDto {

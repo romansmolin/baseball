@@ -2,8 +2,10 @@ import { createHash } from 'node:crypto'
 import type { PrismaClient } from '../../../src/generated/prisma/client'
 import type { ProviderBoxScore } from '../../providers/dto/provider-schedule.dto'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
+import type { BaseballProviderLeague } from '@/shared/baseball'
+import { NORTH_AMERICA_CONTEST_SOURCE } from '../../providers/contest-source-registry'
 import { GameSnapshotsRepository } from '../../repositories/game-snapshots/game-snapshots.repository'
-import { loadDailySchedule } from '../daily-contests/daily-schedule.service'
+import { loadDailySchedule, loadNorthAmericanContestSchedule } from '../daily-contests/daily-schedule.service'
 import { parseScoringRule } from '../scoring/scoring-rule.schema'
 import { evaluateRecurringWeek, scoreRecurringSlots, type GameObservation } from './recurring-lifecycle'
 import type { MutationPermit, RecurringGame } from './recurring.types'
@@ -27,35 +29,44 @@ export async function refreshRecurringScores(db: PrismaClient, provider: ISports
     const snapshotRepo = new GameSnapshotsRepository(db)
     const saved = await snapshotRepo.findMany(games.map(g => g.gamePk))
     const byId = new Map(saved.map(row => [row.gamePk, row]))
+    const sourceFor = (game: RecurringGame): BaseballProviderLeague | undefined => game.sourceLeagueSlug
+        ?? (league.recurringTournament!.sourceSlug === NORTH_AMERICA_CONTEST_SOURCE ? undefined : league.recurringTournament!.sourceSlug as BaseballProviderLeague)
     const due = games.filter(game => !game.exclusion && Date.parse(game.originalStartUtc) <= input.now.getTime()).filter(game => {
         const row = byId.get(game.gamePk)
         const box = row?.boxScore as unknown as ProviderBoxScore | null | undefined
         const complete = row?.complete && (row.status === 'CANCELLED' || (row.status === 'FINAL' && Array.isArray(box?.batters) && box.batters.length > 0 && Array.isArray(box.pitchers) && box.pitchers.length > 0))
         return !row || (!complete && input.now.getTime() - row.observedAt.getTime() >= 15 * 60000)
     })
-    let statuses = new Map<number, string>()
+    let statuses = new Map<string, string>()
     if (due.length && timeLeft()) {
         try {
-            const schedule = await loadDailySchedule(provider, { league: 'winter-leagues', startDateUtc: league.startsAt, endDateUtc: new Date(league.endsAt.getTime() + 72 * 3600000), revalidateSeconds: 60 })
-            statuses = new Map(schedule.map(row => [row.game.gamePk, row.game.status]))
+            const startDateUtc = league.startsAt
+            const endDateUtc = new Date(league.endsAt.getTime() + 72 * 3600000)
+            const sourceSlug = league.recurringTournament.sourceSlug
+            const schedule = sourceSlug === NORTH_AMERICA_CONTEST_SOURCE
+                ? await loadNorthAmericanContestSchedule(provider, { startDateUtc, endDateUtc, revalidateSeconds: 60 })
+                : await loadDailySchedule(provider, { league: sourceSlug as BaseballProviderLeague, startDateUtc, endDateUtc, revalidateSeconds: 60 })
+            statuses = new Map(schedule.map(row => [`${row.sourceLeagueSlug ?? sourceSlug}:${row.game.gamePk}`, row.game.status]))
         } catch (error) {
             if (error instanceof Error && error.name === 'WorkDeadlineError') throw error
         }
     }
     for (const game of due) {
         if (!timeLeft()) { summary.timedOut = true; break }
-        const status = statuses.get(game.gamePk) ?? game.status
+        const sourceLeague = sourceFor(game)
+        if (!sourceLeague) continue
+        const status = statuses.get(`${sourceLeague}:${game.gamePk}`) ?? game.status
         let box: ProviderBoxScore | null = null
-        try { if (status !== 'CANCELLED') box = await provider.getBoxScore(game.gamePk, { league: 'winter-leagues', deadline: input.deadline }) }
+        try { if (status !== 'CANCELLED') box = await provider.getBoxScore(game.gamePk, { league: sourceLeague, deadline: input.deadline }) }
         catch (error) { if (error instanceof Error && error.name === 'WorkDeadlineError') throw error }
         const actualStatus = box?.status ?? status
         const complete = actualStatus === 'FINAL' && !!box?.batters.length && !!box.pitchers.length
-        await snapshotRepo.save({ gamePk: game.gamePk, leagueSlug: 'winter-leagues', status: actualStatus, boxScore: box, complete, observedAt: input.now }, input.permit)
+        await snapshotRepo.save({ gamePk: game.gamePk, leagueSlug: sourceLeague, status: actualStatus, boxScore: box, complete, observedAt: input.now }, input.permit)
     }
     const currentSnapshots = await snapshotRepo.findMany(games.map(g => g.gamePk))
     const observations: GameObservation[] = currentSnapshots.map(row => ({ gamePk: row.gamePk, status: row.status, complete: row.complete, boxScore: row.boxScore as unknown as ProviderBoxScore | null }))
     const candidates = games.filter(game => {
-        if (game.exclusion) return false
+        if (game.exclusion || !sourceFor(game)) return false
         const status = observations.find(row => row.gamePk === game.gamePk)?.status ?? game.status
         return status === 'CANCELLED' || ((status === 'POSTPONED' || status === 'SUSPENDED') && input.now.getTime() >= Date.parse(game.originalStartUtc) + 72 * 3600000)
     })

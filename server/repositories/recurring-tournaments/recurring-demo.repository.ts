@@ -48,7 +48,7 @@ export class RecurringDemoRepository {
                     if (!eligible.has(row.userId) || existing.has(row.userId)) continue
                     const slots = canonicalRecurringSlots(row.lineup, input.context.snapshot.playerPool)
                     const member = await tx.leagueMember.create({ data: { leagueId: league.id, userId: row.userId } })
-                    await tx.fantasyTeam.create({ data: { userId: row.userId, leagueMemberId: member.id, leagueSlug: league.leagueSlug, name: row.teamName, format: 'Tournament', captainExternalPlayerId: row.lineup.captainExternalPlayerId ?? null, rosterSlots: { create: slots } } })
+                    await tx.fantasyTeam.create({ data: { userId: row.userId, leagueMemberId: member.id, leagueSlug: league.leagueSlug === 'north-america' ? 'mlb' : league.leagueSlug, name: row.teamName, format: 'Tournament', captainExternalPlayerId: row.lineup.captainExternalPlayerId ?? null, rosterSlots: { create: slots } } })
                     await createRecurringWeeklyDrafts(tx, { memberId: member.id, startsAt: league.startsAt, totalWeeks: league.totalWeeks, slots, captain: row.lineup.captainExternalPlayerId ?? null })
                     inserted++
                 }

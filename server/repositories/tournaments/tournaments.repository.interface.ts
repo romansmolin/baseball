@@ -15,6 +15,7 @@ export interface TournamentsListFilter {
 export interface TournamentsListResult {
     items: TournamentWithMemberCount[]
     total: number
+    leagueCounts?: Record<string, number>
 }
 
 export interface ITournamentsRepository {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dailyDate, validateDailyLineup, rankPoints, scoreDailyLineup, canPublishPool } from './daily-rules';
+import { dailyDate, dailyDateOffset, validateDailyLineup, rankPoints, scoreDailyLineup, canPublishPool } from './daily-rules';
 import type { DailyPlayer } from '@/shared/daily-contests';
 const positions = ['P', 'C', '1B', '2B', '3B', 'SS', 'OF', 'OF', 'OF'] as const;
 const slots = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'] as const;
@@ -7,6 +7,10 @@ const pool: DailyPlayer[] = positions.map((position, i) => ({ externalPlayerId: 
 const input = { teamName: 'Nine', players: slots.map((slotKey, i) => ({ slotKey, externalPlayerId: i + 1 })) };
 describe('daily rules', () => {
     it('uses New York date across spring and autumn DST', () => { expect(dailyDate(new Date('2026-03-08T04:30:00Z'))).toBe('2026-03-07'); expect(dailyDate(new Date('2026-11-01T05:30:00Z'))).toBe('2026-11-01'); });
+    it('advances New York calendar days without DST duplicates or skips', () => {
+        expect([0, 1, 2].map(offset => dailyDateOffset(new Date('2026-03-08T04:30:00Z'), offset))).toEqual(['2026-03-07', '2026-03-08', '2026-03-09']);
+        expect([0, 1, 2].map(offset => dailyDateOffset(new Date('2026-11-01T04:30:00Z'), offset))).toEqual(['2026-11-01', '2026-11-02', '2026-11-03']);
+    });
     it('rejects untrusted duplicate players and incorrect positions', () => { expect(() => validateDailyLineup({ ...input, players: input.players.map(p => ({ ...p, externalPlayerId: 1 })) }, pool, 80000)).toThrow(); expect(() => validateDailyLineup({ ...input, players: input.players.map((p, i) => i === 0 ? { ...p, externalPlayerId: 2 } : p) }, pool, 80000)).toThrow(); });
     it('takes salary from pool and rejects excess budget', () => { expect(validateDailyLineup(input, pool, 80000)).toHaveLength(9); expect(() => validateDailyLineup(input, pool, 40000)).toThrow(); });
     it('requires captain to be in lineup', () => { expect(() => validateDailyLineup({ ...input, captainExternalPlayerId: 99 }, pool, 80000)).toThrow(); });

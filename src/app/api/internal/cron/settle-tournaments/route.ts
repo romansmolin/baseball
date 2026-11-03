@@ -20,6 +20,7 @@ import { isAuthorizedCron } from '../../../../../../server/shared/cron-auth.util
 import { WeeklyScoringService } from '../../../../../../server/services/scoring/weekly-scoring.service'
 import { computeTournamentCurrentWeek } from '../../../../../../server/services/tournaments/tournament-week.util'
 import { TournamentSettlementService } from '../../../../../../server/services/tournaments/settlement/tournament-settlement.service'
+import { hasRecurringTournamentTable } from '../../../../../../server/repositories/recurring-tournaments/recurring-schema'
 
 export const maxDuration = 300
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
     }
 
     const startedAt = Date.now()
+    const recurringAvailable = await hasRecurringTournamentTable(prisma)
 
     const scoringRuleRepo = new ScoringRuleRepository()
     const cacheRepo = new WeeklyScoreCacheRepository()
@@ -54,7 +56,10 @@ export async function GET(request: Request) {
     )
 
     const tournaments = await prisma.league.findMany({
-        where: { status: { in: ACTIVE_STATUSES as unknown as ('IN_SEASON' | 'PLAYOFFS' | 'COMPLETED')[] } },
+        where: {
+            status: { in: ACTIVE_STATUSES as unknown as ('IN_SEASON' | 'PLAYOFFS' | 'COMPLETED')[] },
+            ...(recurringAvailable ? { recurringTournament: { is: null } } : {}),
+        },
         select: {
             id: true,
             leagueSlug: true,

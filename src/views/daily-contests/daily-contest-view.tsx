@@ -1,2 +1,3 @@
 import { DailyContestDetailPanel } from '@/widgets/showcase'
-export const DailyContestView = ({ contestId }: { contestId: string }) => <div className="container mx-auto max-w-6xl px-6 py-8"><DailyContestDetailPanel contestId={contestId} /></div>
+import type { DailyContestView as ContestView } from '@/shared/daily-contests'
+export const DailyContestView = ({ contestId, view }: { contestId: string; view: ContestView }) => <div className="container mx-auto max-w-7xl px-6 py-8"><DailyContestDetailPanel contestId={contestId} view={view} /></div>

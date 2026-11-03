@@ -4,7 +4,7 @@ import type { RecurringWindow } from './recurring.types'
 const templates: { key: RecurringTemplateKey; day: number; weeks: 1 | 2 | 4 }[] = [
     { key: 'weekly-sprint', day: 1, weeks: 1 },
     { key: 'diamond-cup', day: 3, weeks: 2 },
-    { key: 'winter-championship', day: 5, weeks: 4 },
+    { key: 'grand-championship', day: 5, weeks: 4 },
 ]
 const dayMs = 86400000
 
@@ -14,7 +14,7 @@ function windowsBetween(start: Date, end: Date): RecurringWindow[] {
         if (at < start.getTime()) continue
         const date = new Date(at)
         const template = templates.find(t => t.day === date.getUTCDay())
-        if (template) result.push({ templateKey: template.key, sourceSlug: 'winter-leagues', startsAt: date, endsAt: new Date(at + template.weeks * 7 * dayMs), totalWeeks: template.weeks, configurationVersion: 1 })
+        if (template) result.push({ templateKey: template.key, sourceSlug: 'north-america', startsAt: date, endsAt: new Date(at + template.weeks * 7 * dayMs), totalWeeks: template.weeks, configurationVersion: 1 })
     }
     return result
 }

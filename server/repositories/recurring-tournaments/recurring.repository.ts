@@ -14,13 +14,13 @@ export interface PublishRecurringInput {
 }
 
 function toContext(row: RecurringTournament & { league: League }): RecurringTournamentContext {
-    if (!(row.templateKey in RECURRING_SERIES_LABELS) || row.sourceSlug !== 'winter-leagues') throw new Error('Unsupported recurring tournament configuration')
+    if (!(row.templateKey in RECURRING_SERIES_LABELS) || !['north-america', 'winter-leagues'].includes(row.sourceSlug)) throw new Error('Unsupported recurring tournament configuration')
     const totalWeeks = row.league.totalWeeks
     if (totalWeeks !== 1 && totalWeeks !== 2 && totalWeeks !== 4) throw new Error('Unsupported recurring tournament duration')
     return {
         leagueId: row.leagueId,
         publishedAt: row.league.createdAt,
-        window: { templateKey: row.templateKey as RecurringTemplateKey, sourceSlug: 'winter-leagues', startsAt: row.startsAt, endsAt: row.league.endsAt, totalWeeks, configurationVersion: 1 },
+        window: { templateKey: row.templateKey as RecurringTemplateKey, sourceSlug: row.sourceSlug as RecurringTournamentContext['window']['sourceSlug'], startsAt: row.startsAt, endsAt: row.league.endsAt, totalWeeks, configurationVersion: 1 },
         snapshot: { games: row.games as unknown as RecurringGame[], playerPool: row.playerPool as unknown as RecurringSourceSnapshot['playerPool'], checkedAt: row.sourceCheckedAt.toISOString() },
         demoTarget: row.demoTarget,
         outcome: row.outcome,
@@ -50,7 +50,7 @@ export class RecurringRepository {
                     commissionerId: input.commissionerId, scoringRuleId: input.scoringRuleId,
                     inviteCode: `recurring-${randomUUID()}`, externalSeasonId: snapshot.games[0]?.apiSeason ?? window.startsAt.getUTCFullYear(),
                     status: window.startsAt > clock.now ? 'DRAFTING' : 'IN_SEASON', draftType: 'AUTO', visibility: 'PUBLIC',
-                    name: `${RECURRING_SERIES_LABELS[window.templateKey]} · Winter Leagues · ${date}`,
+                    name: `${RECURRING_SERIES_LABELS[window.templateKey]} · ${window.sourceSlug === 'north-america' ? 'North American Leagues' : 'Winter Leagues'} · ${date}`,
                     leagueSlug: window.sourceSlug, startsAt: window.startsAt, endsAt: window.endsAt, totalWeeks: window.totalWeeks,
                     entryFeeCredits: 0, prizePoolCredits: 0,
                 } })

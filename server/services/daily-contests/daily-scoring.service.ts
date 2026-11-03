@@ -6,9 +6,10 @@ import { MlbSportsProvider } from '../../providers/mlb/mlb.provider';
 import type { ISportsProvider } from '../../providers/sports-provider.interface';
 import type { ProviderBoxScore } from '../../providers/dto/provider-schedule.dto';
 import type { DailyEntrySlot, DailyGame } from '@/shared/daily-contests';
-import type { SupportedBaseballLeague } from '@/shared/baseball';
+import type { BaseballProviderLeague } from '@/shared/baseball';
 import { parseScoringRule } from '../scoring/scoring-rule.schema';
 import { scoreDailyLineup } from './daily-rules';
+import { loadDailySchedule, loadNorthAmericanContestSchedule } from './daily-schedule.service';
 export class DailyScoringService {
     private readonly provider: ISportsProvider;
     private readonly db: PrismaClient;
@@ -25,21 +26,33 @@ export class DailyScoringService {
         if (contest.mode === 'LIVE' && games.length) {
             try {
                 const dates = games.map(game => Date.parse(game.gameDateUtc));
-                const schedule = await this.provider.getSchedule({ startDateUtc: new Date(Math.min(...dates)), endDateUtc: new Date(Math.max(...dates)), league: contest.leagueSlug as SupportedBaseballLeague, season: new Date(dates[0]).getUTCFullYear(), revalidateSeconds: 60 });
-                const byId = new Map(schedule.map(game => [game.gamePk, game]));
-                games = games.map(game => { const fresh = byId.get(game.gamePk); return fresh ? { ...game, status: fresh.status, homeScore: fresh.homeScore, awayScore: fresh.awayScore } : game; });
+                const startDateUtc = new Date(Math.min(...dates));
+                const endDateUtc = new Date(Math.max(...dates));
+                const schedule = contest.leagueSlug === 'north-america'
+                    ? await loadNorthAmericanContestSchedule(this.provider, { startDateUtc, endDateUtc, revalidateSeconds: 60 })
+                    : await loadDailySchedule(this.provider, { startDateUtc, endDateUtc, league: contest.leagueSlug as BaseballProviderLeague, revalidateSeconds: 60 });
+                const byId = new Map(schedule.map(row => [row.game.gamePk, row]));
+                games = games.map(game => {
+                    const fresh = byId.get(game.gamePk);
+                    return fresh ? { ...game, sourceLeagueSlug: fresh.sourceLeagueSlug, status: fresh.game.status, homeScore: fresh.game.homeScore, awayScore: fresh.game.awayScore } : game;
+                });
             } catch (error) { if (error instanceof WorkDeadlineError) throw error; }
         }
         for (const game of games) {
             assertWorkTime(500);
             if(Date.now()>=deadline){complete=false;break}
+            if (contest.leagueSlug === 'north-america' && !game.sourceLeagueSlug) {
+                complete = false
+                continue
+            }
             let saved = await this.db.dailyGameSnapshot.findUnique({ where: { gamePk: game.gamePk } });
             if (!saved?.complete && (!saved || now.getTime() - saved.observedAt.getTime() > 60000)) {
                 try {
-                    const box = await this.provider.getBoxScore(game.gamePk, { deadline,league: contest.leagueSlug as SupportedBaseballLeague });
+                    const sourceLeague = game.sourceLeagueSlug ?? contest.leagueSlug as BaseballProviderLeague;
+                    const box = await this.provider.getBoxScore(game.gamePk, { deadline, league: sourceLeague });
                     if (box) {
-                        const isComplete = box.status === 'CANCELLED' || box.status === 'FINAL' && (box.batters.length > 0 || box.pitchers.length > 0);
-                        saved = await this.db.dailyGameSnapshot.upsert({ where: { gamePk: game.gamePk }, create: { gamePk: game.gamePk, leagueSlug: contest.leagueSlug, status: box.status, boxScore: JSON.parse(JSON.stringify(box)), complete: isComplete, observedAt: now }, update: { status: box.status, boxScore: JSON.parse(JSON.stringify(box)), complete: isComplete, observedAt: now } });
+                        const isComplete = box.status === 'CANCELLED' || box.status === 'FINAL' && box.batters.length > 0 && box.pitchers.length > 0;
+                        saved = await this.db.dailyGameSnapshot.upsert({ where: { gamePk: game.gamePk }, create: { gamePk: game.gamePk, leagueSlug: sourceLeague, status: box.status, boxScore: JSON.parse(JSON.stringify(box)), complete: isComplete, observedAt: now }, update: { leagueSlug: sourceLeague, status: box.status, boxScore: JSON.parse(JSON.stringify(box)), complete: isComplete, observedAt: now } });
                     }
                 }
                 catch (error) {

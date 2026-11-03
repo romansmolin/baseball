@@ -48,7 +48,7 @@ export const TournamentCard = ({
                 <div className="min-w-0 flex-1">
                     <div className="font-medium">{tournament.name}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                        {league?.name ?? tournament.leagueSlug.toUpperCase()} ·{' '}
+                        {league?.name ?? (tournament.leagueSlug === 'north-america' ? 'North American Leagues' : tournament.leagueSlug.toUpperCase())} ·{' '}
                         {formatWeekProgress(tournament)}
                     </div>
                 </div>

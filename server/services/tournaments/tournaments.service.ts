@@ -50,7 +50,7 @@ export class TournamentsService implements ITournamentsService {
         const limit = Math.min(MAX_LIMIT, input.limit ?? DEFAULT_LIMIT)
         const offset = input.offset ?? DEFAULT_OFFSET
 
-        const { items, total } = await this.tournamentsRepository.list({
+        const { items, total, leagueCounts } = await this.tournamentsRepository.list({
             leagueSlug: input.leagueSlug,
             status: input.status,
             visibility: input.visibility,
@@ -68,6 +68,7 @@ export class TournamentsService implements ITournamentsService {
         return {
             items: mapped,
             total,
+            leagueCounts: leagueCounts ?? {},
             limit,
             offset,
         }

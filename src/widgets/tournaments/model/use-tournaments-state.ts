@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import {
     useMyTournamentsData,
     useStandingsData,
+    useTournamentDetailData,
     useTournamentsData,
 } from '@/entities/tournaments'
 import { useLeaguesData } from '@/entities/team-builder'
@@ -52,7 +53,6 @@ export interface TournamentsState {
 const ALLOWED_REGIONS = new Set<Region>([
     'north-america',
     'japan-korea',
-    'latin-america',
     'caribbean',
     'australia',
 ])
@@ -73,9 +73,8 @@ export const useTournamentsState = (): TournamentsState => {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
     const [sortKey, setSortKey] = useState<SortKey>('startsSoonest')
     const [leagueSearch, setLeagueSearch] = useState('')
-    const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(
-        null,
-    )
+    const initialTournamentId = searchParams?.get('tournament') ?? null
+    const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(initialTournamentId)
     const [mineOnly, setMineOnly] = useState(false)
 
     // Catalog is public-only; private tournaments are joined via invite codes
@@ -96,6 +95,8 @@ export const useTournamentsState = (): TournamentsState => {
         error: standingsError,
         isLoading: isLoadingStandings,
     } = useStandingsData(selectedTournamentId)
+
+    const { data: selectedTournamentData } = useTournamentDetailData(selectedTournamentId)
 
     // Joined tournaments are fetched unconditionally so the toolbar's "Mine"
     // chip can show the count even when the filter is off. Intersection
@@ -143,12 +144,8 @@ export const useTournamentsState = (): TournamentsState => {
     )
 
     const tournamentsByLeague = useMemo(() => {
-        const map = new Map<string, number>()
-        for (const t of allTournaments) {
-            map.set(t.leagueSlug, (map.get(t.leagueSlug) ?? 0) + 1)
-        }
-        return map
-    }, [allTournaments])
+        return new Map(Object.entries(listData?.leagueCounts ?? {}))
+    }, [listData?.leagueCounts])
 
     const filteredLeagues = useMemo(() => {
         const q = leagueSearch.trim().toLowerCase()
@@ -162,8 +159,8 @@ export const useTournamentsState = (): TournamentsState => {
     )
 
     const selectedTournament = useMemo(
-        () => allTournaments.find((t) => t.id === selectedTournamentId) ?? null,
-        [allTournaments, selectedTournamentId],
+        () => selectedTournamentData ?? allTournaments.find((t) => t.id === selectedTournamentId) ?? null,
+        [allTournaments, selectedTournamentData, selectedTournamentId],
     )
 
     return {

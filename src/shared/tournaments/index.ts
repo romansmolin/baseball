@@ -18,3 +18,4 @@ export {
     TOURNAMENT_VISIBILITY_SLUGS,
 } from './types'
 export type { RecurringTemplateKey, RecurringTournamentInfo } from './recurring'
+export type { ContestCatalogItem, ContestCatalogKind, ContestCatalogPage, ContestCatalogStatus, ContestCatalogView } from './contest-catalog'

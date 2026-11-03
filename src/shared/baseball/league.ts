@@ -105,6 +105,10 @@ export const BASEBALL_LEAGUES: readonly BaseballLeagueConfig[] = [
     },
 ]
 
+/** Leagues shown for new product selections; legacy Winter records stay readable. */
+export const PRODUCT_BASEBALL_LEAGUES: readonly BaseballLeagueConfig[] =
+    BASEBALL_LEAGUES.filter((league) => league.region !== 'latin-america')
+
 export const BASEBALL_LEAGUE_SLUGS: readonly SupportedBaseballLeague[] =
     BASEBALL_LEAGUES.map((league) => league.slug)
 
@@ -157,26 +161,6 @@ export const UNBACKED_BASEBALL_LEAGUES: readonly UnbackedBaseballLeague[] = [
         region: 'japan-korea',
         color: '#ec4899',
         proTeams: 10,
-        providerBacked: false,
-    },
-    {
-        slug: 'lvbp',
-        name: 'LVBP',
-        shortName: 'LVBP',
-        fullName: 'Liga Venezolana de Béisbol Profesional',
-        region: 'latin-america',
-        color: '#f97316',
-        proTeams: 8,
-        providerBacked: false,
-    },
-    {
-        slug: 'lmb',
-        name: 'LMB',
-        shortName: 'LMB',
-        fullName: 'Liga Mexicana de Béisbol',
-        region: 'latin-america',
-        color: '#14b8a6',
-        proTeams: 18,
         providerBacked: false,
     },
 ]

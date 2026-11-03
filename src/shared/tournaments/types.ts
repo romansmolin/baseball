@@ -37,6 +37,7 @@ export interface TournamentsListResponse {
     total: number
     limit: number
     offset: number
+    leagueCounts?: Record<string, number>
 }
 
 export interface TournamentsListFilters {

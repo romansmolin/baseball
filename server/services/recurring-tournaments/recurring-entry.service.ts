@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from '../../../src/generated/prisma/client'
 import type { PlayerPosition, RosterSlotPosition } from '../../../src/generated/prisma/enums'
 import type { DailyPlayer } from '@/shared/daily-contests'
 import type { PoolPosition, SlotKey } from '@/shared/team-builder'
+import { FIELD_SLOTS, slotAcceptsPoolPosition } from '@/shared/team-builder'
 import type { JoinTournamentResult } from '@/shared/tournaments'
 import { ApiError } from '../../errors/api.error'
 import { ErrorCode } from '../../errors/error-code.enum'
@@ -20,6 +21,19 @@ export function canonicalRecurringSlots(input: RecurringLineupInput, pool: Daily
         playerPosition: playerPositions[player.position], playerTeamName: player.teamName,
         playerPhotoUrl: player.photoUrl, slotPosition: slotPositions[slotKey], salaryAtLock: player.salary,
     }))
+}
+
+function cheapestValidPoolLineup(pool: DailyPlayer[]): RecurringLineupInput {
+    const used = new Set<number>()
+    const players = FIELD_SLOTS.map(slot => {
+        const player = pool
+            .filter(candidate => !used.has(candidate.externalPlayerId) && slotAcceptsPoolPosition(slot.key, candidate.position))
+            .sort((a, b) => a.salary - b.salary || a.externalPlayerId - b.externalPlayerId)[0]
+        if (!player) throw ApiError.conflict(ErrorCode.TOURNAMENT_NOT_JOINABLE, 'Contest player pool cannot form a valid lineup')
+        used.add(player.externalPlayerId)
+        return { slotKey: slot.key, externalPlayerId: player.externalPlayerId }
+    })
+    return { players, captainExternalPlayerId: null }
 }
 
 async function replaceTeamRoster(tx: Prisma.TransactionClient, teamId: string, slots: ReturnType<typeof canonicalRecurringSlots>, captain: number | null) {
@@ -42,9 +56,11 @@ export async function joinRecurringTournament(db: PrismaClient, input: { userId:
         const team = await tx.fantasyTeam.findUnique({ where: { id: input.teamId }, include: { rosterSlots: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] } } })
         if (!team) throw ApiError.notFound(ErrorCode.TEAM_NOT_FOUND, 'Team not found')
         if (team.userId !== input.userId) throw new ApiError(403, ErrorCode.TEAM_NOT_OWNED, 'Team is not owned by the viewer')
-        if (team.leagueSlug !== league.leagueSlug) throw ApiError.conflict(ErrorCode.LEAGUE_MISMATCH, 'Team league does not match the tournament')
+        const mixedSource = league.recurringTournament.sourceSlug === 'north-america'
+        if (!mixedSource && team.leagueSlug !== league.leagueSlug) throw ApiError.conflict(ErrorCode.LEAGUE_MISMATCH, 'Team league does not match the tournament')
         if (await tx.leagueMember.findUnique({ where: { leagueId_userId: { leagueId: league.id, userId: input.userId } } })) throw ApiError.conflict(ErrorCode.USER_ALREADY_JOINED, 'Already joined this tournament')
         if (team.leagueMemberId) throw ApiError.conflict(ErrorCode.TEAM_ALREADY_IN_LEAGUE, 'Team is already entered')
+        const pool = league.recurringTournament.playerPool as unknown as DailyPlayer[]
         const outfield: SlotKey[] = ['LF', 'CF', 'RF']
         const players = team.rosterSlots.map(slot => {
             const slotKey = slot.slotPosition === 'OF' ? outfield.shift() : reverseSlots[slot.slotPosition]
@@ -52,13 +68,14 @@ export async function joinRecurringTournament(db: PrismaClient, input: { userId:
             return { slotKey, externalPlayerId: slot.externalPlayerId }
         })
         const captain = team.captainExternalPlayerId
-        const slots = canonicalRecurringSlots({ players, captainExternalPlayerId: captain }, league.recurringTournament.playerPool as unknown as DailyPlayer[])
+        const initialLineup = mixedSource ? cheapestValidPoolLineup(pool) : { players, captainExternalPlayerId: captain }
+        const slots = canonicalRecurringSlots(initialLineup, pool)
         const memberId = randomUUID()
         const inserted = await tx.$queryRaw<{ id: string }[]>`INSERT INTO "LeagueMember" (id,"leagueId","userId","updatedAt") SELECT ${memberId},${league.id},${input.userId},clock_timestamp() FROM "League" WHERE id=${league.id} AND "startsAt">clock_timestamp() RETURNING id`
         if (!inserted.length) throw ApiError.conflict(ErrorCode.JOIN_WINDOW_CLOSED, 'Registration closed')
         await tx.fantasyTeam.update({ where: { id: team.id }, data: { leagueMemberId: memberId } })
-        await replaceTeamRoster(tx, team.id, slots, captain)
-        await createRecurringWeeklyDrafts(tx, { memberId, startsAt: league.startsAt, totalWeeks: league.totalWeeks, slots, captain })
+        await replaceTeamRoster(tx, team.id, slots, initialLineup.captainExternalPlayerId ?? null)
+        await createRecurringWeeklyDrafts(tx, { memberId, startsAt: league.startsAt, totalWeeks: league.totalWeeks, slots, captain: initialLineup.captainExternalPlayerId ?? null })
         return { leagueMemberId: memberId, tournamentId: league.id, fantasyTeamId: team.id }
     })
 }

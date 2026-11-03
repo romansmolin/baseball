@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { saveDailyEntry } from '@/entities/showcase'
 import type { DailyContestDetail, DailyEntryRecord } from '@/shared/daily-contests'
+import { canEditDailyContest } from '@/shared/daily-contests'
 import { FIELD_SLOTS, type PoolPlayer, type PoolPositionFilter, type Roster, type SlotKey } from '@/shared/team-builder'
 import { getEntryReadiness, replaceDailyPick } from './daily-entry-state'
 
@@ -19,7 +20,7 @@ export function useDailyEntryEditor(contest: DailyContestDetail, entry: DailyEnt
     const [error, setError] = useState<string | null>(null)
     useEffect(() => { const timer = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(timer) }, [])
     const readiness = getEntryReadiness(roster, pool, captainId, contest.locksAt, now ?? new Date(contest.locksAt))
-    const locked = contest.status !== 'OPEN' || (now != null && now.getTime() >= Date.parse(contest.locksAt))
+    const locked = !canEditDailyContest(contest, now?.getTime() ?? Number.NaN)
     const byId = new Map(pool.map(player => [player.id, player]))
     const placementFor = (player: PoolPlayer) => {
         const next = replaceDailyPick(roster, target, player, pool, captainId)
@@ -43,7 +44,7 @@ export function useDailyEntryEditor(contest: DailyContestDetail, entry: DailyEnt
     const toggleCaptain = (id: number) => { if (!locked) { setCaptainId(current => current === id ? null : id); setMessage(null) } }
     const save = async () => {
         const current = getEntryReadiness(roster, pool, captainId, contest.locksAt, new Date())
-        if (locked || !current.canSave || !teamName.trim() || saving) return
+        if (!canEditDailyContest(contest, Date.now()) || !current.canSave || !teamName.trim() || saving) return
         setSaving(true); setError(null); setMessage(null)
         try {
             const saved = await saveDailyEntry(contest.id, { teamName: teamName.trim(), captainExternalPlayerId: captainId, players: FIELD_SLOTS.map(slot => ({ slotKey: slot.key, externalPlayerId: roster[slot.key]! })) })

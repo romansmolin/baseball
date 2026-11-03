@@ -24,6 +24,18 @@ describe('baseball league query validation', () => {
         expect(listPlayersQuerySchema.safeParse({}).success).toBe(true)
     })
 
+    it('accepts position, availability, and pagination filters for players', () => {
+        const parsed = listPlayersQuerySchema.safeParse({
+                league: 'mlb',
+                positionGroup: 'P',
+                active: 'true',
+                limit: '100',
+                offset: '20',
+            })
+        expect(parsed.success).toBe(true)
+        if (parsed.success) expect(parsed.data).toMatchObject({ positionGroup: 'P', active: true, limit: 10, offset: 20 })
+    })
+
     it('the teams query rejects ?league=npb', () => {
         expect(listTeamsQuerySchema.safeParse({ league: 'npb' }).success).toBe(false)
         expect(listTeamsQuerySchema.safeParse({ league: 'double-a' }).success).toBe(true)

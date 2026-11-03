@@ -19,6 +19,11 @@ import { WeeklyScoringService } from '../../../../../../server/services/scoring/
 import { computeTournamentCurrentWeek } from '../../../../../../server/services/tournaments/tournament-week.util'
 import { prisma } from '../../../../../../server/lib/prisma'
 import { mapWithConcurrency } from '../../../../../../server/shared/concurrency.utils'
+import { hasRecurringTournamentTable } from '../../../../../../server/repositories/recurring-tournaments/recurring-schema'
+import { refreshRecurringScores } from '../../../../../../server/services/recurring-tournaments/recurring-scoring.service'
+import { showcaseLeaseStore } from '../../../../../../server/services/showcase/showcase-lease.repository'
+import { withShowcaseLease } from '../../../../../../server/services/showcase/showcase-lease'
+import { showcaseMutationPermit } from '../../../../../../server/services/showcase/showcase-mutation-permit'
 
 // 5 minutes — Vercel Pro caps at 300s. Hobby caps at 60s and silently truncates
 // past that. Our TIME_BUDGET_MS below keeps us inside even the 60s ceiling.
@@ -28,6 +33,7 @@ export const dynamic = 'force-dynamic'
 // Leaves ~60s of headroom under maxDuration for the in-flight members to finish.
 const TIME_BUDGET_MS = 240_000
 const MEMBER_CONCURRENCY = 8
+const RECURRING_BUDGET_MS = 60_000
 
 const ACTIVE_STATUSES = ['IN_SEASON', 'PLAYOFFS'] as const
 
@@ -37,6 +43,7 @@ export async function GET(request: Request) {
     }
 
     const startedAt = Date.now()
+    const recurringAvailable = await hasRecurringTournamentTable(prisma)
 
     const scoringRuleRepo = new ScoringRuleRepository()
     const cacheRepo = new WeeklyScoreCacheRepository()
@@ -51,7 +58,10 @@ export async function GET(request: Request) {
     )
 
     const tournaments = await prisma.league.findMany({
-        where: { status: { in: ACTIVE_STATUSES as unknown as ('IN_SEASON' | 'PLAYOFFS')[] } },
+        where: {
+            status: { in: ACTIVE_STATUSES as unknown as ('IN_SEASON' | 'PLAYOFFS')[] },
+            ...(recurringAvailable ? { recurringTournament: { is: null } } : {}),
+        },
         select: {
             id: true,
             leagueSlug: true,
@@ -68,6 +78,55 @@ export async function GET(request: Request) {
     let membersWarmed = 0
     let tournamentsSkipped = 0
     let timedOut = false
+    let recurringTournamentsProcessed = 0
+    let recurringEntriesUpdated = 0
+    let recurringLeaseAcquired: boolean | null = null
+
+    // Recurring contests store their own source-qualified schedule and use
+    // shared game snapshots. Fence their writes with a separate lease so an
+    // overlapping cron cannot double-score or race lifecycle transitions.
+    const recurringLeaseKey = 'showcase:recurring-scoring'
+    const recurringDeadline = startedAt + RECURRING_BUDGET_MS
+    if (recurringAvailable) {
+        const recurringLease = await withShowcaseLease(
+            showcaseLeaseStore(prisma),
+            recurringLeaseKey,
+            new Date(startedAt),
+            async token => {
+                const permit = showcaseMutationPermit(recurringLeaseKey, token)
+                const recurring = await prisma.recurringTournament.findMany({
+                    where: {
+                        league: {
+                            status: { in: ['DRAFTING', 'IN_SEASON', 'PLAYOFFS'] },
+                            startsAt: { lte: new Date(startedAt) },
+                        },
+                    },
+                    select: { leagueId: true },
+                    orderBy: [{ startsAt: 'asc' }, { leagueId: 'asc' }],
+                    take: 12,
+                })
+                for (const item of recurring) {
+                    if (Date.now() + 1000 >= recurringDeadline) { timedOut = true; break }
+                    try {
+                        const result = await refreshRecurringScores(prisma, sportsProvider, {
+                            leagueId: item.leagueId,
+                            now: new Date(startedAt),
+                            permit,
+                            deadline: recurringDeadline,
+                        })
+                        recurringTournamentsProcessed++
+                        recurringEntriesUpdated += result.entriesUpdated
+                        if (result.timedOut) { timedOut = true; break }
+                    } catch (error) {
+                        if (error instanceof Error && error.name === 'WorkDeadlineError') { timedOut = true; break }
+                        throw error
+                    }
+                }
+            },
+            RECURRING_BUDGET_MS + 15000,
+        )
+        recurringLeaseAcquired = recurringLease.acquired
+    }
 
     for (const tournament of tournaments) {
         if (Date.now() - startedAt > TIME_BUDGET_MS) {
@@ -145,6 +204,9 @@ export async function GET(request: Request) {
         tournamentsProcessed,
         tournamentsSkipped,
         membersWarmed,
+        recurringTournamentsProcessed,
+        recurringEntriesUpdated,
+        recurringLeaseAcquired,
         durationMs: Date.now() - startedAt,
         timedOut,
         runAtUtc: new Date(startedAt).toISOString(),

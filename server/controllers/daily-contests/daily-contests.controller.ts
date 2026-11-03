@@ -28,6 +28,7 @@ function parse<T>(schema: {
 export class DailyContestsController {
     private readonly repo = new DailyContestsRepository();
     list(q: URLSearchParams) { return showcaseResponse(() => this.repo.list(parse(dailyListSchema, Object.fromEntries(q)))); }
+    featured() { return showcaseResponse(() => this.repo.featured()); }
     detail(id: string) { return showcaseResponse(() => this.repo.detail(id)); }
     myEntry(id: string, userId: string | null) { return showcaseResponse(() => { if (!userId)
         throw ApiError.unauthorized(); return this.repo.myEntry(id, userId); }); }

@@ -4,13 +4,15 @@ import {
     BASEBALL_LEAGUES,
     BASEBALL_LEAGUE_SLUGS,
     DEFAULT_BASEBALL_LEAGUE,
+    PRODUCT_BASEBALL_LEAGUES,
     getBaseballLeague,
     isSupportedBaseballLeague,
 } from '../league'
 
 describe('baseball league catalogue', () => {
-    it('exposes the six supported leagues', () => {
+    it('exposes the seven catalogue leagues', () => {
         expect([...BASEBALL_LEAGUE_SLUGS]).toEqual([
+            'winter-leagues',
             'mlb',
             'triple-a',
             'double-a',
@@ -22,7 +24,12 @@ describe('baseball league catalogue', () => {
 
     it('defaults to MLB', () => {
         expect(DEFAULT_BASEBALL_LEAGUE).toBe('mlb')
-        expect(BASEBALL_LEAGUES[0].slug).toBe('mlb')
+        expect(getBaseballLeague(DEFAULT_BASEBALL_LEAGUE)?.slug).toBe('mlb')
+    })
+
+    it('keeps Latin American leagues out of new product selections', () => {
+        expect(PRODUCT_BASEBALL_LEAGUES.map((l) => l.slug)).not.toContain('winter-leagues')
+        expect(BASEBALL_LEAGUE_SLUGS).toContain('winter-leagues')
     })
 
     it('recognises supported slugs and rejects everything else', () => {

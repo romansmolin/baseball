@@ -15,5 +15,5 @@ const buildKey = (params: FetchTournamentsParams) =>
     ] as const
 
 export function useTournamentsData(params: FetchTournamentsParams = {}) {
-    return useSWR(buildKey(params), () => fetchTournaments(params))
+    return useSWR(buildKey(params), () => fetchTournaments(params), { keepPreviousData: true })
 }

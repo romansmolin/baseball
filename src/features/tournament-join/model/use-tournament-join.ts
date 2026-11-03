@@ -96,14 +96,16 @@ export const useTournamentJoin = ({
         [leagues, tournament.leagueSlug],
     )
 
+    const isMixedLeagueContest = tournament.leagueSlug === 'north-america'
+
     const eligibleTeams = useMemo(
         () =>
             teams.filter(
                 (team) =>
-                    team.leagueSlug === tournament.leagueSlug &&
+                    (isMixedLeagueContest || team.leagueSlug === tournament.leagueSlug) &&
                     team.leagueMemberId === null,
             ),
-        [teams, tournament.leagueSlug],
+        [teams, tournament.leagueSlug, isMixedLeagueContest],
     )
 
     const status = useMemo<TournamentJoinStatus>(() => {

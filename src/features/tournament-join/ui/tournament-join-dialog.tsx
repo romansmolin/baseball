@@ -102,7 +102,7 @@ const DialogBody = ({
     }
 
     if (state.status === 'no-eligible-teams') {
-        return <NoEligibleTeamsState leagueName={state.league?.name ?? tournament.leagueSlug} />
+        return <NoEligibleTeamsState leagueName={state.league?.name ?? (tournament.leagueSlug === 'north-america' ? 'North American Leagues' : tournament.leagueSlug)} />
     }
 
     return <ConfirmState tournament={tournament} state={state} />

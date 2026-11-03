@@ -28,7 +28,8 @@ export class TournamentsRepository implements ITournamentsRepository {
             const where = this.buildWhere(filter)
             const orderBy = this.buildOrderBy(filter.status)
 
-            const [rows, total] = await Promise.all([
+            const countsWhere = this.buildWhere({ ...filter, leagueSlug: undefined })
+            const [rows, total, counts] = await Promise.all([
                 prisma.league.findMany({
                     where,
                     orderBy,
@@ -39,9 +40,10 @@ export class TournamentsRepository implements ITournamentsRepository {
                     },
                 }),
                 prisma.league.count({ where }),
+                prisma.league.groupBy({ by: ['leagueSlug'], where: countsWhere, _count: { _all: true } }),
             ])
 
-            return { items: rows, total }
+            return { items: rows, total, leagueCounts: Object.fromEntries(counts.map(row => [row.leagueSlug, row._count._all])) }
         } catch (error) {
             throw handleRepositoryError(error)
         }

@@ -7,6 +7,7 @@
 import { ApiError } from '../../../../../../server/errors/api.error'
 import { prisma } from '../../../../../../server/lib/prisma'
 import { isAuthorizedCron } from '../../../../../../server/shared/cron-auth.utils'
+import { hasRecurringTournamentTable } from '../../../../../../server/repositories/recurring-tournaments/recurring-schema'
 
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
@@ -17,14 +18,16 @@ export async function GET(request: Request) {
     }
 
     const now = new Date()
+    const recurringAvailable = await hasRecurringTournamentTable(prisma)
+    const ordinaryLeagueFilter = recurringAvailable ? { recurringTournament: { is: null } } : {}
 
     const draftingToInSeason = await prisma.league.updateMany({
-        where: { status: 'DRAFTING', startsAt: { lte: now } },
+        where: { status: 'DRAFTING', startsAt: { lte: now }, ...ordinaryLeagueFilter },
         data: { status: 'IN_SEASON' },
     })
 
     const inSeasonToCompleted = await prisma.league.updateMany({
-        where: { status: 'IN_SEASON', endsAt: { lte: now } },
+        where: { status: 'IN_SEASON', endsAt: { lte: now }, ...ordinaryLeagueFilter },
         data: { status: 'COMPLETED' },
     })
 
