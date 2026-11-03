@@ -1,5 +1,6 @@
 import type { PrismaClient } from '../../../src/generated/prisma/client'
 import { RecurringDemoRepository } from '../../repositories/recurring-tournaments/recurring-demo.repository'
+import { RecurringRepository } from '../../repositories/recurring-tournaments/recurring.repository'
 import type { MutationPermit, RecurringTournamentContext } from './recurring.types'
 import { planRecurringDemoEntries } from './recurring-demo-plan'
 
@@ -15,4 +16,17 @@ export async function applyDueRecurringDemoEntries(db: PrismaClient, input: { co
         if (batch.done || batch.waiting) break
     }
     return result
+}
+
+/** Adds the demo entries that have come due for series that have not started yet. */
+export async function fillUpcomingRecurringDemoEntries(db: PrismaClient, input: { now: Date; permit: MutationPermit; deadline: number }): Promise<number> {
+    const upcoming = await db.recurringTournament.findMany({ where: { startsAt: { gt: input.now } }, orderBy: { startsAt: 'asc' }, take: 12, select: { leagueId: true } })
+    const repository = new RecurringRepository(db)
+    let inserted = 0
+    for (const { leagueId } of upcoming) {
+        if (Date.now() + 500 >= input.deadline) break
+        const context = await repository.findByLeagueId(leagueId)
+        if (context) inserted += (await applyDueRecurringDemoEntries(db, { ...input, context })).inserted
+    }
+    return inserted
 }

@@ -56,6 +56,9 @@ export interface GetScheduleFilters {
     teamIds?: number[]
     league?: BaseballProviderLeague
     season?: number
+    // MLB Stats API game types, comma separated (R regular season, F/D/L/W postseason,
+    // S spring training). Omit to keep every type the API returns for the dates.
+    gameTypes?: string
     // Override the default schedule cache TTL (live scores need a short one).
     revalidateSeconds?: number
 }

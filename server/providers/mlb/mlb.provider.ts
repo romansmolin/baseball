@@ -243,6 +243,9 @@ export class MlbSportsProvider implements ISportsProvider {
         const teamKey = teamIds.length > 0 ? teamIds.join(',') : undefined
 
         let path = `/schedule?sportId=${sportId}&season=${season}&startDate=${startStr}&endDate=${endStr}`
+        if (filters.gameTypes) {
+            path += `&gameType=${encodeURIComponent(filters.gameTypes)}`
+        }
         if (teamKey) {
             path += `&teamId=${teamKey}`
         }

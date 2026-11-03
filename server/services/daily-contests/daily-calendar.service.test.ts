@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DailyCalendarService } from './daily-calendar.service'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
 
@@ -35,6 +35,27 @@ describe('DailyCalendarService North American publication', () => {
         const result = await new DailyCalendarService(makeProvider(), db as never).publishDailyContests({ now: new Date('2026-11-01T12:00:00Z'), lookaheadDays: 1 })
 
         expect(result.published).toBe(1)
-        expect(db.dailyContest.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: expect.objectContaining({ name: 'Daily Lineup · Nov 1, 2026', leagueSlug: 'north-america', locksAt: new Date(scheduledGame.gameDateUtc) }) }))
+        expect(db.dailyContest.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: expect.objectContaining({ name: expect.stringMatching(/ · Nov 1, 2026$/), leagueSlug: 'north-america', locksAt: new Date(scheduledGame.gameDateUtc) }) }))
+    })
+})
+
+describe('DailyCalendarService Winter Leagues source', () => {
+    afterEach(() => vi.unstubAllEnvs())
+    const winterProvider = () => ({
+        getSchedule: vi.fn(async ({ league, season }: { league?: string; season?: number }) => league === 'winter-leagues' && season === 2026 ? [scheduledGame] : []),
+        getTeams: vi.fn(async () => [{ id: 1, name: 'Home' }, { id: 2, name: 'Away' }]),
+        getPlayersByTeam: vi.fn(async () => roster),
+    } as unknown as ISportsProvider)
+
+    it('publishes a Winter Leagues slate only when CONTEST_WINTER_ENABLED is true', async () => {
+        const off = makeDb()
+        expect((await new DailyCalendarService(winterProvider(), off as never).publishDailyContests({ now: new Date('2026-11-01T12:00:00Z'), lookaheadDays: 1 })).published).toBe(0)
+        expect(off.dailyContest.upsert).not.toHaveBeenCalled()
+
+        vi.stubEnv('CONTEST_WINTER_ENABLED', 'true')
+        const on = makeDb()
+        const result = await new DailyCalendarService(winterProvider(), on as never).publishDailyContests({ now: new Date('2026-11-01T12:00:00Z'), lookaheadDays: 1 })
+        expect(result.published).toBe(1)
+        expect(on.dailyContest.upsert).toHaveBeenCalledWith(expect.objectContaining({ create: expect.objectContaining({ leagueSlug: 'winter-leagues', name: expect.stringMatching(/^Winter Leagues · .+ · Nov 1, 2026$/) }) }))
     })
 })

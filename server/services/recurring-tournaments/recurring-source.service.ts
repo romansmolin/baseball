@@ -1,5 +1,5 @@
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
-import { NORTH_AMERICA_CONTEST_LEAGUES } from '../../providers/contest-source-registry'
+import { CONTEST_GAME_TYPES, NORTH_AMERICA_CONTEST_LEAGUES } from '../../providers/contest-source-registry'
 import type { BaseballProviderLeague } from '@/shared/baseball'
 import type { DailyPlayer } from '@/shared/daily-contests'
 import { providerPositionToPoolPosition } from '@/shared/team-builder'
@@ -17,7 +17,12 @@ export interface SourceCheckpoint {
     historicalPlayers: DailyPlayer[]
     successfulScheduleQueries?: number
 }
-export type SourceInspection = { ok: true; snapshot: RecurringSourceSnapshot }
+/** Rosters and team names already read for another window of the same run. */
+export interface RosterSeed {
+    rosters: Record<string, DailyPlayer[]>
+    teamNames: Record<string, Record<string, string>>
+}
+export type SourceInspection = { ok: true; snapshot: RecurringSourceSnapshot; seed: RosterSeed }
     | { ok: false; reason: 'SOURCE_UNAVAILABLE' | 'EMPTY_WEEK' | 'INVALID_POOL' }
     | { ok: false; reason: 'INCOMPLETE_BATCH'; checkpoint: SourceCheckpoint }
 
@@ -38,7 +43,7 @@ function sourceForGame(window: RecurringWindow, game: RecurringGame): BaseballPr
 export async function inspectRecurringSource(
     provider: ISportsProvider,
     window: RecurringWindow,
-    options: { historical: boolean; checkpoint?: SourceCheckpoint; deadline?: number },
+    options: { historical: boolean; checkpoint?: SourceCheckpoint; deadline?: number; rosterSeed?: RosterSeed },
 ): Promise<SourceInspection> {
     const key = `${window.templateKey}:${window.sourceSlug}:${window.startsAt.toISOString()}:${window.endsAt.toISOString()}:${options.historical}`
     if (options.checkpoint && options.checkpoint.windowKey !== key) throw new Error('Source checkpoint belongs to a different window')
@@ -49,8 +54,8 @@ export async function inspectRecurringSource(
             phase: 'SCHEDULE',
             offset: 0,
             games: [],
-            rostersBySeasonAndTeam: {},
-            teamNamesBySeason: {},
+            rostersBySeasonAndTeam: { ...options.rosterSeed?.rosters },
+            teamNamesBySeason: { ...options.rosterSeed?.teamNames },
             historicalGameKeys: [],
             historicalPlayers: [],
             successfulScheduleQueries: 0,
@@ -71,7 +76,7 @@ export async function inspectRecurringSource(
                 if (!timeLeft()) return pending()
                 const { league, season } = queries[checkpoint.offset]
                 try {
-                    const games = await provider.getSchedule({ league, season, startDateUtc: window.startsAt, endDateUtc: window.endsAt })
+                    const games = await provider.getSchedule({ league, season, startDateUtc: window.startsAt, endDateUtc: window.endsAt, ...(window.sourceSlug === 'north-america' ? { gameTypes: CONTEST_GAME_TYPES } : {}) })
                     checkpoint.successfulScheduleQueries++
                     const seen = new Set(checkpoint.games.map(game => sourceGameKey(game.sourceLeagueSlug ?? window.sourceSlug, game.gamePk)))
                     for (const game of games) {
@@ -115,6 +120,7 @@ export async function inspectRecurringSource(
             for (; checkpoint.offset < teams.length; checkpoint.offset++) {
                 if (!timeLeft()) return pending()
                 const [keyForTeam, team] = teams[checkpoint.offset]
+                if (checkpoint.rostersBySeasonAndTeam[keyForTeam]?.length) continue
                 if (!checkpoint.teamNamesBySeason[`${team.league}:${team.season}`]) {
                     try {
                         const names = await provider.getTeams({ league: team.league, season: team.season })
@@ -198,9 +204,32 @@ export async function inspectRecurringSource(
                 awayTeamName: names[game.awayTeamId] ?? checkpoint.historicalPlayers.find(player => player.teamId === game.awayTeamId)?.teamName ?? game.awayTeamName,
             }
         })
-        return { ok: true, snapshot: { games, playerPool: pool, checkedAt: new Date().toISOString() } }
+        return {
+            ok: true,
+            snapshot: { games, playerPool: pool, checkedAt: new Date().toISOString() },
+            seed: { rosters: checkpoint.rostersBySeasonAndTeam, teamNames: checkpoint.teamNamesBySeason },
+        }
     } catch (error) {
         if (error instanceof Error && error.name === 'WorkDeadlineError') return pending()
         return { ok: false, reason: 'SOURCE_UNAVAILABLE' }
     }
+}
+
+/**
+ * Start of the first real game in the eligible leagues between two dates, so the
+ * publisher can skip windows that fall before the season starts. Returns null when
+ * no game exists in the range and undefined when the schedule could not be read.
+ */
+export async function firstContestGameAt(provider: ISportsProvider, from: Date, to: Date, source: RecurringWindow['sourceSlug'] = 'north-america'): Promise<number | null | undefined> {
+    const years = Array.from({ length: to.getUTCFullYear() - from.getUTCFullYear() + 1 }, (_, n) => from.getUTCFullYear() + n)
+    const winter = source === 'winter-leagues'
+    const seasons = winter ? [...new Set(years.flatMap(year => [year, year - 1]))] : years
+    const queries = (winter ? ['winter-leagues' as const] : NORTH_AMERICA_CONTEST_LEAGUES).flatMap(league => seasons.map(season => ({ league, season })))
+    const settled = await Promise.allSettled(queries.map(({ league, season }) =>
+        provider.getSchedule({ league, season, startDateUtc: from, endDateUtc: to, ...(winter ? {} : { gameTypes: CONTEST_GAME_TYPES }) })))
+    if (settled.every(result => result.status === 'rejected')) return undefined
+    const starts = settled.flatMap(result => result.status === 'fulfilled'
+        ? result.value.filter(game => game.status !== 'CANCELLED').map(game => Date.parse(game.gameDateUtc)).filter(at => at >= from.getTime())
+        : [])
+    return starts.length ? Math.min(...starts) : null
 }

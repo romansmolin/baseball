@@ -1,7 +1,7 @@
 import type { BaseballProviderLeague } from '@/shared/baseball'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
 import type { ProviderScheduledGame } from '../../providers/dto/provider-schedule.dto'
-import { NORTH_AMERICA_CONTEST_LEAGUES } from '../../providers/contest-source-registry'
+import { CONTEST_GAME_TYPES, NORTH_AMERICA_CONTEST_LEAGUES } from '../../providers/contest-source-registry'
 
 export interface DailyScheduledGame {
     game: ProviderScheduledGame
@@ -40,7 +40,7 @@ export async function loadNorthAmericanContestSchedule(
     const years = [...new Set([input.startDateUtc.getUTCFullYear(), input.endDateUtc.getUTCFullYear()])]
     const settled = await Promise.allSettled(NORTH_AMERICA_CONTEST_LEAGUES.flatMap(league =>
         years.map(async season => {
-            const games = await provider.getSchedule({ ...input, league, season })
+            const games = await provider.getSchedule({ ...input, league, season, gameTypes: CONTEST_GAME_TYPES })
             return games.map(game => ({ game, apiSeason: season, sourceLeagueSlug: league }))
         }),
     ))

@@ -4,6 +4,9 @@ import { prisma } from '../../lib/prisma'
 import { MlbSportsProvider } from '../../providers/mlb/mlb.provider'
 import {
     NORTH_AMERICA_CONTEST_SOURCE,
+    WINTER_CONTEST_SOURCE,
+    winterContestsEnabled,
+    type ContestSourceSlug,
 } from '../../providers/contest-source-registry'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
 import type { BaseballProviderLeague } from '@/shared/baseball'
@@ -11,7 +14,7 @@ import type { DailyGame, DailyPlayer } from '@/shared/daily-contests'
 import { providerPositionToPoolPosition } from '@/shared/team-builder'
 import { canPublishPool, dailyDate, dailyDateOffset } from './daily-rules'
 import { dailyContestName } from './daily-contest-names'
-import { loadDailySchedule, loadNorthAmericanContestSchedule } from './daily-schedule.service'
+import { loadDailySchedule, loadNorthAmericanContestSchedule, type DailyScheduledGame } from './daily-schedule.service'
 import { mapWithConcurrency } from '../../shared/concurrency.utils'
 import { isPrismaError } from '../../shared/db/prisma-error.utils'
 
@@ -43,7 +46,7 @@ function newYorkMidnightUtc(date: string): Date {
     return new Date(guess)
 }
 
-type ScheduledRow = Awaited<ReturnType<typeof loadNorthAmericanContestSchedule>>[number]
+type ScheduledRow = DailyScheduledGame
 
 export class DailyCalendarService {
     private readonly provider: ISportsProvider
@@ -96,14 +99,37 @@ export class DailyCalendarService {
         if (!rule) return { published: 0 }
 
         const today = dailyDate(now)
-        const earliestScheduleDate = newYorkMidnightUtc(today)
-        const lastCalendarDate = dailyDateOffset(now, lookaheadDays + 2)
-        const scheduleEnd = newYorkMidnightUtc(lastCalendarDate)
-        const scheduled = await loadNorthAmericanContestSchedule(this.provider, {
-            startDateUtc: earliestScheduleDate,
-            endDateUtc: scheduleEnd,
-        })
+        const range = { startDateUtc: newYorkMidnightUtc(today), endDateUtc: newYorkMidnightUtc(dailyDateOffset(now, lookaheadDays + 2)) }
+        const sources: { slug: ContestSourceSlug; load: () => Promise<ScheduledRow[]> }[] = [
+            { slug: NORTH_AMERICA_CONTEST_SOURCE, load: () => loadNorthAmericanContestSchedule(this.provider, range) },
+            ...(winterContestsEnabled(process.env)
+                ? [{ slug: WINTER_CONTEST_SOURCE, load: () => loadDailySchedule(this.provider, { ...range, league: 'winter-leagues' as const }) }]
+                : []),
+        ]
 
+        // A source whose schedule cannot be read must not stop the others from publishing.
+        let published = 0
+        let loaded = 0
+        let failure: unknown
+        for (const source of sources) {
+            let scheduled: ScheduledRow[]
+            try {
+                scheduled = await source.load()
+            } catch (error) {
+                if (error instanceof Error && error.name === 'WorkDeadlineError') throw error
+                failure ??= error
+                console.warn(`[daily-calendar] ${source.slug} schedule unavailable`, error)
+                continue
+            }
+            loaded++
+            published += await this.publishSlates(source.slug, scheduled, rule, now, lookaheadDays)
+        }
+        if (!loaded) throw failure
+        return { published }
+    }
+
+    private async publishSlates(leagueSlug: ContestSourceSlug, scheduled: ScheduledRow[], rule: { rules: unknown }, now: Date, lookaheadDays: number): Promise<number> {
+        const today = dailyDate(now)
         const sourceSeasons = new Map<string, BaseballProviderLeague>()
         const scheduledTeams = new Map<string, { teamId: number; season: number; league: BaseballProviderLeague }>()
         for (const row of scheduled) {
@@ -176,7 +202,7 @@ export class DailyCalendarService {
             assertWorkTime()
             const key = {
                 mode: 'LIVE' as const,
-                leagueSlug: NORTH_AMERICA_CONTEST_SOURCE,
+                leagueSlug,
                 contestDate: window.date,
                 slateKey: window.slateKey,
             }
@@ -221,7 +247,7 @@ export class DailyCalendarService {
                 where: { mode_leagueSlug_contestDate_slateKey: key },
                 create: {
                     ...key,
-                    name: dailyContestName(NORTH_AMERICA_CONTEST_SOURCE, window.date, window.slateKey),
+                    name: dailyContestName(leagueSlug, window.date, window.slateKey),
                     sourceDate: window.date,
                     locksAt,
                     scoringRule: JSON.parse(JSON.stringify(rule.rules)),
@@ -237,6 +263,6 @@ export class DailyCalendarService {
             if (created) published++
         }
 
-        return { published }
+        return published
     }
 }

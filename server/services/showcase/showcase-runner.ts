@@ -5,6 +5,8 @@ import { DailyScoringService } from '../daily-contests/daily-scoring.service'
 import { validateDailyLineup } from '../daily-contests/daily-rules'
 import { getSportsProvider } from '../../providers/sports-provider.factory'
 import { publishRecurringTournaments } from '../recurring-tournaments/recurring-publisher.service'
+import { recurringHorizonDays, recurringSources } from '../recurring-tournaments/recurring-calendar'
+import { fillUpcomingRecurringDemoEntries } from '../recurring-tournaments/recurring-demo.service'
 import type { SourceCheckpoint } from '../recurring-tournaments/recurring-source.service'
 import { chooseDemoLineup, dailyParticipants } from './demo-simulation'
 import { withShowcaseLease } from './showcase-lease'
@@ -24,6 +26,7 @@ export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetM
         const permit = showcaseMutationPermit('showcase:tick', leaseToken)
         let published = 0
         let recurringPublished = 0
+        let recurringDemoInserted = 0
         const summary = await runOfflineFirst(async () => {
         const profiles = await db.demoProfile.findMany({ orderBy: [{ datasetSeed: 'asc' }, { ordinal: 'asc' }] })
         const contests = await db.dailyContest.findMany({ where: { mode: 'LIVE', status: { in: ['OPEN', 'LOCKED'] } }, orderBy: { locksAt: 'asc' }, take: 20 })
@@ -88,6 +91,8 @@ export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetM
                     const recurringDeadline = Math.min(deadline - 3000, Date.now() + 20000)
                     const result = await withWorkDeadline(recurringDeadline, () => publishRecurringTournaments(db, getSportsProvider(), {
                         now,
+                        horizonDays: recurringHorizonDays(process.env),
+                        sources: recurringSources(process.env),
                         deadline: recurringDeadline,
                         checkpoint: recurringCursor?.checkpoint,
                         dryRun: false,
@@ -107,8 +112,11 @@ export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetM
             if (errors.length) throw new AggregateError(errors, 'Contest calendar update failed')
             await db.showcaseJob.upsert({ where: { key: 'showcase:calendar' }, create: { key: 'showcase:calendar', cursor: { at: now.getTime() } }, update: { cursor: { at: now.getTime() } } })
         }
+        if (process.env.CONTEST_PUBLISHERS_ENABLED === 'true' && timeLeft()) {
+            recurringDemoInserted = await fillUpcomingRecurringDemoEntries(db, { now, permit, deadline: Math.min(deadline - 1000, Date.now() + 15000) })
+        }
         })
-        return { ...summary, published, recurringPublished, durationMs: Date.now() - startedAt, timedOut: !timeLeft() }
+        return { ...summary, published, recurringPublished, recurringDemoInserted, durationMs: Date.now() - startedAt, timedOut: !timeLeft() }
     })) } catch (error) {
         if (error instanceof WorkDeadlineError || Date.now() >= deadline) return { enabled: true, timedOut: true, durationMs: Date.now() - deadline + budgetMs }
         throw error
