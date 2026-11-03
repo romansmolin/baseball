@@ -14,12 +14,10 @@ export async function promoteSeasonShowcaseToLive(db: PrismaClient, input: Promo
     }
 
     const seasonKey = `season-${input.season}`
-    const replayName = `MLB ${input.season} Replay Classic`
-    const liveName = `MLB ${input.season} Season Classic`
     const baseWhere = { leagueSlug: 'mlb', slateKey: seasonKey, status: 'COMPLETED' as const }
     const [replayContests, liveSeasonContests] = await Promise.all([
-        db.dailyContest.findMany({ where: { ...baseWhere, mode: 'REPLAY', name: replayName }, select: { id: true, contestDate: true, games: true } }),
-        db.dailyContest.findMany({ where: { ...baseWhere, mode: 'LIVE', name: liveName }, select: { id: true, contestDate: true, games: true } }),
+        db.dailyContest.findMany({ where: { ...baseWhere, mode: 'REPLAY' }, select: { id: true, contestDate: true, games: true } }),
+        db.dailyContest.findMany({ where: { ...baseWhere, mode: 'LIVE' }, select: { id: true, contestDate: true, games: true } }),
     ])
     const contests = [...replayContests, ...liveSeasonContests]
     if (!contests.length) throw new Error(`No completed showcase contests found for season ${input.season}`)
@@ -60,23 +58,7 @@ export async function promoteSeasonShowcaseToLive(db: PrismaClient, input: Promo
     }
     if (input.dryRun) return summary
 
-    for (const contest of replayContests) {
-        await db.$transaction(async tx => {
-            await tx.dailyContest.update({ where: { id: contest.id }, data: { mode: 'LIVE', name: liveName } })
-            await tx.$executeRaw(Prisma.sql`
-                UPDATE "CommunityEvent"
-                SET payload = jsonb_set(
-                    payload,
-                    '{detail}',
-                    to_jsonb(replace(payload->>'detail', ${replayName}, ${liveName})),
-                    true
-                )
-                WHERE "contestId" = ${contest.id}
-                  AND jsonb_typeof(payload) = 'object'
-                  AND payload->>'detail' LIKE ${`%${replayName}%`}
-            `)
-        })
-    }
+    await db.dailyContest.updateMany({ where: { id: { in: replayContests.map(contest => contest.id) } }, data: { mode: 'LIVE' } })
 
     await refreshManagerStandings('LIVE', input.now ?? new Date(), db)
     return { ...summary, dryRun: false }

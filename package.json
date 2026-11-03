@@ -18,7 +18,8 @@
     "showcase:promote-season-live": "node prisma/showcase-cli.mjs promote-season-showcase-to-live",
     "showcase:tick": "node prisma/showcase-cli.mjs tick-showcase",
     "showcase:prepare-archive": "node prisma/showcase-cli.mjs prepare-showcase-archive",
-    "showcase:retire-open-replays": "node prisma/showcase-cli.mjs retire-open-replays"
+    "showcase:retire-open-replays": "node prisma/showcase-cli.mjs retire-open-replays",
+    "showcase:rename-contests": "node prisma/showcase-cli.mjs rename-generic-contests"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

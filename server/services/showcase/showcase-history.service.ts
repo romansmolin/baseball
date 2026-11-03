@@ -1,4 +1,5 @@
 import type { PrismaClient, Prisma } from '../../../src/generated/prisma/client'
+import { dailyContestName } from '../daily-contests/daily-contest-names'
 import type { DailyPlayer } from '@/shared/daily-contests'
 import { DailyCalendarService } from '../daily-contests/daily-calendar.service'
 import { parseScoringRule } from '../scoring/scoring-rule.schema'
@@ -30,7 +31,7 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
         if (!archive.games.length || !canPublishPool(archive.players, 80000)) throw new Error(`Archive ${sourceDate} cannot support a complete contest`)
         const locksAt = new Date(`${contestDate}T19:00:00Z`)
         for (const box of archive.boxScores) await db.dailyGameSnapshot.upsert({ where: { gamePk: box.gamePk }, create: { gamePk: box.gamePk, leagueSlug: 'mlb', status: box.status, boxScore: json(box), complete: true }, update: {} })
-        const contest = await db.dailyContest.upsert({ where: { mode_leagueSlug_contestDate_slateKey: key }, create: { ...key, name: 'MLB Replay Classic', sourceDate, locksAt, games: json(archive.games), playerPool: json(archive.players), scoringRule: json(rule), createdAt: new Date(`${contestDate}T00:00:00Z`) }, update: {} })
+        const contest = await db.dailyContest.upsert({ where: { mode_leagueSlug_contestDate_slateKey: key }, create: { ...key, name: dailyContestName('mlb', contestDate), sourceDate, locksAt, games: json(archive.games), playerPool: json(archive.players), scoringRule: json(rule), createdAt: new Date(`${contestDate}T00:00:00Z`) }, update: {} })
         const selected = dailyParticipants(profiles.length, day, input.participantsPerDay)
         for (let batchStart = 0; batchStart < selected.length; batchStart += 500) {
             const rows = selected.slice(batchStart, batchStart + 500).map((index, n) => {
@@ -48,7 +49,7 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
                 const events = rows.flatMap(row => {
                     const entryId = byUser.get(row.profile.userId)
                     if (!entryId) throw new Error('Unable to resolve imported daily entry')
-                    return ([['ENTRY_JOINED', row.createdAt], ['LINEUP_LOCKED', locksAt]] as const).map(([kind, at]) => ({ sourceKey: `${kind.toLowerCase()}:${entryId}`, kind, userId: row.profile.userId, contestId: contest.id, occurredAt: at, payload: { detail: kind === 'ENTRY_JOINED' ? 'Joined MLB Replay Classic' : 'Daily lineup locked' } }))
+                    return ([['ENTRY_JOINED', row.createdAt], ['LINEUP_LOCKED', locksAt]] as const).map(([kind, at]) => ({ sourceKey: `${kind.toLowerCase()}:${entryId}`, kind, userId: row.profile.userId, contestId: contest.id, occurredAt: at, payload: { detail: kind === 'ENTRY_JOINED' ? `Joined ${contest.name}` : 'Daily lineup locked' } }))
                 })
                 await tx.communityEvent.createMany({ data: events, skipDuplicates: true })
                 return created.length
@@ -57,7 +58,7 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
         }
         await db.$transaction([
             db.dailyContest.update({ where: { id: contest.id }, data: { status: 'COMPLETED' } }),
-            db.communityEvent.upsert({ where: { sourceKey: `completed:${contest.id}` }, create: { sourceKey: `completed:${contest.id}`, kind: 'CONTEST_COMPLETED', contestId: contest.id, occurredAt: new Date(locksAt.getTime() + 300000), payload: { detail: 'MLB Replay Classic results are final' } }, update: {} }),
+            db.communityEvent.upsert({ where: { sourceKey: `completed:${contest.id}` }, create: { sourceKey: `completed:${contest.id}`, kind: 'CONTEST_COMPLETED', contestId: contest.id, occurredAt: new Date(locksAt.getTime() + 300000), payload: { detail: `${contest.name} results are final` } }, update: {} }),
         ])
     }
     await refreshManagerStandings('REPLAY', now, db)

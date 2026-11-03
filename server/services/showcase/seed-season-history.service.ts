@@ -1,4 +1,5 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { dailyContestName } from '../daily-contests/daily-contest-names'
 import { join } from 'node:path'
 import type { Prisma, PrismaClient } from '../../../src/generated/prisma/client'
 import type { DailyPlayer } from '@/shared/daily-contests'
@@ -203,7 +204,7 @@ export async function seedSeasonHistory(
             where: { mode_leagueSlug_contestDate_slateKey: key },
             create: {
                 ...key,
-                name: `MLB ${input.season} Replay Classic`,
+                name: dailyContestName('mlb', key.contestDate),
                 sourceDate: day.sourceDate,
                 locksAt: firstPitch,
                 status: 'LOCKED',
@@ -249,7 +250,7 @@ export async function seedSeasonHistory(
                     const entryId = entryByUser.get(entry.userId)
                     if (!entryId) throw new Error('Unable to resolve seeded season entry')
                     return [
-                        { sourceKey: `entry_joined:${entryId}`, kind: 'ENTRY_JOINED', userId: entry.userId, contestId: contest.id, occurredAt: entry.createdAt, payload: { detail: `Joined MLB ${input.season} Replay Classic` } },
+                        { sourceKey: `entry_joined:${entryId}`, kind: 'ENTRY_JOINED', userId: entry.userId, contestId: contest.id, occurredAt: entry.createdAt, payload: { detail: `Joined ${contest.name}` } },
                         { sourceKey: `lineup_locked:${entryId}`, kind: 'LINEUP_LOCKED', userId: entry.userId, contestId: contest.id, occurredAt: plan.locksAt, payload: { detail: 'Lineup locked for the completed MLB game day' } },
                     ]
                 })
@@ -263,7 +264,7 @@ export async function seedSeasonHistory(
             db.dailyContest.update({ where: { id: contest.id }, data: { status: 'COMPLETED' } }),
             db.communityEvent.upsert({
                 where: { sourceKey: `completed:${contest.id}` },
-                create: { sourceKey: `completed:${contest.id}`, kind: 'CONTEST_COMPLETED', contestId: contest.id, occurredAt: new Date(plan.locksAt.getTime() + 300000), payload: { detail: `MLB ${input.season} Replay Classic results are final` } },
+                create: { sourceKey: `completed:${contest.id}`, kind: 'CONTEST_COMPLETED', contestId: contest.id, occurredAt: new Date(plan.locksAt.getTime() + 300000), payload: { detail: `${contest.name} results are final` } },
                 update: {},
             }),
         ])
