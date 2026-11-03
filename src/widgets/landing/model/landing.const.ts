@@ -7,7 +7,7 @@ export const SCROLL_FRAMES_COUNT = 192
 export const SCROLL_FRAMES_EXT = 'webp'
 
 export const TICKER_ITEMS: TickerItem[] = [
-    { label: 'LIVE: CONTESTS ACROSS 6 LEAGUES' },
+    { label: 'LIVE: CONTESTS ACROSS NORTH AMERICAN LEAGUES' },
     { label: 'FREE-ENTRY CONTESTS EVERY DAY · CREDITS-ONLY ECONOMY' },
     { label: 'AUTOFILL · CAPTAIN ×1.5 · SAVE A LINEUP IN 30 SECONDS' },
 ]
@@ -37,8 +37,8 @@ export const HERO_STATS: HeroStat[] = [
 export const FEATURE_CARDS: FeatureCard[] = [
     { index: 1, label: 'Players', sub: 'Scout the pool', href: '/players' },
     { index: 2, label: 'Builder', sub: 'Slot the diamond', href: '/teams/new' },
-    { index: 3, label: 'Contests', sub: 'Daily · H2H · Weekly', href: '/tournaments' },
-    { index: 4, label: 'Leagues', sub: 'MLB · NPB · KBO · LVBP', href: '/leagues' },
+    { index: 3, label: 'Contests', sub: 'Daily · Weekend · Weekly', href: '/contests' },
+    { index: 4, label: 'Leagues', sub: 'MLB · Triple-A · Double-A', href: '/leagues' },
 ]
 
 export const LEAGUES_SHOWCASE: LeagueShowcase[] = [
@@ -48,13 +48,13 @@ export const LEAGUES_SHOWCASE: LeagueShowcase[] = [
         region: 'USA / Canada',
     },
     {
-        code: 'NPB',
-        name: 'Nippon Professional Baseball',
-        region: 'Japan',
+        code: 'Triple-A',
+        name: 'Triple-A Baseball',
+        region: 'North America',
     },
     {
-        code: 'KBO',
-        name: 'Korea Baseball Organization',
-        region: 'South Korea',
+        code: 'Double-A',
+        name: 'Double-A Baseball',
+        region: 'North America',
     },
 ]

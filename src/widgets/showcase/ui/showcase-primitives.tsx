@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { Button } from '@/shared/ui/button'
 import { cn } from '@/shared/utils'
-import type { DailyContestMode } from '@/shared/daily-contests'
+import type { DailyContestMode, DailyContestView } from '@/shared/daily-contests'
 import type { ManagerPeriod } from '@/shared/community'
 
 export const number = (value: number) => value.toLocaleString('en-US', { maximumFractionDigits: 1 })
@@ -21,8 +21,8 @@ export function ManagerAvatar({ name, image, className }: { name: string; image:
         {image && failedImage !== image ? <Image src={image} alt="" width={80} height={80} unoptimized className="size-full object-cover" onError={() => setFailedImage(image)} /> : name.split(' ').slice(0, 2).map(part => part[0]).join('').toUpperCase()}
     </span>
 }
-export const DemoBadge = () => <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-[11px] text-muted-foreground">Demo</span>
-export const ModePicker = ({ value, onChange }: { value: DailyContestMode; onChange: (mode: DailyContestMode) => void }) => <div className="flex flex-wrap gap-2" aria-label="Contest mode"><Button variant={value === 'LIVE' ? 'default' : 'outline'} aria-pressed={value === 'LIVE'} onClick={() => onChange('LIVE')}>Current games</Button><Button variant={value === 'REPLAY' ? 'default' : 'outline'} aria-pressed={value === 'REPLAY'} onClick={() => onChange('REPLAY')}>Replay</Button></div>
+export const ModePicker = ({ value, onChange }: { value: DailyContestMode; onChange: (mode: DailyContestMode) => void }) => <div className="flex flex-wrap gap-2" aria-label="Ranking source"><Button variant={value === 'LIVE' ? 'default' : 'outline'} aria-pressed={value === 'LIVE'} onClick={() => onChange('LIVE')}>Current games</Button><Button variant={value === 'REPLAY' ? 'default' : 'outline'} aria-pressed={value === 'REPLAY'} onClick={() => onChange('REPLAY')}>Historical results</Button></div>
+export const ContestViewPicker = ({ value, onChange }: { value: DailyContestView; onChange: (view: DailyContestView) => void }) => <div className="flex flex-wrap gap-2" aria-label="Contest view"><Button variant={value === 'current' ? 'default' : 'outline'} aria-pressed={value === 'current'} onClick={() => onChange('current')}>Current games</Button><Button variant={value === 'history' ? 'default' : 'outline'} aria-pressed={value === 'history'} onClick={() => onChange('history')}>History</Button></div>
 export const PeriodPicker = ({ value, onChange }: { value: ManagerPeriod; onChange: (period: ManagerPeriod) => void }) => <label className="text-xs text-muted-foreground">Period <select aria-label="Ranking period" className="ml-2 rounded-md border border-foreground/15 bg-card px-2 py-1.5 text-foreground" value={value} onChange={event => onChange(event.target.value as ManagerPeriod)}><option value="day">Today</option><option value="week">This week</option><option value="season">This season</option></select></label>
 export const LoadState = ({ loading, error, empty, children }: { loading?: boolean; error?: unknown; empty?: boolean; children: React.ReactNode }) => loading ? <div className="space-y-3 py-5" role="status" aria-label="Loading"><div className="h-5 w-2/3 animate-pulse rounded bg-muted" /><div className="h-5 w-1/2 animate-pulse rounded bg-muted" /></div> : error ? <p role="alert" className="py-5 text-sm text-destructive">Unable to load this section. Please try again.</p> : empty ? <p className="py-5 text-sm text-muted-foreground">No results yet. Check back after the next contest.</p> : <>{children}</>
 export function PageNavigation({ offset, total, onChange }: { offset: number; total: number; onChange: (offset: number) => void }) {

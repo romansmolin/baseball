@@ -28,8 +28,8 @@ export const SignInForm = () => {
     } = form
 
     return (
-        <form id="sign-in-form" onSubmit={handleSubmit(onSubmit)} autoComplete="off" className="h-full">
-            <FieldGroup className="h-full">
+        <form id="sign-in-form" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
+            <FieldGroup>
                 <FieldSet>
                     <FieldLegend className="font-audiowide text-2xl!">Welcome Back 👋</FieldLegend>
                     <FieldDescription>
@@ -61,7 +61,7 @@ export const SignInForm = () => {
                     </FieldGroup>
                 </FieldSet>
 
-                <FieldSet className="flex-1 flex-col gap-4 justify-end">
+                <FieldSet className="flex-col gap-4">
                     {errors.root?.message && (
                         <Field data-invalid>
                             <FieldError errors={[errors.root]} />

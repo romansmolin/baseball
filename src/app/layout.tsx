@@ -47,7 +47,7 @@ const anton = Anton({
 export const metadata: Metadata = {
     title: 'BaseballFantasy — Daily fantasy baseball, every league',
     description:
-        'Daily fantasy baseball across MLB, NPB, KBO, LVBP and more. Build lineups under the salary cap, captain your star, take down the field.',
+        'Fantasy baseball contests across MLB and affiliated North American leagues. Build lineups under the salary cap, captain your star, take down the field.',
 }
 
 // Nonce-based CSP needs per-request rendering; static HTML can't carry a nonce.

@@ -1,4 +1,5 @@
 export { ShowcaseOverview } from './ui/showcase-overview'
+export { TodayContestPanel } from './ui/today-contest-panel'
 export { DailyContestsCatalog } from './ui/daily-contests-catalog'
 export { ManagersDirectory } from './ui/managers-directory'
 export { ManagerProfilePanel } from './ui/manager-profile'

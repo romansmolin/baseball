@@ -4,7 +4,7 @@ import type { DailyContestMode } from '@/shared/daily-contests'
 import type { ManagerPeriod } from '@/shared/community'
 export function useShowcaseState(initialMode: DailyContestMode = 'LIVE') {
     const [mode, setMode] = useState<DailyContestMode>(initialMode)
-    const [period, setPeriod] = useState<ManagerPeriod>('week')
+    const [period, setPeriod] = useState<ManagerPeriod>('season')
     const [offset, setOffset] = useState(0)
     const changeMode = (value: DailyContestMode) => { setMode(value); setOffset(0) }
     const changePeriod = (value: ManagerPeriod) => { setPeriod(value); setOffset(0) }
