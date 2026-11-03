@@ -44,3 +44,8 @@ next-env.d.ts
 
 # Cached, reproducible showcase imports
 .showcase-data/
+
+# Local agent tooling and browser captures
+.agents/
+.superpowers/
+.playwright-mcp/
