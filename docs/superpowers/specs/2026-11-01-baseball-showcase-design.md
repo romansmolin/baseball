@@ -1,5 +1,7 @@
 # Daily baseball showcase — approved design
 
+Update 2026-11-01: upcoming Replay gameplay is superseded by the [winter baseball and contest history specification](2026-11-01-winter-baseball-and-history-design.md). Replay is read-only history; live winter contests use actual scheduled games.
+
 Approved in chat on 2026-11-01: use the first “Play every day” layout.
 
 ## Purpose
