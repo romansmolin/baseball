@@ -15,5 +15,5 @@ export const useDailyStandingsData = (id: string, offset = 0) => useSWR(['daily-
 export const useCommunityOverviewData = () => useSWR<Awaited<ReturnType<typeof fetchCommunityOverview>>, ApiError>('community-overview', fetchCommunityOverview, options)
 export const useCommunityActivityData = () => useSWR('community-activity', () => fetchCommunityActivity(), options)
 export const useManagersData = (filters: ManagerFilters) => useSWR(['managers', filters.mode, filters.period, filters.limit, filters.offset], () => fetchManagers(filters), options)
-export const useManagerData = (id: string) => useSWR(['manager', id], () => fetchManager(id), options)
+export const useManagerData = (id: string | null) => useSWR(id ? ['manager', id] : null, () => fetchManager(id!), options)
 export const useShowcaseRefresh = (authenticated: boolean) => useSWR(authenticated ? 'showcase-refresh' : null, refreshShowcase, { refreshInterval: 60000, refreshWhenHidden: false, revalidateOnFocus: false, shouldRetryOnError: false, dedupingInterval: 60000 })

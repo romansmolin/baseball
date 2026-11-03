@@ -28,7 +28,7 @@ export function UpcomingGames({ contestId, scheduleReady, now }: UpcomingGamesPr
     const loading = !scheduleReady || !now || (source.isLoading && !source.data)
 
     return (
-        <aside aria-labelledby="upcoming-games-title" className="min-w-0 xl:border-l xl:border-foreground/10 xl:pl-8 xl:pt-8">
+        <section aria-labelledby="upcoming-games-title" className="min-w-0">
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <h2 id="upcoming-games-title" className="text-base font-semibold">Upcoming games</h2>
@@ -45,6 +45,6 @@ export function UpcomingGames({ contestId, scheduleReady, now }: UpcomingGamesPr
                 </li>)}</ul>}
             {source.error && source.data && <p className="mt-2 text-xs text-muted-foreground" role="status">Couldn’t refresh the schedule. Showing saved games.</p>}
             <Link href={contestId ? `/contests/${encodeURIComponent(contestId)}` : '/games'} className="mt-3 inline-flex items-center gap-2 text-xs font-medium hover:text-primary">{contestId ? 'View contest' : 'All MLB games'}<ArrowRight className="size-3.5" aria-hidden="true" /></Link>
-        </aside>
+        </section>
     )
 }

@@ -3,7 +3,7 @@
 import { CheckmarkCircle02Icon, LockedIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 import { useOnboardingData } from '@/entities/dashboard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -19,27 +19,20 @@ export const OnboardingChecklist = ({ firstName, compact = false }: OnboardingCh
     const { data, error, isLoading, mutate } = useOnboardingData()
     const steps = data ?? []
     const doneCount = steps.filter((s) => s.status === 'done').length
-    const nextStep = steps.find((step) => step.status === 'next')
 
     if (compact) {
         if (steps.length > 0 && doneCount === steps.length) return null
 
         return (
-            <details className="group/onboarding mb-6 border-b border-foreground/10 pb-6">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-5 gap-y-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-                    <div className="min-w-0 flex-1 basis-56">
-                        <h2 className="break-words text-sm font-semibold sm:text-base">Welcome to BaseballFantasy, {firstName}</h2>
-                        <p className="mt-1 text-xs text-muted-foreground">{isLoading && !data ? 'Loading your progress…' : error && !data ? 'Couldn’t load your progress. Open to try again.' : nextStep ? `Your next step: ${nextStep.title.toLowerCase()}.` : 'Complete these steps to join your first tournament.'}</p>
-                    </div>
-                    <div className="flex items-center gap-5 text-xs">
-                        {steps.length > 0 && <div><span className="text-muted-foreground">{doneCount} of {steps.length} complete</span><div className="mt-2 flex gap-1" aria-hidden="true">{steps.map(step => <span key={step.id} className={cn('h-0.5 w-7 rounded-full', step.status === 'done' ? 'bg-primary' : 'bg-foreground/10')} />)}</div></div>}
-                        <span className="inline-flex min-h-8 items-center gap-2 font-medium">View steps<ChevronDown aria-hidden="true" className="size-3.5 transition-transform group-open/onboarding:rotate-180" /></span>
-                    </div>
-                </summary>
-                <div className="mt-5 grid gap-3 md:grid-cols-3">
-                    {isLoading && !data ? [0, 1, 2].map(i => <OnboardingStepSkeleton key={i} />) : error && !data ? <button type="button" className="w-fit text-left text-sm text-primary hover:underline" onClick={() => mutate()}>Retry loading progress →</button> : steps.map(step => <OnboardingStepCard key={step.id} step={step} />)}
+            <section aria-labelledby="get-started-title" className="rounded-xl border border-primary/30 bg-primary/[0.06] p-5">
+                <div className="flex items-baseline justify-between gap-3">
+                    <h2 id="get-started-title" className="text-base font-semibold">Get started</h2>
+                    {steps.length > 0 && <p className="text-sm text-muted-foreground">{doneCount} of {steps.length} done</p>}
                 </div>
-            </details>
+                {isLoading && !data ? <div className="mt-4 space-y-3" role="status" aria-label="Loading your progress">{[0, 1, 2].map(i => <div key={i} className="h-10 animate-pulse rounded bg-muted" />)}</div>
+                    : error && !data ? <button type="button" className="mt-3 text-sm font-medium text-primary hover:underline" onClick={() => mutate()}>We couldn’t load your progress. Try again</button>
+                    : <ol className="mt-4 space-y-4">{steps.map(step => <OnboardingStepRow key={step.id} step={step} />)}</ol>}
+            </section>
         )
     }
 
@@ -109,6 +102,30 @@ const OnboardingStepCard = ({ step }: { step: OnboardingStep }) => {
             {isNext && step.id === 'team' && <Link href="/teams/new" className="mt-1 text-xs font-medium text-primary hover:underline">Create a team →</Link>}
             {isNext && step.id === 'tournament' && <Link href="/tournaments" className="mt-1 text-xs font-medium text-primary hover:underline">Explore tournaments →</Link>}
         </div>
+    )
+}
+
+const OnboardingStepRow = ({ step }: { step: OnboardingStep }) => {
+    const isDone = step.status === 'done'
+    const isNext = step.status === 'next'
+
+    return (
+        <li className="flex gap-3">
+            <span className={cn(
+                'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                isDone && 'bg-primary text-primary-foreground',
+                isNext && 'border-2 border-primary text-primary',
+                step.status === 'locked' && 'bg-muted text-muted-foreground',
+            )}>
+                {isDone ? <Check className="size-3.5" aria-hidden="true" /> : step.index}
+            </span>
+            <span className="min-w-0">
+                <span className={cn('block text-sm font-medium', step.status === 'locked' && 'text-muted-foreground')}>{step.title}</span>
+                {!isDone && <span className="mt-0.5 block text-sm text-muted-foreground">{step.description}</span>}
+                {isNext && step.id === 'team' && <Link href="/teams/new" className="mt-1 inline-block text-sm font-medium text-primary hover:underline">Create a team</Link>}
+                {isNext && step.id === 'tournament' && <Link href="/tournaments" className="mt-1 inline-block text-sm font-medium text-primary hover:underline">Explore tournaments</Link>}
+            </span>
+        </li>
     )
 }
 

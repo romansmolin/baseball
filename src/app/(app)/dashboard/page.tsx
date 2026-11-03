@@ -44,5 +44,5 @@ export default async function DashboardPage() {
         }
     }
 
-    return <DashboardView userName={session?.user.name ?? ''} view={view} showcaseEnabled={showcaseEnabled()} />
+    return <DashboardView userId={userId} userName={session?.user.name ?? ''} view={view} showcaseEnabled={showcaseEnabled()} />
 }
