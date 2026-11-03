@@ -97,6 +97,11 @@ afterEach(() => {
 describe('MlbSportsProvider — league awareness', () => {
     const provider = new MlbSportsProvider()
 
+    it('treats an omitted roster from the real upstream response as unavailable', async () => {
+        vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ teamId: 687, rosterType: 'active', link: '/api/v1/teams/687/roster' })))
+        await expect(provider.getPlayersByTeam(687, { league: 'winter-leagues', season: 2026 })).resolves.toEqual([])
+    })
+
     it('defaults to sportId 1 (MLB) when no league is passed', async () => {
         await provider.getTeams({ season: 2026 })
         expect(fetchedUrls[0]).toContain('sportId=1')
@@ -177,5 +182,91 @@ describe('MlbSportsProvider — league awareness', () => {
             teamName: 'Test Sox',
             teamAbbreviation: 'TSX',
         })
+    })
+
+    it('caps player pages at ten and batches season stats only for each page', async () => {
+        const people = Array.from({ length: 12 }, (_, index) => ({
+            id: 910000 + index,
+            fullName: `Player ${String(index).padStart(2, '0')}`,
+            primaryPosition: { abbreviation: 'SP' },
+            active: true,
+        }))
+        const statsRequests: URL[] = []
+        vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+            fetchedUrls.push(url)
+            const parsed = new URL(url)
+            if (parsed.pathname.endsWith('/sports/1/players')) {
+                return jsonResponse({ people })
+            }
+            if (parsed.pathname.endsWith('/teams')) return jsonResponse({ teams: [] })
+            if (parsed.pathname.endsWith('/people')) {
+                statsRequests.push(parsed)
+                const ids = (parsed.searchParams.get('personIds') ?? '').split(',').map(Number)
+                return jsonResponse({
+                    people: ids.map((id) => id === 910001 ? ({ id }) : ({
+                        id,
+                        stats: [
+                            { group: { displayName: 'hitting' }, splits: [{ stat: { avg: '.275', homeRuns: 4, rbi: 12 } }] },
+                            { group: { displayName: 'pitching' }, splits: [{ stat: { era: '2.50', wins: 2, strikeOuts: 18 } }] },
+                        ],
+                    })),
+                })
+            }
+            return jsonResponse({})
+        }))
+
+        const firstPage = await provider.getPlayers({ season: 2026, limit: 100, offset: 0 })
+        const secondPage = await provider.getPlayers({ season: 2026, limit: 10, offset: 10 })
+
+        expect(firstPage.items).toHaveLength(10)
+        expect(secondPage.items).toHaveLength(2)
+        expect(firstPage.items.map((player) => player.id)).not.toEqual(
+            expect.arrayContaining(secondPage.items.map((player) => player.id)),
+        )
+        expect(firstPage.items[0]).toMatchObject({
+            statsSeason: 2026,
+            battingStats: { avg: '.275', homeRuns: 4, rbi: 12 },
+            pitchingStats: { era: '2.50', wins: 2, strikeOuts: 18 },
+        })
+        expect(firstPage.items[1].battingStats).toBeUndefined()
+        expect(firstPage.items[1].pitchingStats).toBeUndefined()
+        expect(statsRequests).toHaveLength(2)
+        expect(statsRequests[0].searchParams.get('personIds')?.split(',')).toHaveLength(10)
+        expect(statsRequests[1].searchParams.get('personIds')?.split(',')).toHaveLength(2)
+        expect(statsRequests[0].searchParams.get('personIds')?.split(',').map(Number)).toEqual(
+            firstPage.items.map((player) => player.id),
+        )
+        expect(statsRequests[0].searchParams.get('hydrate')).toContain('season=2026')
+    })
+
+    it('applies position and availability filters before computing a page', async () => {
+        const people = Array.from({ length: 12 }, (_, index) => ({
+            id: 920000 + index,
+            fullName: `Player ${String(index).padStart(2, '0')}`,
+            primaryPosition: { abbreviation: index % 2 === 0 ? 'SP' : '1B' },
+            active: index % 2 === 0,
+        }))
+        vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+            fetchedUrls.push(url)
+            const parsed = new URL(url)
+            if (parsed.pathname.endsWith('/sports/1/players')) return jsonResponse({ people })
+            if (parsed.pathname.endsWith('/teams')) return jsonResponse({ teams: [] })
+            if (parsed.pathname.endsWith('/people')) {
+                const ids = (parsed.searchParams.get('personIds') ?? '').split(',').map(Number)
+                return jsonResponse({ people: ids.map((id) => ({ id })) })
+            }
+            return jsonResponse({})
+        }))
+
+        const page = await provider.getPlayers({
+            season: 2026,
+            positionGroup: 'P',
+            active: true,
+            limit: 2,
+            offset: 1,
+        })
+
+        expect(page.total).toBe(6)
+        expect(page.items.map((player) => player.id)).toEqual([920002, 920004])
     })
 })

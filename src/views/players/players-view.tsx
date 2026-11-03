@@ -7,6 +7,7 @@ import {
     PlayersEmptyState,
     PlayersHeader,
     PlayersList,
+    PlayersPagination,
     PlayersSidebar,
     PlayersToolbar,
     PlayersViewLayout,
@@ -35,14 +36,30 @@ export const PlayersView = () => {
         )
     } else if (hasResults) {
         content = (
-            <PlayersList
-                players={state.visiblePlayers}
-                leaguesBySlug={leaguesBySlug}
-                onSelect={state.setSelectedPlayerId}
-            />
+            <>
+                <PlayersList
+                    players={state.visiblePlayers}
+                    leaguesBySlug={leaguesBySlug}
+                    onSelect={state.setSelectedPlayerId}
+                />
+                <PlayersPagination
+                    offset={state.offset}
+                    total={state.totalPlayers}
+                    onChange={state.setOffset}
+                />
+            </>
         )
     } else {
-        content = <PlayersEmptyState onClearFilters={state.clearFilters} />
+        content = (
+            <>
+                <PlayersEmptyState onClearFilters={state.clearFilters} />
+                <PlayersPagination
+                    offset={state.offset}
+                    total={state.totalPlayers}
+                    onChange={state.setOffset}
+                />
+            </>
+        )
     }
 
     return (
@@ -52,7 +69,6 @@ export const PlayersView = () => {
                 <PlayersSidebar
                     leagues={state.leagues}
                     playersByLeague={state.playersByLeague}
-                    playersByStatus={state.playersByStatus}
                     totalPlayers={state.totalPlayers}
                     search={state.search}
                     league={state.league}
@@ -65,9 +81,7 @@ export const PlayersView = () => {
             toolbar={
                 <PlayersToolbar
                     position={state.position}
-                    sortKey={state.sortKey}
                     onPositionChange={state.setPosition}
-                    onSortChange={state.setSortKey}
                 />
             }
             content={content}

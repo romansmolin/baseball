@@ -1,5 +1,7 @@
 import type { Position } from '@/shared/sports'
 
+import type { PlayerSeasonStatLine } from '../model/types'
+
 // Wire shape of `GET /api/players` — mirrors the server's ProviderPlayer DTO.
 // Never used outside this api/ folder.
 export interface ProviderPlayerDto {
@@ -18,6 +20,9 @@ export interface ProviderPlayerDto {
     jerseyNumber: string | null
     photoUrl: string | null
     active: boolean
+    statsSeason: number
+    battingStats?: PlayerSeasonStatLine
+    pitchingStats?: PlayerSeasonStatLine
 }
 
 export interface PlayersListResponseDto {

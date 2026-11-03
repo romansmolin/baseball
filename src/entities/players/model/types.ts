@@ -20,7 +20,12 @@ export interface PlayerModel {
     jerseyNumber: string | null
     photoUrl: string | null
     active: boolean
+    statsSeason: number
+    battingStats?: PlayerSeasonStatLine
+    pitchingStats?: PlayerSeasonStatLine
 }
+
+export type PlayerSeasonStatLine = Record<string, string | number>
 
 export interface PlayersPage {
     league: SupportedBaseballLeague

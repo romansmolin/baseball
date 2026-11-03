@@ -1,8 +1,10 @@
 export { PlayerDetailDrawer } from './ui/player-detail-drawer'
 export { PlayerRow } from './ui/player-row'
+export { PlayerAvatar } from './ui/player-avatar'
 export { PlayersEmptyState } from './ui/players-empty-state'
 export { PlayersHeader } from './ui/players-header'
 export { PlayersList } from './ui/players-list'
+export { PlayersPagination } from './ui/players-pagination'
 export { PlayersSidebar } from './ui/players-sidebar'
 export { PlayersToolbar } from './ui/players-toolbar'
 export { PlayersViewLayout } from './ui/players-view-layout'
@@ -16,6 +18,5 @@ export type {
     Position,
     PositionFilter,
     PositionGroup,
-    SortKey,
     StatusFilter,
 } from './model/player.type'

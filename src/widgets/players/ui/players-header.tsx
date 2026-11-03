@@ -9,7 +9,7 @@ export const PlayersHeader = ({ totalPlayers }: PlayersHeaderProps) => (
             <p className="mt-1 text-sm text-muted-foreground">
                 Scout the pool —{' '}
                 <span className="font-medium text-foreground">{totalPlayers}</span>
-                {' players, stats, injuries & transfers.'}
+                {' players and official season statistics.'}
             </p>
         </div>
     </div>

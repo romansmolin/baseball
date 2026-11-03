@@ -2,6 +2,7 @@ export const MLB_REVALIDATE = {
     teams: 86400,
     team: 86400,
     players: 21600,
+    playerStats: 21600,
     person: 43200,
     roster: 3600,
     schedule: 900,
@@ -19,6 +20,7 @@ export const mlbTags = {
     teams: (sportId: number, season: number) => `mlb:teams:${sportId}:${season}`,
     team: (id: number, season: number) => `mlb:team:${id}:${season}`,
     players: (sportId: number, season: number) => `mlb:players:${sportId}:${season}`,
+    playerStats: (id: number, season: number) => `mlb:player-stats:${id}:${season}`,
     person: (id: number) => `mlb:person:${id}`,
     roster: (teamId: number, season: number) => `mlb:roster:${teamId}:${season}`,
     schedule: (sportId: number, startISO: string, endISO: string, teamKey?: string) =>

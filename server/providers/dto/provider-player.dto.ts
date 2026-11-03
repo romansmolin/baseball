@@ -18,11 +18,18 @@ export interface ProviderPlayer {
     jerseyNumber: string | null
     photoUrl: string | null
     active: boolean
+    statsSeason?: number
+    battingStats?: PlayerSeasonStatLine
+    pitchingStats?: PlayerSeasonStatLine
 }
+
+export type PlayerSeasonStatLine = Record<string, string | number>
 
 export interface ProviderPlayerFilters extends PaginationParams {
     teamId?: number
     position?: Position
+    positionGroup?: import('../../../src/shared/sports').PositionGroup
+    active?: boolean
     search?: string
     season?: number
     league?: SupportedBaseballLeague

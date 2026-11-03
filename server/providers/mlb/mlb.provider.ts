@@ -1,4 +1,5 @@
 import type { SupportedBaseballLeague } from '../../../src/shared/baseball'
+import { POSITION_GROUP } from '../../../src/shared/sports'
 import { env } from '../../lib/env'
 import type { Paginated } from '../dto/provider-pagination.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from '../dto/provider-player.dto'
@@ -34,8 +35,8 @@ import type { MlbRawRosterResponse } from './types/mlb-roster.raw'
 import type { MlbRawScheduleResponse } from './types/mlb-schedule.raw'
 import type { MlbRawTeamsResponse } from './types/mlb-team.raw'
 
-const DEFAULT_LIMIT = 50
-const MAX_LIMIT = 200
+const DEFAULT_LIMIT = 10
+const MAX_LIMIT = 10
 
 // The MLB Stats API serves MLB *and* every Minor League level from the same
 // host — the only thing that changes per level is the `sportId` query
@@ -104,25 +105,48 @@ export class MlbSportsProvider implements ISportsProvider {
 
         const teamLookup = await this.buildTeamLookup(season, filters.league)
 
-        let players = data.people.map((person) =>
-            mapMlbPersonToProviderPlayer(person, { teamLookup }),
-        )
+        let players = data.people.map((person) => ({
+            raw: person,
+            player: mapMlbPersonToProviderPlayer(person, { teamLookup, season }),
+        }))
 
         if (filters.teamId != null) {
-            players = players.filter((p) => p.teamId === filters.teamId)
+            players = players.filter(({ player }) => player.teamId === filters.teamId)
         }
         if (filters.position) {
-            players = players.filter((p) => p.primaryPosition === filters.position)
+            players = players.filter(({ player }) => player.primaryPosition === filters.position)
+        }
+        if (filters.positionGroup) {
+            players = players.filter(
+                ({ player }) => POSITION_GROUP[player.primaryPosition] === filters.positionGroup,
+            )
+        }
+        if (filters.active != null) {
+            players = players.filter(({ player }) => player.active === filters.active)
         }
         if (filters.search) {
             const needle = filters.search.toLowerCase()
-            players = players.filter((p) => p.fullName.toLowerCase().includes(needle))
+            players = players.filter(({ player }) =>
+                `${player.fullName} ${player.teamName ?? ''}`.toLowerCase().includes(needle),
+            )
         }
 
         const total = players.length
         const limit = clampLimit(filters.limit)
         const offset = Math.max(0, filters.offset ?? 0)
-        const items = players.slice(offset, offset + limit)
+        const page = players
+            .sort((a, b) => a.player.fullName.localeCompare(b.player.fullName))
+            .slice(offset, offset + limit)
+        const seasonStats = page.length
+            ? await this.hydratePlayerSeasonStats(
+                  page.map(({ player }) => player.id),
+                  season,
+              )
+            : new Map()
+        const items = page.map(({ raw, player }) => {
+            const stats = seasonStats.get(player.id)
+            return mapMlbPersonToProviderPlayer({ ...raw, stats: stats?.stats }, { teamLookup, season })
+        })
 
         return { items, total, limit, offset }
     }
@@ -179,7 +203,7 @@ export class MlbSportsProvider implements ISportsProvider {
             tags: [mlbTags.roster(teamId, season)],
         })
 
-        if (roster.roster.length === 0) return []
+        if (!Array.isArray(roster.roster) || roster.roster.length === 0) return []
 
         const team = await this.getTeamById(teamId, { season, league: opts.league })
         const teamLookup = team ? new Map<number, ProviderTeam>([[team.id, team]]) : undefined
@@ -307,6 +331,21 @@ export class MlbSportsProvider implements ISportsProvider {
         }
 
         return result
+    }
+
+    private async hydratePlayerSeasonStats(
+        ids: number[],
+        season: number,
+    ): Promise<Map<number, MlbRawPerson>> {
+        const params = new URLSearchParams({
+            personIds: ids.join(','),
+            hydrate: `stats(group=[hitting,pitching],type=[season],season=${season})`,
+        })
+        const data = await mlbFetch<MlbRawPeopleResponse>(`/people?${params.toString()}`, {
+            revalidate: MLB_REVALIDATE.playerStats,
+            tags: ids.map((id) => mlbTags.playerStats(id, season)),
+        })
+        return new Map(data.people.map((person) => [person.id, person]))
     }
 }
 

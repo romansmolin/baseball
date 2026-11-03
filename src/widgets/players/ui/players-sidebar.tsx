@@ -6,17 +6,11 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { cn } from '@/shared/utils'
 
 import { AVAILABILITY, AVAILABILITY_ORDER } from '../model/player.type'
-import type {
-    AvailabilityStatus,
-    League,
-    LeagueFilter,
-    StatusFilter,
-} from '../model/player.type'
+import type { League, LeagueFilter, StatusFilter } from '../model/player.type'
 
 interface PlayersSidebarProps {
     leagues: League[]
     playersByLeague: Map<string, number>
-    playersByStatus: Map<string, number>
     totalPlayers: number
     search: string
     league: LeagueFilter
@@ -29,7 +23,6 @@ interface PlayersSidebarProps {
 export const PlayersSidebar = ({
     leagues,
     playersByLeague,
-    playersByStatus,
     totalPlayers,
     search,
     league,
@@ -65,7 +58,7 @@ export const PlayersSidebar = ({
                             active={league === lg.slug}
                             onClick={() => onLeagueChange(lg.slug)}
                             label={lg.name}
-                            count={playersByLeague.get(lg.slug) ?? 0}
+                            count={playersByLeague.get(lg.slug)}
                             leading={
                                 <span
                                     className="size-2 rounded-full"
@@ -90,13 +83,12 @@ export const PlayersSidebar = ({
                         leading={null}
                         bold
                     />
-                    {AVAILABILITY_ORDER.map((s: AvailabilityStatus) => (
+                    {AVAILABILITY_ORDER.map((s) => (
                         <FilterRow
                             key={s}
                             active={status === s}
                             onClick={() => onStatusChange(s)}
                             label={AVAILABILITY[s].label}
-                            count={playersByStatus.get(s) ?? 0}
                             leading={
                                 <span
                                     className="size-2 rounded-full"
@@ -122,7 +114,7 @@ const FilterRow = ({
     active: boolean
     onClick: () => void
     label: string
-    count: number
+    count?: number
     leading: React.ReactNode
     bold?: boolean
 }) => (
@@ -142,13 +134,13 @@ const FilterRow = ({
             {leading}
             {label}
         </span>
-        <span
+        {count != null && <span
             className={cn(
                 'text-xs',
                 active && bold ? 'text-primary/70' : 'text-muted-foreground',
             )}
         >
             {count}
-        </span>
+        </span>}
     </button>
 )

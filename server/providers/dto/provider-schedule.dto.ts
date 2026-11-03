@@ -1,4 +1,4 @@
-import type { SupportedBaseballLeague } from '../../../src/shared/baseball'
+import type { BaseballProviderLeague } from '../../../src/shared/baseball'
 
 // Provider-agnostic shapes for game schedule + box score data. Mirrors what
 // the MLB Stats API exposes today but stays decoupled from raw vendor types.
@@ -54,7 +54,7 @@ export interface GetScheduleFilters {
     // Restrict to these teams' games (MLB Stats API accepts a teamId list).
     // Takes precedence over `teamId` when both are set.
     teamIds?: number[]
-    league?: SupportedBaseballLeague
+    league?: BaseballProviderLeague
     season?: number
     // Override the default schedule cache TTL (live scores need a short one).
     revalidateSeconds?: number

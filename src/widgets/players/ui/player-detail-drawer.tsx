@@ -8,10 +8,8 @@ import { cn } from '@/shared/utils'
 
 import { AVAILABILITY } from '../model/player.type'
 import type { DrawerTab, League, Player } from '../model/player.type'
-import { PlayerInjuriesTab } from './tabs/player-injuries-tab'
-import { PlayerMetricsTab } from './tabs/player-metrics-tab'
+import { PlayerAvatar } from './player-avatar'
 import { PlayerStatsTab } from './tabs/player-stats-tab'
-import { PlayerTransfersTab } from './tabs/player-transfers-tab'
 
 interface PlayerDetailDrawerProps {
     player: Player | null
@@ -21,20 +19,7 @@ interface PlayerDetailDrawerProps {
     onTabChange: (tab: DrawerTab) => void
 }
 
-const TABS: { value: DrawerTab; label: string }[] = [
-    { value: 'stats', label: 'Stats' },
-    { value: 'injuries', label: 'Injuries' },
-    { value: 'transfers', label: 'Transfers' },
-    { value: 'metrics', label: 'Metrics' },
-]
-
-const initials = (name: string) =>
-    name
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
+const TABS: { value: DrawerTab; label: string }[] = [{ value: 'stats', label: 'Season stats' }]
 
 const hexA = (hex: string, a: number) => {
     const n = parseInt(hex.slice(1), 16)
@@ -127,11 +112,13 @@ const DrawerContent = ({
                 </button>
                 <div className="px-6">
                     <div className="-mt-8 flex items-end gap-4">
-                        <span
-                            className="relative flex size-18 shrink-0 items-center justify-center rounded-2xl border-4 border-card font-anton text-2xl shadow-sm"
-                            style={{ backgroundColor: hexA(color, 0.15), color }}
-                        >
-                            {initials(player.name)}
+                        <span className="relative">
+                            <PlayerAvatar
+                                name={player.name}
+                                photoUrl={player.photoUrl}
+                                color={color}
+                                className="size-18 rounded-2xl border-4 border-card text-2xl shadow-sm"
+                            />
                             <span
                                 className="absolute -right-1 -bottom-1 size-4 rounded-full border-2 border-card"
                                 style={{ backgroundColor: availability.dot }}
@@ -178,11 +165,6 @@ const DrawerContent = ({
                     </span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                    <StatTile label="Proj. pts" value={player.proj.toFixed(1)} accent />
-                    <StatTile label="Avg pts" value={player.avg.toFixed(1)} />
-                    <StatTile label="Owned" value={`${player.own}%`} />
-                </div>
             </div>
 
             <div className="mt-4 flex shrink-0 gap-1 border-b border-foreground/10 px-6">
@@ -208,28 +190,8 @@ const DrawerContent = ({
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5">
-                {drawerTab === 'stats' && <PlayerStatsTab player={player} />}
-                {drawerTab === 'injuries' && <PlayerInjuriesTab player={player} />}
-                {drawerTab === 'transfers' && <PlayerTransfersTab player={player} />}
-                {drawerTab === 'metrics' && <PlayerMetricsTab player={player} league={league} />}
+                <PlayerStatsTab player={player} />
             </div>
         </>
     )
 }
-
-const StatTile = ({
-    label,
-    value,
-    accent = false,
-}: {
-    label: string
-    value: string
-    accent?: boolean
-}) => (
-    <div className="rounded-xl bg-muted/60 p-3">
-        <div className={cn('font-anton text-2xl leading-none', accent && 'text-primary')}>
-            {value}
-        </div>
-        <div className="mt-1 text-[11px] text-muted-foreground">{label}</div>
-    </div>
-)

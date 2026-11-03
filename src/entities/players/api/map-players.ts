@@ -23,5 +23,8 @@ export function mapPlayerDtoToModel(
         jerseyNumber: dto.jerseyNumber,
         photoUrl: dto.photoUrl,
         active: dto.active,
+        statsSeason: dto.statsSeason,
+        battingStats: dto.battingStats,
+        pitchingStats: dto.pitchingStats,
     }
 }

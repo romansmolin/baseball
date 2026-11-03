@@ -12,6 +12,7 @@ export interface MapPersonContext {
     teamLookup?: Map<number, ProviderTeam>
     rosterEntry?: MlbRawRosterEntry
     teamId?: number
+    season?: number
 }
 
 export function mapMlbPersonToProviderPlayer(
@@ -39,6 +40,23 @@ export function mapMlbPersonToProviderPlayer(
         jerseyNumber: ctx.rosterEntry?.jerseyNumber ?? raw.primaryNumber ?? null,
         photoUrl: `https://midfield.mlbstatic.com/v1/people/${raw.id}/spots/120`,
         active: raw.active ?? true,
+        statsSeason: ctx.season,
+        ...mapSeasonStats(raw.stats),
+    }
+}
+
+function mapSeasonStats(
+    groups: MlbRawPerson['stats'],
+): Pick<ProviderPlayer, 'battingStats' | 'pitchingStats'> {
+    const statsFor = (groupName: string) => {
+        const group = groups?.find((item) => item.group?.displayName?.toLowerCase() === groupName)
+        const stat = group?.splits?.[0]?.stat
+        return stat && Object.keys(stat).length > 0 ? stat : undefined
+    }
+
+    return {
+        battingStats: statsFor('hitting'),
+        pitchingStats: statsFor('pitching'),
     }
 }
 

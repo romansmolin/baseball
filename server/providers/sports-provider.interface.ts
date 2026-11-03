@@ -1,4 +1,4 @@
-import type { SupportedBaseballLeague } from '../../src/shared/baseball'
+import type { BaseballProviderLeague } from '../../src/shared/baseball'
 
 import type { Paginated } from './dto/provider-pagination.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from './dto/provider-player.dto'
@@ -17,23 +17,23 @@ export type RosterType = 'active' | '40Man' | 'fullSeason'
 export interface GetTeamsFilters {
     season?: number
     activeOnly?: boolean
-    league?: SupportedBaseballLeague
+    league?: BaseballProviderLeague
 }
 
 export interface GetTeamByIdOptions {
     season?: number
-    league?: SupportedBaseballLeague
+    league?: BaseballProviderLeague
 }
 
 export interface GetPlayersByTeamOptions {
     season?: number
     rosterType?: RosterType
-    league?: SupportedBaseballLeague
+    league?: BaseballProviderLeague
 }
 
 export interface GetBoxScoreOptions {
     deadline?: number
-    league?: SupportedBaseballLeague
+    league?: BaseballProviderLeague
 }
 
 export interface ProviderGameRoster { gamePk: number; players: import('../../src/shared/daily-contests').DailyPlayer[] }

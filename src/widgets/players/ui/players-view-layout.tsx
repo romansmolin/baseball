@@ -14,7 +14,7 @@ export const PlayersViewLayout = ({
     drawer,
 }: PlayersViewLayoutProps) => (
     <>
-        <main className="container mx-auto max-w-6xl px-6 py-6">
+        <main className="container mx-auto max-w-7xl px-6 py-6">
             {header}
             <div className="flex gap-6">
                 {sidebar}

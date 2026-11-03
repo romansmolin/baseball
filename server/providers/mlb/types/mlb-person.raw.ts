@@ -18,6 +18,12 @@ export interface MlbRawPerson {
     pitchHand?: { code?: string; description?: string }
     currentTeam?: { id?: number; name?: string }
     active?: boolean
+    stats?: MlbRawPersonStats[]
+}
+
+export interface MlbRawPersonStats {
+    group?: { displayName?: string }
+    splits?: Array<{ stat?: Record<string, string | number> }>
 }
 
 export interface MlbRawPeopleResponse {

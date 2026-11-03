@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useReducer, useState } from 'react'
 
 import {
     BASEBALL_LEAGUES,
@@ -10,20 +10,9 @@ import {
 } from '@/shared/baseball'
 import { usePlayersData, type PlayerModel } from '@/entities/players'
 
-import { filterPlayers, sortPlayers } from './player-filters'
-import { AVAILABILITY_ORDER } from './player.type'
-import type {
-    DrawerTab,
-    League,
-    Player,
-    PositionFilter,
-    SortKey,
-    StatusFilter,
-} from './player.type'
+import { PLAYERS_PER_PAGE, updatePlayersQuery } from './player-query-state'
+import type { DrawerTab, League, Player, PositionFilter, StatusFilter } from './player.type'
 
-// Real player leagues shown in the sidebar. MiLB rookie/complex ball is
-// excluded here because its rosters churn too fast to browse usefully — the
-// four full-season MiLB levels plus MLB cover the product story.
 const BROWSE_LEAGUE_SLUGS: SupportedBaseballLeague[] = [
     'mlb',
     'triple-a',
@@ -32,9 +21,9 @@ const BROWSE_LEAGUE_SLUGS: SupportedBaseballLeague[] = [
     'single-a',
 ]
 
-const BROWSE_LEAGUES: League[] = BASEBALL_LEAGUES.filter((l) =>
-    BROWSE_LEAGUE_SLUGS.includes(l.slug),
-).map((l) => ({ slug: l.slug, name: l.name, color: l.color }))
+const BROWSE_LEAGUES: League[] = BASEBALL_LEAGUES.filter((league) =>
+    BROWSE_LEAGUE_SLUGS.includes(league.slug),
+).map((league) => ({ slug: league.slug, name: league.name, color: league.color }))
 
 export interface PlayersState {
     players: Player[]
@@ -42,22 +31,22 @@ export interface PlayersState {
     visiblePlayers: Player[]
     totalPlayers: number
     playersByLeague: Map<string, number>
-    playersByStatus: Map<string, number>
     search: string
     position: PositionFilter
     league: SupportedBaseballLeague
     status: StatusFilter
-    sortKey: SortKey
+    offset: number
+    limit: number
     selectedPlayerId: number | null
     selectedPlayer: Player | null
     drawerTab: DrawerTab
     isLoading: boolean
     error: Error | undefined
-    setSearch: (q: string) => void
-    setPosition: (p: PositionFilter) => void
+    setSearch: (query: string) => void
+    setPosition: (position: PositionFilter) => void
     setLeague: (slug: string) => void
-    setStatus: (s: StatusFilter) => void
-    setSortKey: (s: SortKey) => void
+    setStatus: (status: StatusFilter) => void
+    setOffset: (offset: number) => void
     setSelectedPlayerId: (id: number | null) => void
     setDrawerTab: (tab: DrawerTab) => void
     clearFilters: () => void
@@ -77,93 +66,72 @@ function mapModelToViewPlayer(model: PlayerModel): Player {
         throws: model.throws ?? '—',
         jerseyNumber: model.jerseyNumber,
         photoUrl: model.photoUrl,
-        // Not provided by the MLB Stats API player feed.
-        proj: 0,
-        avg: 0,
-        salary: 0,
-        own: 0,
-        form: [],
-        injuries: [],
-        transfers: [],
-        metrics: {},
+        statsSeason: model.statsSeason,
+        battingStats: model.battingStats,
+        pitchingStats: model.pitchingStats,
     }
 }
 
 export const usePlayersState = (): PlayersState => {
-    const [search, setSearch] = useState('')
-    const [position, setPosition] = useState<PositionFilter>('all')
-    const [league, setLeagueRaw] = useState<SupportedBaseballLeague>(DEFAULT_BASEBALL_LEAGUE)
-    const [status, setStatus] = useState<StatusFilter>('all')
-    const [sortKey, setSortKey] = useState<SortKey>('name')
+    const [query, dispatch] = useReducer(updatePlayersQuery, {
+        league: DEFAULT_BASEBALL_LEAGUE,
+        search: '',
+        position: 'all',
+        status: 'all',
+        offset: 0,
+        limit: PLAYERS_PER_PAGE,
+    })
     const [selectedPlayerId, setSelectedPlayerIdRaw] = useState<number | null>(null)
     const [drawerTab, setDrawerTab] = useState<DrawerTab>('stats')
-
-    const { data, isLoading, error, mutate } = usePlayersData(league, search)
+    const { data, isLoading, error, mutate } = usePlayersData(query)
 
     const allPlayers = useMemo<Player[]>(
         () => (data?.items ?? []).map(mapModelToViewPlayer),
         [data],
     )
-
-    const visiblePlayers = useMemo(
-        () =>
-            sortPlayers(
-                // League is already scoped by the fetch — pass 'all' here.
-                filterPlayers(allPlayers, { search: '', position, league: 'all', status }),
-                sortKey,
-            ),
-        [allPlayers, position, status, sortKey],
-    )
-
     const selectedPlayer = useMemo(
-        () => allPlayers.find((p) => p.id === selectedPlayerId) ?? null,
+        () => allPlayers.find((player) => player.id === selectedPlayerId) ?? null,
         [allPlayers, selectedPlayerId],
     )
+    const playersByLeague = useMemo(
+        () => new Map<string, number>([[query.league, data?.total ?? 0]]),
+        [query.league, data?.total],
+    )
 
-    const playersByLeague = useMemo(() => {
-        // Only the active league is loaded; other counts stay unknown (0).
-        const map = new Map<string, number>()
-        map.set(league, data?.total ?? allPlayers.length)
-        return map
-    }, [league, data, allPlayers.length])
-
-    const playersByStatus = useMemo(() => {
-        const map = new Map<string, number>()
-        for (const s of AVAILABILITY_ORDER) map.set(s, 0)
-        for (const p of allPlayers) map.set(p.status, (map.get(p.status) ?? 0) + 1)
-        return map
-    }, [allPlayers])
-
-    const setLeague = useCallback((slug: string) => {
-        if (isSupportedBaseballLeague(slug)) {
-            setLeagueRaw(slug)
-            setSelectedPlayerIdRaw(null)
-        }
+    const updateFilter = useCallback((patch: Parameters<typeof updatePlayersQuery>[1]) => {
+        dispatch(patch)
+        setSelectedPlayerIdRaw(null)
     }, [])
-
+    const setSearch = useCallback((search: string) => updateFilter({ search }), [updateFilter])
+    const setPosition = useCallback((position: PositionFilter) => updateFilter({ position }), [updateFilter])
+    const setStatus = useCallback((status: StatusFilter) => updateFilter({ status }), [updateFilter])
+    const setLeague = useCallback((slug: string) => {
+        if (isSupportedBaseballLeague(slug)) updateFilter({ league: slug })
+    }, [updateFilter])
+    const setOffset = useCallback((offset: number) => {
+        dispatch({ offset })
+        setSelectedPlayerIdRaw(null)
+    }, [])
     const setSelectedPlayerId = useCallback((id: number | null) => {
         setSelectedPlayerIdRaw(id)
         setDrawerTab('stats')
     }, [])
-
     const clearFilters = useCallback(() => {
-        setSearch('')
-        setPosition('all')
-        setStatus('all')
-    }, [])
+        updateFilter({ search: '', position: 'all', status: 'all' })
+    }, [updateFilter])
 
     return {
         players: allPlayers,
         leagues: BROWSE_LEAGUES,
-        visiblePlayers,
+        visiblePlayers: allPlayers,
         totalPlayers: data?.total ?? allPlayers.length,
         playersByLeague,
-        playersByStatus,
-        search,
-        position,
-        league,
-        status,
-        sortKey,
+        search: query.search,
+        position: query.position,
+        league: query.league,
+        status: query.status,
+        offset: query.offset,
+        limit: query.limit,
         selectedPlayerId,
         selectedPlayer,
         drawerTab,
@@ -173,7 +141,7 @@ export const usePlayersState = (): PlayersState => {
         setPosition,
         setLeague,
         setStatus,
-        setSortKey,
+        setOffset,
         setSelectedPlayerId,
         setDrawerTab,
         clearFilters,

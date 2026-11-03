@@ -8,7 +8,7 @@ export interface MlbRawRosterEntry {
 }
 
 export interface MlbRawRosterResponse {
-    roster: MlbRawRosterEntry[]
+    roster?: MlbRawRosterEntry[]
     teamId?: number
     rosterType?: string
 }
