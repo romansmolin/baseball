@@ -14,8 +14,11 @@
     "db:enroll-demo-users": "jiti prisma/enroll-demo-users.ts",
     "showcase:seed-users": "node prisma/showcase-cli.mjs seed-showcase-users",
     "showcase:seed-history": "node prisma/showcase-cli.mjs seed-showcase-history",
+    "showcase:seed-season": "node prisma/showcase-cli.mjs seed-showcase-season",
+    "showcase:promote-season-live": "node prisma/showcase-cli.mjs promote-season-showcase-to-live",
     "showcase:tick": "node prisma/showcase-cli.mjs tick-showcase",
-    "showcase:prepare-archive": "node prisma/showcase-cli.mjs prepare-showcase-archive"
+    "showcase:prepare-archive": "node prisma/showcase-cli.mjs prepare-showcase-archive",
+    "showcase:retire-open-replays": "node prisma/showcase-cli.mjs retire-open-replays"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

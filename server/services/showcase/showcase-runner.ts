@@ -1,33 +1,32 @@
-import type { PrismaClient, Prisma } from '../../../src/generated/prisma/client'
+import type { Prisma, PrismaClient } from '../../../src/generated/prisma/client'
 import type { DailyPlayer, DailyEntrySlot, SaveDailyEntryInput } from '@/shared/daily-contests'
 import { DailyCalendarService } from '../daily-contests/daily-calendar.service'
 import { DailyScoringService } from '../daily-contests/daily-scoring.service'
 import { validateDailyLineup } from '../daily-contests/daily-rules'
+import { getSportsProvider } from '../../providers/sports-provider.factory'
+import { publishRecurringTournaments } from '../recurring-tournaments/recurring-publisher.service'
+import type { SourceCheckpoint } from '../recurring-tournaments/recurring-source.service'
 import { chooseDemoLineup, dailyParticipants } from './demo-simulation'
 import { withShowcaseLease } from './showcase-lease'
 import { showcaseLeaseStore } from './showcase-lease.repository'
-import { assertWorkTime, canStartShowcaseBatch, remainingWorkMs, withWorkDeadline, WorkDeadlineError } from './work-deadline'
+import { showcaseMutationPermit } from './showcase-mutation-permit'
+import { canStartShowcaseBatch, remainingWorkMs, withWorkDeadline, WorkDeadlineError } from './work-deadline'
 import { runOfflineFirst } from './showcase-phases'
 import { writeDemoBatch } from './demo-batch'
 
-export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetMs = 20000 }: { now?: Date; budgetMs?: number } = {}) {
+export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetMs = 50000 }: { now?: Date; budgetMs?: number } = {}) {
     if (process.env.SHOWCASE_ENABLED !== 'true') return { enabled: false, acquired: false }
-    if (!Number.isFinite(budgetMs) || budgetMs < 1000 || budgetMs > 20000) throw new Error('Showcase budget must be between 1000 and 20000ms')
+    if (!Number.isFinite(budgetMs) || budgetMs < 1000 || budgetMs > 50000) throw new Error('Showcase budget must be between 1000 and 50000ms')
     const deadline = Date.now() + budgetMs
-    try { return await withWorkDeadline(deadline, () => withShowcaseLease(showcaseLeaseStore(db), 'showcase:tick', now, async () => {
+    try { return await withWorkDeadline(deadline, () => withShowcaseLease(showcaseLeaseStore(db), 'showcase:tick', now, async leaseToken => {
         const startedAt = Date.now()
         const timeLeft = canStartShowcaseBatch
+        const permit = showcaseMutationPermit('showcase:tick', leaseToken)
         let published = 0
+        let recurringPublished = 0
         const summary = await runOfflineFirst(async () => {
-        const templates = await db.dailyContest.findMany({ where: { mode: 'REPLAY', status: 'COMPLETED' }, orderBy: { contestDate: 'desc' }, take: 30 })
-        for (let d = 0; templates.length && d < 3 && timeLeft(); d++) {
-            const date = new Date(now.getTime() + d * 86400000).toISOString().slice(0, 10)
-            const source = templates[(Math.floor(now.getTime() / 86400000) + d) % templates.length]
-            const key = { mode: 'REPLAY' as const, leagueSlug: source.leagueSlug, contestDate: date, slateKey: 'classic' }
-            await db.dailyContest.upsert({ where: { mode_leagueSlug_contestDate_slateKey: key }, create: { ...key, name: 'MLB Replay Classic', sourceDate: source.sourceDate, locksAt: new Date(`${date}T19:00:00Z`), games: source.games as Prisma.InputJsonValue, playerPool: source.playerPool as Prisma.InputJsonValue, scoringRule: source.scoringRule as Prisma.InputJsonValue }, update: {} })
-        }
         const profiles = await db.demoProfile.findMany({ orderBy: [{ datasetSeed: 'asc' }, { ordinal: 'asc' }] })
-        const contests = await db.dailyContest.findMany({ where: { status: { in: ['OPEN', 'LOCKED'] } }, orderBy: { locksAt: 'asc' }, take: 20 })
+        const contests = await db.dailyContest.findMany({ where: { mode: 'LIVE', status: { in: ['OPEN', 'LOCKED'] } }, orderBy: { locksAt: 'asc' }, take: 20 })
         let inserted = 0, scored = 0
         for (const contest of contests) {
             if (!timeLeft()) break
@@ -67,17 +66,49 @@ export async function tickShowcase(db: PrismaClient, { now = new Date(), budgetM
             if (!timeLeft()) return
         const prior = await db.showcaseJob.findUnique({ where: { key: 'showcase:calendar' } })
         const updatedAt = prior?.cursor && typeof prior.cursor === 'object' && 'at' in prior.cursor ? Number(prior.cursor.at) : 0
-        if (now.getTime() - updatedAt > 15 * 60000 && timeLeft()) {
+        if (process.env.CONTEST_PUBLISHERS_ENABLED === 'true' && now.getTime() - updatedAt > 15 * 60000 && timeLeft()) {
             // Record the attempt before upstream I/O, so a failed provider has
             // a backoff as well as a successful refresh.
             await db.showcaseJob.upsert({ where: { key: 'showcase:calendar' }, create: { key: 'showcase:calendar', cursor: { at: now.getTime() } }, update: { cursor: { at: now.getTime() } } })
-            const result = await new DailyCalendarService(undefined, db).publishDailyContests({ now, lookaheadDays: 3 })
-            assertWorkTime(1000)
-            published = result.published
+            const errors: Error[] = []
+            try {
+                const dailyDeadline = Math.min(deadline - 5000, Date.now() + 25000)
+                const result = await withWorkDeadline(dailyDeadline, () => new DailyCalendarService(undefined, db).publishDailyContests({ now }))
+                published = result.published
+            } catch (error) {
+                errors.push(error instanceof Error ? error : new Error('Daily contest publication failed'))
+            }
+
+            const recurringJob = await db.showcaseJob.findUnique({ where: { key: 'showcase:recurring-publisher' } })
+            const recurringCursor = recurringJob?.cursor && typeof recurringJob.cursor === 'object'
+                ? recurringJob.cursor as { checkpoint?: SourceCheckpoint }
+                : undefined
+            try {
+                if (timeLeft()) {
+                    const recurringDeadline = Math.min(deadline - 3000, Date.now() + 20000)
+                    const result = await withWorkDeadline(recurringDeadline, () => publishRecurringTournaments(db, getSportsProvider(), {
+                        now,
+                        deadline: recurringDeadline,
+                        checkpoint: recurringCursor?.checkpoint,
+                        dryRun: false,
+                        permit,
+                    }))
+                recurringPublished = result.created
+                const cursor = JSON.parse(JSON.stringify({ checkpoint: result.checkpoint ?? null, at: now.getTime() })) as Prisma.InputJsonValue
+                await db.showcaseJob.upsert({
+                    where: { key: 'showcase:recurring-publisher' },
+                    create: { key: 'showcase:recurring-publisher', cursor },
+                    update: { cursor },
+                })
+                }
+            } catch (error) {
+                errors.push(error instanceof Error ? error : new Error('Recurring contest publication failed'))
+            }
+            if (errors.length) throw new AggregateError(errors, 'Contest calendar update failed')
             await db.showcaseJob.upsert({ where: { key: 'showcase:calendar' }, create: { key: 'showcase:calendar', cursor: { at: now.getTime() } }, update: { cursor: { at: now.getTime() } } })
         }
         })
-        return { ...summary, published, durationMs: Date.now() - startedAt, timedOut: !timeLeft() }
+        return { ...summary, published, recurringPublished, durationMs: Date.now() - startedAt, timedOut: !timeLeft() }
     })) } catch (error) {
         if (error instanceof WorkDeadlineError || Date.now() >= deadline) return { enabled: true, timedOut: true, durationMs: Date.now() - deadline + budgetMs }
         throw error
