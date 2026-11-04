@@ -141,6 +141,8 @@ export class MlbSportsProvider implements ISportsProvider {
             ? await this.hydratePlayerSeasonStats(
                   page.map(({ player }) => player.id),
                   season,
+                  // Winter and minor-league stats live under that level's sportId, not MLB's.
+                  sportId,
               )
             : new Map()
         const items = page.map(({ raw, player }) => {
@@ -339,10 +341,11 @@ export class MlbSportsProvider implements ISportsProvider {
     private async hydratePlayerSeasonStats(
         ids: number[],
         season: number,
+        sportId?: number,
     ): Promise<Map<number, MlbRawPerson>> {
         const params = new URLSearchParams({
             personIds: ids.join(','),
-            hydrate: `stats(group=[hitting,pitching],type=[season],season=${season})`,
+            hydrate: `stats(group=[hitting,pitching],type=[season],season=${season}${sportId ? `,sportId=${sportId}` : ''})`,
         })
         const data = await mlbFetch<MlbRawPeopleResponse>(`/people?${params.toString()}`, {
             revalidate: MLB_REVALIDATE.playerStats,
