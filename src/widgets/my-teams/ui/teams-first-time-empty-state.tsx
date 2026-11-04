@@ -5,8 +5,8 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import Link from 'next/link'
 
 export const TeamsFirstTimeEmptyState = () => (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-primary/30 bg-primary/5 py-20 text-center">
-        <span className="mb-4 flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-20 text-center">
+        <span className="mb-4 flex size-14 items-center justify-center rounded-full bg-board text-lamp">
             <HugeiconsIcon icon={UserGroupIcon} className="size-6" />
         </span>
         <div className="font-medium">Build your first fantasy team</div>

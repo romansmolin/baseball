@@ -69,7 +69,7 @@ const MetricCard = ({ card }: { card: MetricCardType }) => (
     <Card size="sm">
         <CardContent className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex size-6 items-center justify-center rounded-md bg-primary/15 text-primary">
+                <span className="flex size-6 items-center justify-center rounded-md bg-board text-lamp">
                     <HugeiconsIcon icon={iconForKey[card.iconKey]} className="size-3.5" />
                 </span>
                 {card.label}

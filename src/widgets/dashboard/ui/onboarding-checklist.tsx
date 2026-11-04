@@ -24,7 +24,7 @@ export const OnboardingChecklist = ({ firstName, compact = false }: OnboardingCh
         if (steps.length > 0 && doneCount === steps.length) return null
 
         return (
-            <section aria-labelledby="get-started-title" className="rounded-xl border border-primary/30 bg-primary/[0.06] p-5">
+            <section aria-labelledby="get-started-title" className="rounded-lg border border-border bg-card p-5">
                 <div className="flex items-baseline justify-between gap-3">
                     <h2 id="get-started-title" className="text-base font-semibold">Get started</h2>
                     {steps.length > 0 && <p className="text-sm text-muted-foreground">{doneCount} of {steps.length} done</p>}

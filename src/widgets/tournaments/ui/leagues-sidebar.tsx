@@ -131,7 +131,7 @@ export const LeaguesSidebar = ({
                                                     className={cn(
                                                         'rounded-full bg-muted px-1.5 py-0.5 text-xs',
                                                         isSelected &&
-                                                            'bg-primary/15 text-primary',
+                                                            'bg-board text-lamp',
                                                     )}
                                                 >
                                                     {count}

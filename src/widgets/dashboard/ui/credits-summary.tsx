@@ -34,7 +34,7 @@ export const CreditsSummary = () => {
                 <Separator />
                 {latest ? (
                     <div className="flex items-center gap-3">
-                        <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+                        <span className="flex size-9 items-center justify-center rounded-full bg-board text-lamp">
                             <HugeiconsIcon icon={GiftIcon} className="size-4" />
                         </span>
                         <div className="flex-1">

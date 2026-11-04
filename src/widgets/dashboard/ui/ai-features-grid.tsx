@@ -49,7 +49,7 @@ export const AIFeaturesGrid = () => {
 
 const AIFeatureCard = ({ feature }: { feature: AIFeature }) => (
     <div className="flex flex-col gap-2 rounded-lg bg-muted/40 p-4">
-        <span className="flex size-8 items-center justify-center rounded-md bg-primary/15 text-primary">
+        <span className="flex size-8 items-center justify-center rounded-md bg-board text-lamp">
             <HugeiconsIcon icon={iconForKey[feature.iconKey]} className="size-4" />
         </span>
         <div className="font-medium">{feature.name}</div>

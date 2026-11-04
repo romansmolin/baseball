@@ -26,19 +26,6 @@ interface NextMoveProps {
     onRetry: () => void
 }
 
-function Facts({ items }: { items: { label: string; value: string }[] }) {
-    return (
-        <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-primary/20 pt-5 sm:grid-cols-4">
-            {items.map(item => (
-                <div key={item.label}>
-                    <dt className="text-sm text-muted-foreground">{item.label}</dt>
-                    <dd className="mt-0.5 text-sm font-medium">{item.value}</dd>
-                </div>
-            ))}
-        </dl>
-    )
-}
-
 export function NextMove({ next, entered, now, hasEntries, loading, failed, onRetry }: NextMoveProps) {
     if (loading) {
         return <div className="h-64 animate-pulse rounded-xl bg-muted" role="status" aria-label="Loading your next contest" />
@@ -80,25 +67,39 @@ export function NextMove({ next, entered, now, hasEntries, loading, failed, onRe
     }
 
     const closes = closingTime(next)
+    const facts = [
+        { label: 'Closes', value: lockTime(closes) },
+        { label: 'Format', value: contestSeriesLabel(next) },
+        { label: 'Entered', value: number(next.memberCount) },
+        { label: 'Entry', value: entryFeeLabel(next.entryFeeCredits) },
+    ]
 
     return (
-        <section aria-labelledby="next-move-title" className="rounded-xl border border-primary/30 bg-primary/[0.06] p-6 sm:p-8">
-            <p className="text-sm font-medium text-primary">{entered ? 'You’re in' : 'Open for entries'}</p>
-            <h2 id="next-move-title" className="mt-2 font-anton text-4xl uppercase leading-none sm:text-5xl">
-                {entered ? 'Lineup locks in ' : 'Entries close in '}{formatCountdown(closes, now.getTime())}
-            </h2>
-            <p className="mt-4 text-base font-medium">{next.name}</p>
-            <Facts items={[
-                { label: 'Closes', value: lockTime(closes) },
-                { label: 'Format', value: contestSeriesLabel(next) },
-                { label: 'Entered so far', value: number(next.memberCount) },
-                { label: 'Entry', value: entryFeeLabel(next.entryFeeCredits) },
-            ]} />
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-                <Link href={contestHref(next)} className={buttonVariants({ size: 'lg', className: 'gap-3' })}>
-                    {next.kind === 'DAILY' ? (entered ? 'Edit your lineup' : 'Build your lineup') : (entered ? 'View your entry' : 'Join now')}<ArrowUpRight className="size-4" aria-hidden="true" />
-                </Link>
-                <Link href="/rules" className="text-sm font-medium hover:text-primary">How scoring works</Link>
+        <section aria-labelledby="next-move-title" className="rounded-md bg-board p-1.5 text-board-foreground shadow-[0_18px_40px_-24px_rgba(18,53,36,0.9)]">
+            <div className="rounded-[4px] border border-board-line p-6 sm:p-8">
+                <p className="flex items-center gap-2 text-sm font-medium text-board-foreground/70">
+                    <span className="size-2 rounded-full bg-lamp motion-safe:animate-pulse" aria-hidden="true" />
+                    {entered ? 'You’re in' : 'Open for entries'}
+                </p>
+                <h2 id="next-move-title" className="mt-3 font-anton text-5xl uppercase leading-[0.95] text-lamp sm:text-7xl">
+                    <span className="block text-2xl text-board-foreground sm:text-3xl">{entered ? 'Lineup locks in' : 'Entries close in'}</span>
+                    {formatCountdown(closes, now.getTime())}
+                </h2>
+                <p className="mt-4 text-base font-medium">{next.name}</p>
+                <dl className="mt-6 grid grid-cols-2 border-t border-board-line sm:grid-cols-[1.5fr_1fr_1fr_0.8fr]">
+                    {facts.map(item => (
+                        <div key={item.label} className="border-b border-board-line py-3 pr-4 sm:border-b-0 sm:border-r sm:px-4 sm:first:pl-0 sm:last:border-r-0">
+                            <dt className="text-sm text-board-foreground/60">{item.label}</dt>
+                            <dd className="mt-0.5 text-sm font-semibold">{item.value}</dd>
+                        </div>
+                    ))}
+                </dl>
+                <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <Link href={contestHref(next)} className={buttonVariants({ size: 'lg', className: 'gap-3 bg-lamp text-board hover:bg-lamp/90' })}>
+                        {next.kind === 'DAILY' ? (entered ? 'Edit your lineup' : 'Build your lineup') : (entered ? 'View your entry' : 'Join now')}<ArrowUpRight className="size-4" aria-hidden="true" />
+                    </Link>
+                    <Link href="/rules" className="text-sm font-medium text-board-foreground/80 underline-offset-4 hover:text-white hover:underline">How scoring works</Link>
+                </div>
             </div>
         </section>
     )

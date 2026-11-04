@@ -27,6 +27,10 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-board: var(--board);
+    --color-board-line: var(--board-line);
+    --color-lamp: var(--lamp);
+    --color-board-foreground: var(--board-foreground);
 
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
@@ -63,39 +67,44 @@
 }
 
 :root {
-    color-scheme: dark;
-    --radius: 0.625rem;
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: #ff7070;
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.205 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    color-scheme: light;
+    --radius: 0.5rem;
+    /* Ballpark at night: chalk lines, wall green, scoreboard lamps, seam red. */
+    --background: #edf0e9;
+    --foreground: #15211a;
+    --card: #f8f9f5;
+    --card-foreground: #15211a;
+    --popover: #f8f9f5;
+    --popover-foreground: #15211a;
+    --primary: #c8302a;
+    --primary-foreground: #ffffff;
+    --secondary: #e0e5db;
+    --secondary-foreground: #15211a;
+    --muted: #e3e8de;
+    --muted-foreground: #556259;
+    --accent: #123524;
+    --accent-foreground: #f8f9f5;
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --border: #cbd3c6;
+    --input: #cbd3c6;
+    --ring: #123524;
+    --board: #123524;
+    --board-line: #2d5a44;
+    --lamp: #ffc44d;
+    --board-foreground: #eef2ea;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: #f8f9f5;
+    --sidebar-foreground: #15211a;
+    --sidebar-primary: #123524;
+    --sidebar-primary-foreground: #f8f9f5;
+    --sidebar-accent: #e3e8de;
+    --sidebar-accent-foreground: #15211a;
+    --sidebar-border: #cbd3c6;
+    --sidebar-ring: #123524;
 }
 
 .dark {
@@ -134,6 +143,8 @@
 
 .font-anton {
     font-family: var(--font-anton), sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.01em;
 }
 
 .text-outline {
@@ -142,7 +153,7 @@
 }
 
 .text-outline-red {
-    -webkit-text-stroke: 1px #dc2626;
+    -webkit-text-stroke: 1px #c8302a;
     color: transparent;
 }
 

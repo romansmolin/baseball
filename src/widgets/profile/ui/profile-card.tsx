@@ -48,7 +48,7 @@ export const ProfileCard = ({
                     className="size-24 rounded-2xl border-4 border-card object-cover"
                 />
             ) : (
-                <span className="flex size-24 items-center justify-center rounded-2xl border-4 border-card bg-primary/15 font-anton text-3xl text-primary">
+                <span className="flex size-24 items-center justify-center rounded-2xl border-4 border-card bg-board font-anton text-3xl text-lamp">
                     {initials}
                 </span>
             )}

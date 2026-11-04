@@ -87,7 +87,7 @@ export const BuyCreditsModal = () => {
                                     className="flex items-center justify-between rounded-xl border border-foreground/10 px-4 py-3"
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+                                        <span className="flex size-9 items-center justify-center rounded-full bg-board text-lamp">
                                             <HugeiconsIcon icon={Coins01Icon} className="size-4" />
                                         </span>
                                         <div>

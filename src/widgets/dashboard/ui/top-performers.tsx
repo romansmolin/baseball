@@ -28,7 +28,7 @@ export const TopPerformers = () => {
                             key={player.id}
                             className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/40"
                         >
-                            <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                            <span className="flex size-7 items-center justify-center rounded-full bg-board text-xs font-semibold text-lamp">
                                 {player.rank}
                             </span>
                             <div className="min-w-0 flex-1">

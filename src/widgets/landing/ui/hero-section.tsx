@@ -41,7 +41,7 @@ export function HeroSection() {
                             </span>
                         </div>
 
-                        <h1 className="font-anton text-[72px] md:text-[180px] leading-[0.8] tracking-tighter mb-8 uppercase text-white">
+                        <h1 className="font-anton text-[64px] md:text-[150px] leading-[0.8] tracking-tighter mb-8 uppercase text-white">
                             BUILD THE <span className="text-outline-red">DIAMOND</span>
                             <br />
                             TAKE THE POOL

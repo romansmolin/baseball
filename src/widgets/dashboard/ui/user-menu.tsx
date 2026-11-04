@@ -44,7 +44,7 @@ export const UserMenu = ({ initials }: UserMenuProps) => {
         <Menu.Root>
             <Menu.Trigger
                 aria-label="Open user menu"
-                className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary outline-none transition-colors hover:bg-primary/25 focus-visible:ring-2 focus-visible:ring-ring/40"
+                className="flex size-9 cursor-pointer items-center justify-center rounded-full bg-lamp text-sm font-bold text-board outline-none transition-colors hover:bg-lamp/85 focus-visible:ring-2 focus-visible:ring-lamp/60"
             >
                 {initials}
             </Menu.Trigger>

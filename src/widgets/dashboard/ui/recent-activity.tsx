@@ -56,7 +56,7 @@ export const RecentActivity = () => {
                                 key={event.id}
                                 className="flex items-center gap-3 border-b border-foreground/5 py-3 last:border-b-0"
                             >
-                                <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+                                <span className="flex size-9 items-center justify-center rounded-full bg-board text-lamp">
                                     <HugeiconsIcon
                                         icon={iconForKind[event.kind]}
                                         className="size-4"

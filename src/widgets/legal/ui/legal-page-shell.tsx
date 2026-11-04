@@ -30,7 +30,7 @@ export const LegalPageShell = ({
         <header className="sticky top-0 z-30 border-b border-foreground/10 bg-background/80 backdrop-blur">
             <div className="container mx-auto flex h-16 max-w-4xl items-center justify-between gap-6 px-6">
                 <Link href="/" className="flex items-center gap-2">
-                    <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <span className="flex size-7 items-center justify-center rounded-lg bg-board text-lamp">
                         <HugeiconsIcon icon={BaseballIcon} className="size-4" />
                     </span>
                     <span className="font-anton text-lg tracking-wide">
