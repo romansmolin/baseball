@@ -22,11 +22,6 @@ interface LeagueDetailDrawerProps {
     onClose: () => void
 }
 
-const hexA = (hex: string, a: number) => {
-    const n = parseInt(hex.slice(1), 16)
-    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
-}
-
 export const LeagueDetailDrawer = ({ league, onClose }: LeagueDetailDrawerProps) => {
     const isOpen = league !== null
 
@@ -72,12 +67,7 @@ const DrawerContent = ({ league, onClose }: { league: League; onClose: () => voi
         <>
             <div className="flex-1 overflow-y-auto">
                 <div className="relative">
-                    <div
-                        className="h-24"
-                        style={{
-                            background: `linear-gradient(135deg, ${hexA(league.color, 0.18)}, ${hexA(league.color, 0.04)})`,
-                        }}
-                    />
+                    <div className="h-24 border-b-4 bg-board" style={{ borderColor: league.color }} />
                     <button
                         type="button"
                         onClick={onClose}
@@ -88,8 +78,8 @@ const DrawerContent = ({ league, onClose }: { league: League; onClose: () => voi
                     <div className="px-6">
                         <div className="-mt-9 flex items-end gap-4">
                             <span
-                                className="flex size-20 shrink-0 items-center justify-center rounded-2xl border-4 border-card font-anton text-2xl shadow-sm"
-                                style={{ backgroundColor: hexA(league.color, 0.15), color: league.color }}
+                                className="flex size-20 shrink-0 items-center justify-center rounded-md border-4 border-card bg-board font-anton text-2xl shadow-sm"
+                                style={{ color: league.color }}
                             >
                                 {league.name}
                             </span>
@@ -215,14 +205,14 @@ const DrawerContent = ({ league, onClose }: { league: League; onClose: () => voi
 }
 
 const BigStat = ({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) => (
-    <div className="rounded-xl bg-muted/60 p-4 text-center">
-        <div className={cn('font-anton text-3xl leading-none', accent && 'text-primary')}>{value}</div>
-        <div className="mt-1.5 text-xs text-muted-foreground">{label}</div>
+    <div className="rounded-md bg-board p-4 text-center text-board-foreground">
+        <div className={cn('font-anton text-3xl leading-none', accent && 'text-lamp')}>{value}</div>
+        <div className="mt-1.5 text-xs text-board-foreground/60">{label}</div>
     </div>
 )
 
 const SmallStat = ({ label, value }: { label: string; value: string }) => (
-    <div className="rounded-xl border border-foreground/10 p-3">
+    <div className="rounded-md border border-border p-3">
         <div className="font-anton text-xl leading-none">{value}</div>
         <div className="mt-1 text-[11px] text-muted-foreground">{label}</div>
     </div>
