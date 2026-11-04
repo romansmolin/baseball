@@ -19,6 +19,8 @@ const BROWSE_LEAGUE_SLUGS: SupportedBaseballLeague[] = [
     'double-a',
     'high-a',
     'single-a',
+    'rookie',
+    'winter-leagues',
 ]
 
 const BROWSE_LEAGUES: League[] = BASEBALL_LEAGUES.filter((league) =>

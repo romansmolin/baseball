@@ -8,6 +8,7 @@ import { cn } from '@/shared/utils'
 const TABS = [
     { label: 'Leaders', href: '/stats' },
     { label: 'Scores', href: '/games' },
+    { label: 'Standings', href: '/stats/standings' },
     { label: 'Players', href: '/players' },
 ]
 
