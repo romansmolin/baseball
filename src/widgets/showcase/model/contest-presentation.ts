@@ -1,6 +1,8 @@
+import { WINTER_LEAGUE_LABELS } from '@/shared/baseball'
 import type { DailyContestSummary } from '@/shared/daily-contests'
 
 const sourceLabels: Record<string, string> = {
+    ...WINTER_LEAGUE_LABELS,
     mlb: 'MLB',
     'triple-a': 'Triple-A',
     'double-a': 'Double-A',

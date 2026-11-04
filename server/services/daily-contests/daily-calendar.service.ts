@@ -9,12 +9,13 @@ import {
     type ContestSourceSlug,
 } from '../../providers/contest-source-registry'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
-import type { BaseballProviderLeague } from '@/shared/baseball'
+import { WINTER_LEAGUE_SOURCES, type BaseballProviderLeague } from '@/shared/baseball'
 import type { DailyGame, DailyPlayer } from '@/shared/daily-contests'
 import { providerPositionToPoolPosition } from '@/shared/team-builder'
 import { canPublishPool, dailyDate, dailyDateOffset } from './daily-rules'
 import { dailyContestName } from './daily-contest-names'
 import { loadDailySchedule, loadNorthAmericanContestSchedule, type DailyScheduledGame } from './daily-schedule.service'
+import { splitWinterByLeague } from './winter-league-split'
 import { mapWithConcurrency } from '../../shared/concurrency.utils'
 import { isPrismaError } from '../../shared/db/prisma-error.utils'
 
@@ -100,10 +101,17 @@ export class DailyCalendarService {
 
         const today = dailyDate(now)
         const range = { startDateUtc: newYorkMidnightUtc(today), endDateUtc: newYorkMidnightUtc(dailyDateOffset(now, lookaheadDays + 2)) }
+        // Winter games are read once and published twice: combined, and per league.
+        const once = <T>(load: () => Promise<T>) => { let pending: Promise<T> | undefined; return () => (pending ??= load()) }
+        const winterRows = once(() => loadDailySchedule(this.provider, { ...range, league: 'winter-leagues' as const }))
+        const winterByLeague = once(async () => splitWinterByLeague(this.provider, await winterRows()))
         const sources: { slug: ContestSourceSlug; load: () => Promise<ScheduledRow[]> }[] = [
             { slug: NORTH_AMERICA_CONTEST_SOURCE, load: () => loadNorthAmericanContestSchedule(this.provider, range) },
             ...(winterContestsEnabled(process.env)
-                ? [{ slug: WINTER_CONTEST_SOURCE, load: () => loadDailySchedule(this.provider, { ...range, league: 'winter-leagues' as const }) }]
+                ? [
+                    { slug: WINTER_CONTEST_SOURCE, load: winterRows },
+                    ...WINTER_LEAGUE_SOURCES.map(league => ({ slug: league.slug, load: async () => (await winterByLeague()).get(league.slug) ?? [] })),
+                ]
                 : []),
         ]
 

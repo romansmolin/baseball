@@ -1,4 +1,7 @@
+import { WINTER_LEAGUE_LABELS } from '@/shared/baseball'
+
 const leagueNames: Record<string, string> = {
+    ...WINTER_LEAGUE_LABELS,
     mlb: 'MLB',
     'triple-a': 'Triple-A',
     'double-a': 'Double-A',

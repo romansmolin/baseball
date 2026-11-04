@@ -1,11 +1,12 @@
-import type { BaseballProviderLeague } from '@/shared/baseball'
+import type { BaseballProviderLeague, WinterLeagueSourceSlug } from '@/shared/baseball'
 
 /** The persisted slug for contests assembled from the North American feed. */
 export const NORTH_AMERICA_CONTEST_SOURCE = 'north-america' as const
 
 /** Winter Leagues (sportId 17) fill the months between seasons; they publish as their own source. */
 export const WINTER_CONTEST_SOURCE = 'winter-leagues' as const
-export type ContestSourceSlug = typeof NORTH_AMERICA_CONTEST_SOURCE | typeof WINTER_CONTEST_SOURCE
+/** Each winter league also publishes its own daily contests next to the combined Winter Leagues ones. */
+export type ContestSourceSlug = typeof NORTH_AMERICA_CONTEST_SOURCE | typeof WINTER_CONTEST_SOURCE | WinterLeagueSourceSlug
 
 /** Winter publication is off unless CONTEST_WINTER_ENABLED is exactly "true". */
 export function winterContestsEnabled(env: Record<string, string | undefined>): boolean {
