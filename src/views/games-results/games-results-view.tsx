@@ -5,8 +5,8 @@ export const GamesResultsView = () => (
     <>
         <StatsNav className="max-w-6xl" />
         <main className="container mx-auto max-w-6xl space-y-8 px-6 py-8">
-            <p className="text-sm text-muted-foreground">
-                Live scores and results from the last three days, plus what&apos;s next. MLB and the Winter Leagues.
+            <p className="max-w-prose text-sm text-muted-foreground">
+                These are the real games your fantasy points come from. Check the final scores of the last three days and see which games are next, in MLB and the Winter Leagues.
             </p>
             <GamesResults />
         </main>

@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useRecentGamesData, useUpcomingGamesData } from '@/entities/dashboard'
+import { getBaseballLeague } from '@/shared/baseball'
 import type { UpcomingGameRecord } from '@/shared/games'
 
 export interface GamesDayGroup {
@@ -9,8 +10,18 @@ export interface GamesDayGroup {
     games: UpcomingGameRecord[]
 }
 
+export interface LeagueOption {
+    slug: string
+    label: string
+    count: number
+}
+
 const RESULTS_LIMIT = 30
-const UPCOMING_LIMIT = 10
+const UPCOMING_LIMIT = 12
+export const ALL_LEAGUES = 'all'
+
+export const leagueLabel = (slug: string | undefined) =>
+    (slug && getBaseballLeague(slug)?.name) || 'Baseball'
 
 const dayKey = (date: Date) =>
     `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
@@ -47,18 +58,37 @@ const groupByDay = (games: UpcomingGameRecord[]): GamesDayGroup[] => {
 export function useGamesResults() {
     const results = useRecentGamesData(RESULTS_LIMIT)
     const upcoming = useUpcomingGamesData(UPCOMING_LIMIT)
+    const [league, setLeague] = useState(ALL_LEAGUES)
 
-    const resultGroups = useMemo(() => groupByDay(results.data ?? []), [results.data])
-    const upcomingGroups = useMemo(() => groupByDay(upcoming.data ?? []), [upcoming.data])
-    const liveCount = useMemo(
-        () => (results.data ?? []).filter((g) => g.status === 'LIVE').length,
-        [results.data],
+    const leagueOptions = useMemo<LeagueOption[]>(() => {
+        const counts = new Map<string, number>()
+        for (const g of [...(results.data ?? []), ...(upcoming.data ?? [])]) {
+            const slug = g.leagueSlug ?? 'mlb'
+            counts.set(slug, (counts.get(slug) ?? 0) + 1)
+        }
+        return [...counts].map(([slug, count]) => ({ slug, label: leagueLabel(slug), count }))
+    }, [results.data, upcoming.data])
+
+    const matches = (g: UpcomingGameRecord) => league === ALL_LEAGUES || (g.leagueSlug ?? 'mlb') === league
+
+    const filteredResults = useMemo(() => (results.data ?? []).filter(matches), [results.data, league]) // eslint-disable-line react-hooks/exhaustive-deps
+    const liveGames = useMemo(() => filteredResults.filter((g) => g.status === 'LIVE'), [filteredResults])
+    const resultGroups = useMemo(
+        () => groupByDay(filteredResults.filter((g) => g.status !== 'LIVE')),
+        [filteredResults],
+    )
+    const upcomingGroups = useMemo(
+        () => groupByDay((upcoming.data ?? []).filter(matches)),
+        [upcoming.data, league], // eslint-disable-line react-hooks/exhaustive-deps
     )
 
     return {
+        league,
+        setLeague,
+        leagueOptions,
+        liveGames,
         resultGroups,
         upcomingGroups,
-        liveCount,
         isLoading: results.isLoading || upcoming.isLoading,
         resultsError: Boolean(results.error),
         upcomingError: Boolean(upcoming.error),
