@@ -9,7 +9,7 @@ import type { DailyEntrySlot, DailyGame } from '@/shared/daily-contests';
 import type { BaseballProviderLeague } from '@/shared/baseball';
 import { parseScoringRule } from '../scoring/scoring-rule.schema';
 import { scoreDailyLineup } from './daily-rules';
-import { loadDailySchedule, loadNorthAmericanContestSchedule } from './daily-schedule.service';
+import { loadContestSourceSchedule } from './daily-schedule.service';
 export class DailyScoringService {
     private readonly provider: ISportsProvider;
     private readonly db: PrismaClient;
@@ -28,9 +28,7 @@ export class DailyScoringService {
                 const dates = games.map(game => Date.parse(game.gameDateUtc));
                 const startDateUtc = new Date(Math.min(...dates));
                 const endDateUtc = new Date(Math.max(...dates));
-                const schedule = contest.leagueSlug === 'north-america'
-                    ? await loadNorthAmericanContestSchedule(this.provider, { startDateUtc, endDateUtc, revalidateSeconds: 60 })
-                    : await loadDailySchedule(this.provider, { startDateUtc, endDateUtc, league: contest.leagueSlug as BaseballProviderLeague, revalidateSeconds: 60 });
+                const schedule = await loadContestSourceSchedule(this.provider, contest.leagueSlug, { startDateUtc, endDateUtc, revalidateSeconds: 60 });
                 const byId = new Map(schedule.map(row => [row.game.gamePk, row]));
                 games = games.map(game => {
                     const fresh = byId.get(game.gamePk);

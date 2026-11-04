@@ -6,7 +6,16 @@ export const NORTH_AMERICA_CONTEST_SOURCE = 'north-america' as const
 /** Winter Leagues (sportId 17) fill the months between seasons; they publish as their own source. */
 export const WINTER_CONTEST_SOURCE = 'winter-leagues' as const
 /** Each winter league also publishes its own daily contests next to the combined Winter Leagues ones. */
-export type ContestSourceSlug = typeof NORTH_AMERICA_CONTEST_SOURCE | typeof WINTER_CONTEST_SOURCE | WinterLeagueSourceSlug
+export type ContestSourceSlug = typeof NORTH_AMERICA_CONTEST_SOURCE | typeof WINTER_CONTEST_SOURCE | typeof MINOR_CONTEST_SOURCE | WinterLeagueSourceSlug
+
+/** High-A, Single-A and Rookie publish as their own source, so they never dilute the MLB, Triple-A and Double-A pool. */
+export const MINOR_CONTEST_SOURCE = 'minor-leagues' as const
+export const MINOR_CONTEST_LEAGUES = ['high-a', 'single-a', 'rookie'] as const satisfies readonly BaseballProviderLeague[]
+
+/** Minor League publication is off unless CONTEST_MINOR_ENABLED is exactly "true". */
+export function minorContestsEnabled(env: Record<string, string | undefined>): boolean {
+    return env.CONTEST_MINOR_ENABLED === 'true'
+}
 
 /** Winter publication is off unless CONTEST_WINTER_ENABLED is exactly "true". */
 export function winterContestsEnabled(env: Record<string, string | undefined>): boolean {

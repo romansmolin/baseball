@@ -4,6 +4,9 @@ import { prisma } from '../../lib/prisma'
 import { MlbSportsProvider } from '../../providers/mlb/mlb.provider'
 import {
     NORTH_AMERICA_CONTEST_SOURCE,
+    MINOR_CONTEST_LEAGUES,
+    MINOR_CONTEST_SOURCE,
+    minorContestsEnabled,
     WINTER_CONTEST_SOURCE,
     winterContestsEnabled,
     type ContestSourceSlug,
@@ -112,6 +115,9 @@ export class DailyCalendarService {
                     { slug: WINTER_CONTEST_SOURCE, load: winterRows },
                     ...WINTER_LEAGUE_SOURCES.map(league => ({ slug: league.slug, load: async () => (await winterByLeague()).get(league.slug) ?? [] })),
                 ]
+                : []),
+            ...(minorContestsEnabled(process.env)
+                ? [{ slug: MINOR_CONTEST_SOURCE, load: () => loadNorthAmericanContestSchedule(this.provider, range, MINOR_CONTEST_LEAGUES) }]
                 : []),
         ]
 

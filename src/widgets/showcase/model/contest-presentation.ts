@@ -11,6 +11,7 @@ const sourceLabels: Record<string, string> = {
     rookie: 'Rookie',
     'winter-leagues': 'Winter Leagues',
     'north-america': 'North American Leagues',
+    'minor-leagues': 'Minor Leagues',
 }
 
 export function sourceLeagueLabel(leagueSlug: string): string {

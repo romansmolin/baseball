@@ -7,6 +7,7 @@ const leagueNames: Record<string, string> = {
     'double-a': 'Double-A',
     'winter-leagues': 'Winter Leagues',
     'north-america': 'North American Leagues',
+    'minor-leagues': 'Minor Leagues',
 }
 
 const originalNames: Record<string, string> = {
