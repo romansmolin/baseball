@@ -26,11 +26,6 @@ const initials = (name: string) =>
 
 const savedLabel = (d: number) => (d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d}d ago`)
 
-const hexA = (hex: string, a: number) => {
-    const n = parseInt(hex.slice(1), 16)
-    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
-}
-
 export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: TeamCardProps) => {
     const dotColor = league?.dotColor ?? '#999999'
     const leagueName = league?.name ?? team.leagueSlug.toUpperCase()
@@ -38,10 +33,10 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
     const crest = (
         <span
             className={cn(
-                'flex shrink-0 items-center justify-center rounded-xl font-anton',
+                'flex shrink-0 items-center justify-center rounded-md bg-board font-anton',
                 view === 'list' ? 'size-11 text-base' : 'size-12 text-lg',
             )}
-            style={{ backgroundColor: hexA(dotColor, 0.13), color: dotColor }}
+            style={{ color: dotColor }}
         >
             {initials(team.name)}
         </span>
@@ -75,13 +70,13 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
                 {team.format}
             </span>
             {team.captain && (
-                <span className="rounded-full border border-primary/30 px-2 py-0.5 text-xs text-primary">
+                <span className="rounded-full border border-board/30 px-2 py-0.5 text-xs font-medium text-board">
                     Captain ×1.5
                 </span>
             )}
             {team.status === 'active' ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/12 px-2 py-0.5 text-xs text-primary">
-                    <span className="size-1.5 rounded-full bg-primary" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-board/10 px-2 py-0.5 text-xs font-medium text-board">
+                    <span className="size-1.5 rounded-full bg-board" />
                     In {team.entered} tournament{team.entered === 1 ? '' : 's'}
                 </span>
             ) : (
@@ -106,7 +101,7 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
                 tabIndex={0}
                 onClick={onSelect}
                 onKeyDown={handleKey}
-                className="group flex cursor-pointer items-center gap-4 rounded-xl border border-foreground/10 bg-card p-3.5 text-left transition-all hover:border-foreground/20"
+                className="group flex cursor-pointer items-center gap-4 rounded-lg border border-border bg-card p-3.5 text-left transition-colors hover:border-board focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
                 {crest}
                 <div className="min-w-0 flex-1">
@@ -116,12 +111,7 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
                     </div>
                 </div>
                 <div className="hidden items-center gap-1.5 md:flex">{pills}</div>
-                <div className="ml-2 text-right">
-                    <div className="font-anton text-xl leading-none text-primary">
-                        {team.proj.toFixed(1)}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">proj. pts</div>
-                </div>
+                <ProjChip value={team.proj} />
                 {star}
             </div>
         )
@@ -133,7 +123,7 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
             tabIndex={0}
             onClick={onSelect}
             onKeyDown={handleKey}
-            className="group flex cursor-pointer flex-col gap-3 rounded-xl border border-foreground/10 bg-card p-4 text-left transition-all hover:border-foreground/20 hover:shadow-sm"
+            className="group flex cursor-pointer flex-col gap-3 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-board focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
             <div className="flex items-start gap-3">
                 {crest}
@@ -143,11 +133,11 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
                         {leagueName} · {team.format}
                     </div>
                 </div>
+                <ProjChip value={team.proj} />
                 {star}
             </div>
             {pills}
-            <div className="mt-1 grid grid-cols-3 gap-2 border-t border-foreground/10 pt-3">
-                <Stat label="Proj. pts" value={team.proj.toFixed(1)} accent />
+            <div className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-3">
                 <Stat label="Best score" value={team.best.toFixed(1)} />
                 <Stat label="Players" value={String(team.players)} />
             </div>
@@ -159,11 +149,16 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
     )
 }
 
-const Stat = ({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) => (
+const ProjChip = ({ value }: { value: number }) => (
+    <div className="shrink-0 rounded-md bg-board px-2.5 py-1.5 text-center text-board-foreground">
+        <div className="font-anton text-xl leading-none text-lamp tabular-nums">{value.toFixed(1)}</div>
+        <div className="mt-0.5 text-[11px] text-board-foreground/60">proj. pts</div>
+    </div>
+)
+
+const Stat = ({ label, value }: { label: string; value: string }) => (
     <div>
-        <div className={cn('font-anton text-xl leading-none', accent && 'text-primary')}>
-            {value}
-        </div>
+        <div className="font-anton text-xl leading-none">{value}</div>
         <div className="mt-1 text-[11px] text-muted-foreground">{label}</div>
     </div>
 )
