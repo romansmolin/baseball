@@ -95,7 +95,7 @@ export function NextMove({ next, entered, now, hasEntries, loading, failed, onRe
                     ))}
                 </dl>
                 <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <Link href={contestHref(next)} className={buttonVariants({ size: 'lg', className: 'gap-3 bg-lamp text-board hover:bg-lamp/90' })}>
+                    <Link href={contestHref(next)} className={buttonVariants({ size: 'lg', className: 'gap-3' })}>
                         {next.kind === 'DAILY' ? (entered ? 'Edit your lineup' : 'Build your lineup') : (entered ? 'View your entry' : 'Join now')}<ArrowUpRight className="size-4" aria-hidden="true" />
                     </Link>
                     <Link href="/rules" className="text-sm font-medium text-board-foreground/80 underline-offset-4 hover:text-white hover:underline">How scoring works</Link>

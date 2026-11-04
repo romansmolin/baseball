@@ -42,7 +42,7 @@ export const WalletBalance = () => {
                     ) : null}
                 </div>
 
-                <Button variant="default" className="gap-2 bg-lamp text-board hover:bg-lamp/90" onClick={() => openBuyCredits()}>
+                <Button variant="default" className="gap-2" onClick={() => openBuyCredits()}>
                     <HugeiconsIcon icon={Add01Icon} className="size-4" />
                     Buy credits
                 </Button>
