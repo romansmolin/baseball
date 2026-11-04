@@ -4,9 +4,11 @@ export interface UpcomingGame {
     status: string
     awayTeamName: string
     homeTeamName: string
+    awayTeamId?: number
+    homeTeamId?: number
 }
 
-export function selectUpcomingGames(games: readonly UpcomingGame[], now: number): UpcomingGame[] {
+export function selectUpcomingGames<T extends UpcomingGame>(games: readonly T[], now: number): T[] {
     if (!Number.isFinite(now)) return []
     const sorted = games
         .filter(game => game.status === 'SCHEDULED' && Date.parse(game.gameDateUtc) > now)

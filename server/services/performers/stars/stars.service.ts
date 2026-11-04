@@ -92,6 +92,7 @@ export class StarsService implements IStarsService {
                 name: slot.player.name,
                 position: slot.player.position,
                 team: slot.player.teamName,
+                teamId: slot.player.teamId,
                 photoUrl: slot.player.photoUrl,
                 fantasyPoints: slot.rawPoints,
                 // Box scores list every player in both arrays; the position decides which line counts.

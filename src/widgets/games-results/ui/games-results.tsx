@@ -3,6 +3,7 @@
 import Link from 'next/link'
 
 import type { UpcomingGameRecord } from '@/shared/games'
+import { TeamLogo } from '@/shared/ui/team-logo'
 import { cn } from '@/shared/utils'
 
 import {
@@ -176,8 +177,8 @@ const GameTeams = ({ game, tone, showLeague }: { game: UpcomingGameRecord; tone:
                 {showLeague && <p className={cn('mt-0.5 truncate', muted)}>{leagueLabel(game.leagueSlug)}</p>}
             </div>
             <div className="flex flex-col gap-1">
-                <TeamLine name={game.awayTeam.teamName ?? game.awayTeam.abbreviation} score={game.awayScore} won={awayWon} lost={homeWon} tone={tone} />
-                <TeamLine name={game.homeTeam.teamName ?? game.homeTeam.abbreviation} score={game.homeScore} won={homeWon} lost={awayWon} tone={tone} />
+                <TeamLine team={game.awayTeam} score={game.awayScore} won={awayWon} lost={homeWon} tone={tone} />
+                <TeamLine team={game.homeTeam} score={game.homeScore} won={homeWon} lost={awayWon} tone={tone} />
             </div>
         </div>
     )
@@ -198,22 +199,26 @@ const StatusCell = ({ game, tone }: { game: UpcomingGameRecord; tone: 'board' | 
 }
 
 interface TeamLineProps {
-    name: string
+    team: UpcomingGameRecord['homeTeam']
     score: number | null
     won: boolean
     lost: boolean
     tone: 'board' | 'paper'
 }
 
-const TeamLine = ({ name, score, won, lost, tone }: TeamLineProps) => (
+const TeamLine = ({ team, score, won, lost, tone }: TeamLineProps) => (
+
     <div
         className={cn(
-            'flex items-baseline justify-between gap-3',
+            'flex items-center justify-between gap-3',
             lost && (tone === 'board' ? 'text-board-foreground/60' : 'text-muted-foreground'),
             won && 'font-semibold',
         )}
     >
-        <span className="truncate">{name}</span>
+        <span className="flex min-w-0 items-center gap-2.5">
+            <TeamLogo teamId={team.id} label={team.abbreviation} className={lost ? 'opacity-60' : undefined} />
+            <span className="truncate">{team.teamName ?? team.abbreviation}</span>
+        </span>
         {score != null && (
             <span className={cn('font-anton text-2xl tabular-nums', tone === 'board' && !lost && 'text-lamp')}>{score}</span>
         )}

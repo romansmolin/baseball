@@ -4,6 +4,7 @@ export interface StatStar {
     name: string
     position: string
     team: string
+    teamId: number
     photoUrl: string | null
     fantasyPoints: number
     /** The official box-score line behind the points, e.g. "2 HR · 5 RBI · 3 H". */

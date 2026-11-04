@@ -2,6 +2,7 @@ import Image from 'next/image'
 
 import type { StatStar } from '@/shared/stats'
 import { Button } from '@/shared/ui/button'
+import { TeamLogo } from '@/shared/ui/team-logo'
 import { cn } from '@/shared/utils'
 
 interface StarsBoardProps {
@@ -85,7 +86,10 @@ export function StarsBoard({ title, subtitle, stars, maxPoints, loading, failed,
                                 <Photo star={star} className={t.photo} />
                                 <div className="min-w-0">
                                     <p className="truncate font-semibold">{star.name}</p>
-                                    <p className={cn('truncate text-sm', t.muted)}>{star.position} · {star.team}</p>
+                                    <p className={cn('flex items-center gap-1.5 truncate text-sm', t.muted)}>
+                                        <TeamLogo teamId={star.teamId} label={star.team} className="size-5 text-[7px]" />
+                                        <span className="truncate">{star.position} · {star.team}</span>
+                                    </p>
                                     <p className={cn('mt-0.5 text-sm font-medium tabular-nums', !star.statLine && t.muted)}>{star.statLine || 'Fielding and running'}</p>
                                 </div>
                                 <div className="text-right">
