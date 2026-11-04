@@ -14,6 +14,7 @@
     "db:enroll-demo-users": "jiti prisma/enroll-demo-users.ts",
     "showcase:seed-users": "node prisma/showcase-cli.mjs seed-showcase-users",
     "showcase:seed-history": "node prisma/showcase-cli.mjs seed-showcase-history",
+    "showcase:seed-minor-history": "node prisma/showcase-cli.mjs seed-showcase-minor-history",
     "showcase:seed-season": "node prisma/showcase-cli.mjs seed-showcase-season",
     "showcase:promote-season-live": "node prisma/showcase-cli.mjs promote-season-showcase-to-live",
     "showcase:tick": "node prisma/showcase-cli.mjs tick-showcase",

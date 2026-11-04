@@ -60,6 +60,8 @@ With `CONTEST_MINOR_ENABLED=true`, High-A, Single-A and Rookie publish as their 
 
 Scoring reloads a contest's schedule through its source slug, so every new source must be known to `loadContestSourceSchedule`.
 
+To fill the history with Minor League days, run `npm run showcase:seed-minor-history -- --days 14 --participants 1500 --dry-run`, review the source dates, then add `--apply` (and `--production` for the application database, after a backup). It takes the most recent finished days with at least ten real High-A, Single-A and Rookie games (at most six per level, so mostly Single-A and High-A from late summer), saves their box scores, and writes completed `REPLAY` contests for the `minor-leagues` source on the last N calendar days, with demo entries scored from the real box scores. A rerun skips days already completed; real-user entries and credit data are untouched. It refreshes the Replay manager standings at the end, so these contests also count toward Managers → Historical results.
+
 ## Production rollout and rollback
 
 First verify the full cohort and history on the test database. Back up the working database and preserve the import manifest; inspect a dry-run against the working database using `--production --dry-run` before applying with `--production --apply`. Use `prisma migrate deploy` for production migration, then import and enable the feature.
