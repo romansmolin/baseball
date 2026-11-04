@@ -9,6 +9,8 @@ const LEGAL_LINKS = [
     { href: '/legal/cookies', label: 'Cookies Policy' },
     { href: '/legal/refunds', label: 'Refund & Return Policy' },
     { href: '/legal/pricing', label: 'Pricing and Payment Policy' },
+    { href: '/services', label: 'Services and prices' },
+    { href: '/contact', label: 'Contact' },
 ]
 
 export function LandingFooter() {

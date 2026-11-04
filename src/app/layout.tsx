@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { connection } from 'next/server'
 import { Archivo, Big_Shoulders, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
+import { CookieBanner } from '@/features/cookie-consent'
 import { cn } from '@/shared/utils'
 
 const archivo = Archivo({ subsets: ['latin'], variable: '--font-sans' })
@@ -38,7 +39,10 @@ export default async function RootLayout({
             lang="en"
             className={cn('h-full', 'antialiased', 'font-sans', archivo.variable, jetbrainsMono.variable, bigShoulders.variable)}
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="min-h-full flex flex-col">
+                {children}
+                <CookieBanner />
+            </body>
         </html>
     )
 }

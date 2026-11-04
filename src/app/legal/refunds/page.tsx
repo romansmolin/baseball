@@ -1,3 +1,4 @@
+import { FooterBusinessInfo } from '@/shared/ui/footer-business-info'
 import { Callout, LegalPageShell, List, P, Section, Sub } from '@/widgets/legal'
 
 export const metadata = {
@@ -11,7 +12,7 @@ export default function RefundPolicyPage() {
         <LegalPageShell
             title="Refund & Return Policy"
             intro="This Refund & Return Policy explains when and how refunds and returns are available for credit purchases, paid features, and contest entries on BaseballFantasy. It supplements, and should be read together with, our Terms of Service."
-            lastUpdated="June 4, 2026"
+            lastUpdated="November 4, 2026"
         >
             <Callout>
                 <strong>Quick summary:</strong> Because BaseballFantasy sells virtual
@@ -28,7 +29,7 @@ export default function RefundPolicyPage() {
                 <List
                     items={[
                         'Purchases of virtual credits ("Credits") through the Service;',
-                        'Optional paid features and subscriptions, where offered;',
+                        'Optional one-time paid features, where offered;',
                         'Credit entry requirements paid with Credits;',
                         'Any other paid transaction processed through BaseballFantasy.',
                     ]}
@@ -258,6 +259,7 @@ export default function RefundPolicyPage() {
                         legal@mybaseballfantasy.com
                     </a>
                 </P>
+                <FooterBusinessInfo className="mt-3 flex flex-col gap-1 text-sm leading-relaxed not-italic" />
             </Section>
         </LegalPageShell>
     )

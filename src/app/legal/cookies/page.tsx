@@ -1,3 +1,4 @@
+import { FooterBusinessInfo } from '@/shared/ui/footer-business-info'
 import { Callout, LegalPageShell, List, P, Section, Sub, Table } from '@/widgets/legal'
 
 export const metadata = {
@@ -11,7 +12,7 @@ export default function CookiesPolicyPage() {
         <LegalPageShell
             title="Cookies Policy"
             intro="This Cookies Policy explains what cookies and similar technologies BaseballFantasy uses on our website and applications, why we use them, and how you can manage your preferences."
-            lastUpdated="June 4, 2026"
+            lastUpdated="November 4, 2026"
         >
             <Callout>
                 <strong>In short:</strong> We use a small number of cookies — mostly to
@@ -132,6 +133,12 @@ export default function CookiesPolicyPage() {
                     ]}
                 />
                 <P>
+                    When you start a payment, our authorized payment processor may
+                    deploy essential security cookies and device-profiling technologies
+                    on the checkout interface to facilitate 3D Secure authentication and
+                    prevent fraudulent payment attempts.
+                </P>
+                <P>
                     Each of these providers has its own privacy and cookies practices,
                     which we encourage you to review.
                 </P>
@@ -209,6 +216,10 @@ export default function CookiesPolicyPage() {
             </Section>
 
             <Section id="contact" title="10. Contact">
+                <P>
+                    <strong className="text-foreground">Data Controller / Operator:</strong>
+                </P>
+                <FooterBusinessInfo className="mt-3 flex flex-col gap-1 text-sm leading-relaxed not-italic" />
                 <P>
                     Questions about this Cookies Policy? Email{' '}
                     <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">

@@ -30,6 +30,7 @@ import {
     verifyWebhookSignature,
 } from './secure-processor.client'
 import type { CreateCheckoutInput, IPaymentService } from './payment.service.interface'
+import type { IReceiptMailer } from './receipt-email'
 
 type NormalizedStatus = 'CREATED' | 'PENDING' | 'SUCCESSFUL' | 'FAILED' | 'DECLINED' | 'EXPIRED' | 'ERROR'
 
@@ -53,15 +54,37 @@ export class PaymentService implements IPaymentService {
     private readonly paymentRepository: IPaymentRepository
     private readonly creditRepository: ICreditRepository
     private readonly userRepository: IUserRepository
+    private readonly receiptMailer: IReceiptMailer | undefined
 
     constructor(
         paymentRepository: IPaymentRepository,
         creditRepository: ICreditRepository,
         userRepository: IUserRepository,
+        receiptMailer?: IReceiptMailer,
     ) {
         this.paymentRepository = paymentRepository
         this.creditRepository = creditRepository
         this.userRepository = userRepository
+        this.receiptMailer = receiptMailer
+    }
+
+    // A receipt that cannot be sent must never undo a payment that already succeeded.
+    private async sendReceipt(payment: { id: string; userId: string; amountCents: number; currency: string; creditAmount: number }): Promise<void> {
+        if (!this.receiptMailer) return
+        try {
+            const user = await this.userRepository.findById(payment.userId)
+            if (!user) return
+            await this.receiptMailer.send({
+                to: user.email,
+                transactionId: payment.id,
+                amountCents: payment.amountCents,
+                currency: payment.currency,
+                credits: payment.creditAmount,
+                paidAt: new Date(),
+            })
+        } catch (error) {
+            console.error('[payment] receipt email failed', error)
+        }
     }
 
     async createCheckout(
@@ -224,6 +247,7 @@ export class PaymentService implements IPaymentService {
                 referenceType: 'payment',
                 referenceId: payment.id,
             })
+            await this.sendReceipt(payment)
         } else if (
             status === 'FAILED' ||
             status === 'ERROR' ||
@@ -270,6 +294,7 @@ export class PaymentService implements IPaymentService {
                 referenceType: 'payment',
                 referenceId: payment.id,
             })
+            await this.sendReceipt(payment)
 
             return { status: 'SUCCESSFUL' }
         }

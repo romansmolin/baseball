@@ -1,3 +1,4 @@
+import { FooterBusinessInfo } from '@/shared/ui/footer-business-info'
 import { Callout, LegalPageShell, List, P, Section, Sub } from '@/widgets/legal'
 
 export const metadata = {
@@ -11,7 +12,7 @@ export default function TermsOfServicePage() {
         <LegalPageShell
             title="Terms of Service"
             intro="These Terms of Service (“Terms”) form a legally binding agreement between you and CODERUSH SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ, a company incorporated in Poland under KRS number 0001188826, trading as BaseballFantasy (“BaseballFantasy,” “we,” “us,” or “our”). These Terms govern your access to and use of the website at https://www.mybaseballfantasy.com/, including its fantasy baseball contests, virtual credit economy and related digital services (collectively, the “Service”)."
-            lastUpdated="June 4, 2026"
+            lastUpdated="November 4, 2026"
         >
             <Callout>
                 <strong>Read this carefully.</strong> By creating an account, accessing,
@@ -168,11 +169,13 @@ export default function TermsOfServicePage() {
                 </Sub>
                 <Sub title="5.5 Refunds">
                     <P>
-                        Refunds for credit purchases are governed by our{' '}
+                        All sales of virtual credits are final and non-refundable once the
+                        credits have been delivered to your account, except as required by
+                        applicable EU statutory consumer rights and as set out in our{' '}
                         <a className="font-medium text-primary underline" href="/legal/refunds">
                             Refund & Return Policy
                         </a>
-                        .
+                        , which governs refunds for credit purchases.
                     </P>
                 </Sub>
             </Section>
@@ -344,8 +347,20 @@ export default function TermsOfServicePage() {
                     servers.
                 </P>
                 <P>
+                    Prices are shown in euros (EUR). Transactions are billed in the
+                    currency displayed at checkout, before you confirm the payment.
+                </P>
+                <P>
                     Virtual credits are made available to the user after successful
-                    payment confirmation. Credits are non-transferable, have no cash
+                    payment confirmation. Credits are added to your account
+                    electronically and instantly once the transaction is authorized.
+                    If your credits have not appeared within 30 minutes of an
+                    authorized payment, email{' '}
+                    <a className="font-medium text-primary underline" href="mailto:support@mybaseballfantasy.com">
+                        support@mybaseballfantasy.com
+                    </a>{' '}
+                    with your transaction reference and we will add the credits or
+                    refund the payment. Credits are non-transferable, have no cash
                     value and cannot be redeemed or withdrawn.
                 </P>
                 <P>
@@ -489,6 +504,8 @@ export default function TermsOfServicePage() {
                 <P>
                     <strong className="text-foreground">BaseballFantasy — Legal Team</strong>
                     <br />
+                    Operated by the company below.
+                    <br />
                     General legal:{' '}
                     <a className="font-medium text-primary underline" href="mailto:legal@mybaseballfantasy.com">
                         legal@mybaseballfantasy.com
@@ -499,6 +516,7 @@ export default function TermsOfServicePage() {
                         support@mybaseballfantasy.com
                     </a>
                 </P>
+                <FooterBusinessInfo className="mt-3 flex flex-col gap-1 text-sm leading-relaxed not-italic" />
             </Section>
         </LegalPageShell>
     )

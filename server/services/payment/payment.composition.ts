@@ -10,13 +10,14 @@ import { PaymentRepository } from '../../repositories/payment/payment.repository
 import { UserRepository } from '../../repositories/user/user.repository'
 
 import { PaymentService } from './payment.service'
+import { createReceiptMailer } from './receipt-email'
 import { WalletService } from '../wallet/wallet.service'
 
 export function buildPaymentController(): PaymentController {
     const paymentRepository = new PaymentRepository()
     const creditRepository = new CreditRepository()
     const userRepository = new UserRepository()
-    const paymentService = new PaymentService(paymentRepository, creditRepository, userRepository)
+    const paymentService = new PaymentService(paymentRepository, creditRepository, userRepository, createReceiptMailer())
     return new PaymentController(paymentService)
 }
 
