@@ -25,16 +25,17 @@ export const DashboardHeader = ({ initials, showcaseEnabled = false }: Dashboard
         { ...dashboardNav[0], label: 'Home' },
         { label: 'Contests', href: '/contests', icon: BaseballIcon },
         dashboardNav.find(item => item.href === '/teams')!,
+        dashboardNav.find(item => item.href === '/stats')!,
         { label: 'Managers', href: '/managers', icon: BaseballIcon },
     ] : dashboardNav
     const secondaryNav = dashboardNav.filter(item => !primaryNav.some(primary => primary.href === item.href))
-    const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+    const isActive = (item: NavItem) => [item.href, ...(item.matches ?? [])].some(href => pathname === href || pathname.startsWith(`${href}/`))
 
     const renderNavLink = (item: NavItem, compact = false) => (
-        <Link key={item.href} href={item.href} aria-label={compact ? item.label : undefined} aria-current={isActive(item.href) ? 'page' : undefined}
+        <Link key={item.href} href={item.href} aria-label={compact ? item.label : undefined} aria-current={isActive(item) ? 'page' : undefined}
             className={cn('flex shrink-0 items-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                 compact ? 'min-h-9 gap-1 px-2.5 text-xs' : 'gap-1.5 px-3 py-1.5 text-sm',
-                isActive(item.href) ? 'bg-lamp/15 text-lamp' : 'text-board-foreground/70 hover:bg-white/10 hover:text-white')}
+                isActive(item) ? 'bg-lamp/15 text-lamp' : 'text-board-foreground/70 hover:bg-white/10 hover:text-white')}
         >
                 {!compact && <HugeiconsIcon icon={item.icon} className="size-4" />}{item.label}
         </Link>
@@ -44,13 +45,13 @@ export const DashboardHeader = ({ initials, showcaseEnabled = false }: Dashboard
         <details className={cn('group/more relative shrink-0', compact && 'ml-auto')}>
             <summary aria-label="More sections" className={cn('flex cursor-pointer list-none items-center gap-1 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden',
                 compact ? 'min-h-9 px-2.5 text-xs' : 'px-3 py-1.5 text-sm',
-                secondaryNav.some(item => isActive(item.href)) ? 'bg-lamp/15 text-lamp' : 'text-board-foreground/70 hover:bg-white/10 hover:text-white')}>
+                secondaryNav.some(item => isActive(item)) ? 'bg-lamp/15 text-lamp' : 'text-board-foreground/70 hover:bg-white/10 hover:text-white')}>
                 More<ChevronDown className="size-3.5 transition-transform group-open/more:rotate-180" aria-hidden="true" />
             </summary>
             <ul className="absolute right-0 top-full z-30 mt-2 w-48 rounded-xl border border-foreground/10 bg-background p-1.5 shadow-lg">
-                {secondaryNav.map(item => <li key={item.href}><Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}
+                {secondaryNav.map(item => <li key={item.href}><Link href={item.href} aria-current={isActive(item) ? 'page' : undefined}
                     onClick={event => event.currentTarget.closest('details')?.removeAttribute('open')}
-                    className={cn('flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring', isActive(item.href) ? 'text-primary' : 'text-muted-foreground')}>
+                    className={cn('flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring', isActive(item) ? 'text-primary' : 'text-muted-foreground')}>
                     <HugeiconsIcon icon={item.icon} className="size-4" />{item.label}
                 </Link></li>)}
             </ul>

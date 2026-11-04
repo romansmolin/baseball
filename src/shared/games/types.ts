@@ -13,6 +13,8 @@ export interface UpcomingGameRecord {
     gamePk: number
     gameDateUtc: string // ISO 8601
     status: UpcomingGameStatus
+    // Which baseball league the game belongs to (MLB, Winter Leagues, ...).
+    leagueSlug?: string
     homeTeam: UpcomingGameTeam
     awayTeam: UpcomingGameTeam
     venueName: string | null

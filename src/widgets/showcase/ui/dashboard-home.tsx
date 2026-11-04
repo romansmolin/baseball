@@ -8,6 +8,7 @@ import { NextMove } from './next-move'
 import { SeasonSummary } from './season-summary'
 import { TodayLedger } from './today-contest-panel'
 import { UpcomingGames } from './upcoming-games'
+import { YesterdaysStars } from './yesterdays-stars'
 
 interface DashboardHomeProps {
     userId: string
@@ -38,6 +39,7 @@ export function DashboardHome({ userId, firstName, sidebarTop }: DashboardHomePr
                         failed={today.failed}
                         onRetry={today.retry}
                     />
+                    <YesterdaysStars />
                     <TodayLedger state={today} />
                 </div>
                 <aside className="min-w-0 space-y-10 lg:border-l lg:border-foreground/10 lg:pl-10">
