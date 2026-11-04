@@ -76,8 +76,8 @@
     --card-foreground: #15211a;
     --popover: #f8f9f5;
     --popover-foreground: #15211a;
-    --primary: #c8302a;
-    --primary-foreground: #ffffff;
+    --primary: #ff7070;
+    --primary-foreground: #15211a;
     --secondary: #e0e5db;
     --secondary-foreground: #15211a;
     --muted: #e3e8de;
@@ -153,7 +153,7 @@
 }
 
 .text-outline-red {
-    -webkit-text-stroke: 1px #c8302a;
+    -webkit-text-stroke: 1px #ff7070;
     color: transparent;
 }
 
