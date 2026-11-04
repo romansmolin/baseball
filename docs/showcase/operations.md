@@ -52,6 +52,14 @@ To inspect old open or locked Replay rows, run `npm run showcase:retire-open-rep
 
 The profile/import scripts do not create transactions in the credit or payment ledgers. The overview distinguishes demo activity from real users. Historical result rankings remain read-only.
 
+## Winter leagues by league, and Minor Leagues
+
+With `CONTEST_WINTER_ENABLED=true`, the winter games are published twice: as the combined Winter Leagues contests, and once per league (Mexican Pacific, Venezuelan, Dominican, Puerto Rican, Arizona Fall, Australian, Caribbean Series). A game belongs to the league of its home team, as the MLB Stats API reports it; games with an unknown league appear only in the combined contests. Each league uses its own source slug (`winter-lmp`, `winter-lvbp`, `winter-lidom`, `winter-lbprc`, `winter-afl`, `winter-abl`, `winter-cs`), and a league without enough games or a valid player pool is skipped by the usual rules. The recurring series stay on the combined source.
+
+With `CONTEST_MINOR_ENABLED=true`, High-A, Single-A and Rookie publish as their own `minor-leagues` source, with the same Daily Lineup and Weekend Series formats, so they never dilute the MLB, Triple-A and Double-A pool. Box-score lines for these levels were complete in a July 2026 sample (40 of 40 games each), unlike what `BOX_SCORE_SUPPORT` still says for the weekly tournaments, which keep their own setting. A mid-season day brings about 140 games and 140 clubs whose rosters are read, mostly Rookie clubs, so the first calendar run after enabling it may hit the 50-second budget; later runs resume because existing slates are skipped. There are no minor-league games between November and March, so nothing is published until the season starts.
+
+Scoring reloads a contest's schedule through its source slug, so every new source must be known to `loadContestSourceSchedule`.
+
 ## Production rollout and rollback
 
 First verify the full cohort and history on the test database. Back up the working database and preserve the import manifest; inspect a dry-run against the working database using `--production --dry-run` before applying with `--production --apply`. Use `prisma migrate deploy` for production migration, then import and enable the feature.
