@@ -11,7 +11,7 @@ describe('tickShowcase', () => {
         const db = {
             showcaseJob: { upsert: vi.fn(async () => ({})), updateMany: vi.fn(async () => ({ count: 1 })), findUnique: vi.fn(async () => null) },
             dailyContest: { findMany: contestFindMany, upsert: contestUpsert },
-            demoProfile: { findMany: vi.fn(async () => []) },
+            demoProfile: { count: vi.fn(async () => 0), findMany: vi.fn(async () => []) },
             scoringRule: { findFirst: vi.fn(async () => null) },
         }
 

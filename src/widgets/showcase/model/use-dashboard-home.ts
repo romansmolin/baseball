@@ -29,6 +29,7 @@ export function useTodayState(userId?: string) {
         finished: history.data?.items ?? [],
         enteredIds,
         myPoints,
+        userId,
         now,
         hasEntries: enteredIds.size > 0 || (profile.data?.entries ?? 0) > 0,
         loading: !now || (current.isLoading && !current.data),
@@ -53,9 +54,10 @@ export function useSeasonStandings(userId?: string) {
     }
 }
 
-export function useContestLeader(contestId: string) {
+/** First page of a finished contest's standings; null id skips the request. */
+export function useContestPodium(contestId: string | null) {
     const { data, isLoading } = useDailyStandingsData(contestId)
-    return { leader: data?.items[0] ?? null, loading: isLoading && !data }
+    return { standings: data?.items ?? [], loading: !!contestId && isLoading && !data }
 }
 
 export function useDashboardHome(userId: string) {

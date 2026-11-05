@@ -1,16 +1,14 @@
 import { createHash } from 'node:crypto'
-import { chooseDemoLineup } from '../showcase/demo-simulation'
+import { chooseDemoLineup, TEAM_MASCOTS as mascots, TEAM_PLACES as places } from '../showcase/demo-simulation'
 import type { RecurringLineupInput, RecurringTournamentContext } from './recurring.types'
 
 export interface DemoIdentity { userId: string; demoKey: string; strategy: string }
 export interface ScheduledDemoEntry { userId: string; sourceKey: string; scheduledAt: Date; lineup: RecurringLineupInput; teamName: string }
 
-const places = ['Harbor', 'Golden', 'Northside', 'Brookside', 'Cedar', 'Riverside', 'Silver', 'Westside', 'Eastside', 'Oakland', 'Mountain', 'Pinewood', 'Maple', 'Lakeside', 'Summit', 'Broadway', 'Bridgeport', 'Eastwood', 'Canyon', 'Hilltop', 'Sunset', 'Prairie', 'Bayview', 'Copper', 'Blue Ridge', 'Grandview', 'Fairview', 'Seaside', 'Woodland', 'Highland', 'Kingsway', 'Redwood', 'Northstar', 'Stonebridge', 'Riverbend', 'Southside', 'Parkview', 'Elmwood', 'Meadow', 'Clearwater']
-const mascots = ['Hawks', 'Rockets', 'Pilots', 'Falcons', 'Bears', 'Wolves', 'Foxes', 'Comets', 'Mustangs', 'Tigers', 'Knights', 'Eagles', 'Ravens', 'Royals', 'Owls', 'Bulls', 'Sparks', 'Sailors', 'Titans', 'Stars', 'Pioneers', 'Storm', 'Giants', 'Sharks', 'Hurricanes', 'Lions', 'Wildcats', 'Rangers', 'Badgers', 'Dragons', 'Panthers', 'Firebirds', 'Coyotes', 'Mariners', 'Vipers', 'Meteors', 'Thunder', 'Rhinos', 'Hornets', 'Chargers']
 const hash32 = (value: string) => createHash('sha256').update(value).digest().readUInt32BE(0)
 
 export function planRecurringDemoEntries(context: RecurringTournamentContext, profiles: DemoIdentity[], seed: string, registrationStart: Date): ScheduledDemoEntry[] {
-    if (!Number.isInteger(context.demoTarget) || context.demoTarget < 400 || context.demoTarget > 900) throw new Error('Invalid demo target')
+    if (!Number.isInteger(context.demoTarget) || context.demoTarget < 100 || context.demoTarget > 5000) throw new Error('Invalid demo target')
     const start = registrationStart.getTime(), end = context.window.startsAt.getTime()
     if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end) throw new Error('Invalid demo registration period')
     if (!profiles.length) return []

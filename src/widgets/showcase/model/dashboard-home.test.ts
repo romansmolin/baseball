@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ContestCatalogItem } from '@/shared/tournaments'
-import { formatCountdown, gapToLeader, groupContestsBySchedule, selectNextContest } from './dashboard-home'
+import { activeTime, barWidth, formatCountdown, gapToLeader, groupContestsBySchedule, isOverdue, selectNextContest, winningMargin } from './dashboard-home'
 
 const now = Date.parse('2026-11-03T12:00:00Z')
 const item = (over: Partial<ContestCatalogItem>): ContestCatalogItem => ({
@@ -40,10 +40,25 @@ describe('dashboard home selection', () => {
         expect(schedule.later.map(row => row.id)).toEqual(['later', 'series'])
     })
 
+    it('drops contests in play that ended more than a day ago and orders the rest by end date', () => {
+        const live = (id: string, endsAt: string, over: Partial<ContestCatalogItem> = {}) =>
+            item({ id, kind: 'LEAGUE', status: 'IN_SEASON', startsAt: '2026-06-29T19:00:00Z', locksAt: null, endsAt, ...over })
+        const stale = live('stale', '2026-09-07T00:00:00Z')
+        expect(isOverdue(stale, now)).toBe(true)
+        expect(isOverdue(live('recent', '2026-11-02T20:00:00Z'), now)).toBe(false)
+        expect(isOverdue(item({ status: 'OPEN', endsAt: '2020-01-01T00:00:00Z' }), now)).toBe(false)
+        const schedule = groupContestsBySchedule([live('later', '2026-11-24T00:00:00Z'), stale, live('sooner', '2026-11-14T00:00:00Z'), live('recent', '2026-11-02T20:00:00Z')], now)
+        expect(schedule.today.map(row => row.id)).toEqual(['recent', 'sooner', 'later'])
+        expect(activeTime(live('x', '2026-11-14T00:00:00Z'))).toBe(Date.parse('2026-11-14T00:00:00Z'))
+    })
+
     it('formats countdowns and the gap to the leader', () => {
         expect(formatCountdown(now + 5 * 3600000 + 20 * 60000, now)).toBe('5h 20m')
         expect(formatCountdown(now + 26 * 3600000, now)).toBe('1d 2h')
         expect(formatCountdown(now - 1, now)).toBe('now')
+        expect(winningMargin([{ points: 184.6 }, { points: 181.6 }, { points: 150 }])).toBeCloseTo(3)
+        expect(winningMargin([{ points: 10 }])).toBeNull()
+        expect([barWidth(184.6, 184.6), barWidth(92.3, 184.6), barWidth(1, 184.6), barWidth(5, 0)]).toEqual([100, 50, 8, 0])
         expect(gapToLeader(176.2, 184.6, 'Ann', false)).toBe('8.4 pts behind Ann.')
         expect(gapToLeader(184.6, 184.6, 'Ann', true)).toBe('You are leading the standings.')
     })

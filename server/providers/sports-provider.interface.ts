@@ -29,6 +29,8 @@ export interface GetPlayersByTeamOptions {
     season?: number
     rosterType?: RosterType
     league?: BaseballProviderLeague
+    // Also load each player's stats for this season. Rosters still come back if the stats cannot be read.
+    statsSeason?: number
 }
 
 export interface GetBoxScoreOptions {

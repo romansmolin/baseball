@@ -30,7 +30,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)('recurring publication', () => {
         expect(results.reduce((sum, r) => sum + r.created, 0)).toBe(2)
         const before = await db.recurringTournament.findMany({ where: { startsAt: { gte: new Date('2091-11-01'), lt: new Date('2091-12-01') } }, orderBy: { startsAt: 'asc' } })
         expect(before.map(r => r.startsAt.getUTCDate())).toEqual([5, 12])
-        expect(before.every(r => r.demoTarget >= 400 && r.demoTarget <= 900)).toBe(true)
+        expect(before.every(r => r.demoTarget >= 200 && r.demoTarget <= 1600)).toBe(true)
         provider.games = []
         const repeat = await publishRecurringTournaments(db, provider, { now, dryRun: false, permit })
         expect(repeat.created).toBe(0)

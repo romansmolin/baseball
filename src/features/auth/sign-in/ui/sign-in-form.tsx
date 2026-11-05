@@ -32,9 +32,7 @@ export const SignInForm = () => {
             <FieldGroup>
                 <FieldSet>
                     <FieldLegend className="font-audiowide text-2xl!">Welcome Back 👋</FieldLegend>
-                    <FieldDescription>
-                        Welcome back! Sign in to continue.
-                    </FieldDescription>
+                    <FieldDescription>Welcome back! Sign in to continue.</FieldDescription>
 
                     <FieldGroup>
                         <Field data-invalid={!!errors.email}>

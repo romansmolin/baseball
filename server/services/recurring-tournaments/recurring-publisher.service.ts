@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import type { PrismaClient } from '../../../src/generated/prisma/client'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
 import { RecurringRepository } from '../../repositories/recurring-tournaments/recurring.repository'
-import { firstContestGameAt, inspectRecurringSource, type RosterSeed, type SourceCheckpoint } from './recurring-source.service'
+import { contestGameTimes, inspectRecurringSource, windowHasGamesEveryWeek, type RosterSeed, type SourceCheckpoint } from './recurring-source.service'
 import { DEFAULT_RECURRING_HORIZON_DAYS, planRecurringStarts, type RecurringSource } from './recurring-calendar'
 import type { MutationPermit, RecurringWindow } from './recurring.types'
 
@@ -15,8 +15,12 @@ export interface RecurringPublishSummary {
     checkpoint?: SourceCheckpoint
 }
 
+/** Longer series draw more entries; the exact number differs from one start to the next. */
+const DEMO_TARGET_RANGE: Record<RecurringWindow['totalWeeks'], readonly [number, number]> = { 1: [200, 700], 2: [300, 1100], 4: [500, 1600] }
+
 export function recurringDemoTarget(window: RecurringWindow): number {
-    return 400 + createHash('sha256').update(`${window.templateKey}:${window.sourceSlug}:${window.startsAt.toISOString()}`).digest().readUInt32BE(0) % 501
+    const [low, high] = DEMO_TARGET_RANGE[window.totalWeeks]
+    return low + createHash('sha256').update(`${window.templateKey}:${window.sourceSlug}:${window.startsAt.toISOString()}`).digest().readUInt32BE(0) % (high - low + 1)
 }
 
 export async function ensureRecurringCommissioner(db: PrismaClient, permit: MutationPermit): Promise<string> {
@@ -35,14 +39,14 @@ export async function publishRecurringTournaments(db: PrismaClient, provider: IS
     const horizonDays = options.horizonDays ?? DEFAULT_RECURRING_HORIZON_DAYS
     let windows = planRecurringStarts(options.now, horizonDays, options.sources)
     if (horizonDays > DEFAULT_RECURRING_HORIZON_DAYS && windows.length) {
-        // Ahead of a season most windows have no games; look up the first real game once
-        // instead of inspecting every window against the schedule.
+        // Most far-off windows have no games. Read the schedule once rather than per window,
+        // or a tick's budget runs out before it reaches the windows that do.
         const last = windows[windows.length - 1].endsAt
-        const firstGameBySource = new Map<RecurringSource, number | null | undefined>()
-        for (const source of new Set(windows.map(window => window.sourceSlug))) firstGameBySource.set(source, await firstContestGameAt(provider, options.now, last, source))
+        const timesBySource = new Map<RecurringSource, number[] | undefined>()
+        for (const source of new Set(windows.map(window => window.sourceSlug))) timesBySource.set(source, await contestGameTimes(provider, options.now, last, source))
         windows = windows.filter(window => {
-            const firstGame = firstGameBySource.get(window.sourceSlug)
-            return firstGame === undefined || (firstGame !== null && window.endsAt.getTime() > firstGame)
+            const times = timesBySource.get(window.sourceSlug)
+            return times === undefined || windowHasGamesEveryWeek(window, times)
         })
     }
     const saved = options.checkpoint

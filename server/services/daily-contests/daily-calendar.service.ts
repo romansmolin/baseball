@@ -20,6 +20,7 @@ import { dailyContestName } from './daily-contest-names'
 import { loadDailySchedule, loadNorthAmericanContestSchedule, type DailyScheduledGame } from './daily-schedule.service'
 import { splitWinterByLeague } from './winter-league-split'
 import { mapWithConcurrency } from '../../shared/concurrency.utils'
+import { playerSalary, salaryStatsSeason } from './player-salary'
 import { isPrismaError } from '../../shared/db/prisma-error.utils'
 
 export const DAILY_CALENDAR_DAYS = 7
@@ -177,7 +178,7 @@ export class DailyCalendarService {
         await mapWithConcurrency([...scheduledTeams], 6, async ([key, team]) => {
             assertWorkTime(1000)
             try {
-                const roster = await this.provider.getPlayersByTeam(team.teamId, { season: team.season, league: team.league })
+                const roster = await this.provider.getPlayersByTeam(team.teamId, { season: team.season, league: team.league, statsSeason: salaryStatsSeason(team.season, now) })
                 const accepted = roster.filter(player => ACCEPTED_POSITIONS.has(player.primaryPosition))
                 rosterCache.set(key, accepted.map(player => ({
                     externalPlayerId: player.id,
@@ -185,7 +186,7 @@ export class DailyCalendarService {
                     position: providerPositionToPoolPosition(player.primaryPosition),
                     teamId: team.teamId,
                     teamName: player.teamName ?? teamNames.get(key) ?? `Club ${team.teamId}`,
-                    salary: 4000 + (player.id % 7) * 1000,
+                    salary: playerSalary(player),
                     photoUrl: player.photoUrl,
                 })))
             } catch (error) {

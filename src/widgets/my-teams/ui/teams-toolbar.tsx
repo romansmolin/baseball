@@ -1,11 +1,12 @@
 'use client'
 
-import { ArrowDown01Icon, GridViewIcon, Menu02Icon, StarIcon } from '@hugeicons/core-free-icons'
+import { GridViewIcon, Menu02Icon, StarIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import { cn } from '@/shared/utils'
 
 import type { League, SortKey, StatusFilter, ViewMode } from '../model/team.type'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string; withIcon?: boolean }[] = [
     { value: 'all', label: 'All' },
@@ -46,18 +47,23 @@ export const TeamsToolbar = ({
     onSelectLeague,
 }: TeamsToolbarProps) => (
     <div className="mb-5 flex flex-wrap items-center gap-3">
-        <select
-            value={selectedLeagueSlug ?? ''}
-            onChange={(e) => onSelectLeague(e.target.value === '' ? null : e.target.value)}
-            className="h-8 rounded-full border border-foreground/15 bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 lg:hidden"
+        <Select
+            items={[{ value: null, label: 'All leagues' }, ...leagues.map((league) => ({ value: league.slug, label: league.name }))]}
+            value={selectedLeagueSlug ?? null}
+            onValueChange={(value) => onSelectLeague(value)}
         >
-            <option value="">All leagues</option>
-            {leagues.map((league) => (
-                <option key={league.slug} value={league.slug}>
-                    {league.name}
-                </option>
-            ))}
-        </select>
+            <SelectTrigger size="sm" aria-label="League" className="lg:hidden">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value={null}>All leagues</SelectItem>
+                {leagues.map((league) => (
+                    <SelectItem key={league.slug} value={league.slug}>
+                        {league.name}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
 
         <div className="flex flex-wrap items-center gap-1.5">
             {STATUS_OPTIONS.map((opt) => {
@@ -83,23 +89,18 @@ export const TeamsToolbar = ({
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-            <div className="relative">
-                <select
-                    value={sortKey}
-                    onChange={(e) => onSortChange(e.target.value as SortKey)}
-                    className="h-9 appearance-none rounded-md border border-foreground/15 bg-card py-2 pr-9 pl-3 text-sm outline-none transition-colors hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                >
+            <Select items={SORT_OPTIONS} value={sortKey} onValueChange={(value) => onSortChange(value as SortKey)}>
+                <SelectTrigger size="sm" aria-label="Sort by">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
+                        <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
-                        </option>
+                        </SelectItem>
                     ))}
-                </select>
-                <HugeiconsIcon
-                    icon={ArrowDown01Icon}
-                    className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-            </div>
+                </SelectContent>
+            </Select>
 
             <div className="flex items-center rounded-md border border-foreground/15 p-0.5">
                 <button

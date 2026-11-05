@@ -36,7 +36,7 @@ export async function seedShowcaseHistory(db: PrismaClient, input: { days: numbe
         for (let batchStart = 0; batchStart < selected.length; batchStart += 500) {
             const rows = selected.slice(batchStart, batchStart + 500).map((index, n) => {
                 const profile = profiles[index]
-                const picks = chooseDemoLineup(archive.players, `${profile.demoKey}:${sourceDate}`, profile.strategy)
+                const picks = chooseDemoLineup(archive.players, `${profile.demoKey}:${sourceDate}`, profile.strategy, profile.demoKey)
                 const slots = validateDailyLineup(picks, archive.players as DailyPlayer[], 80000)
                 const score = scoreDailyLineup(slots, picks.captainExternalPlayerId ?? null, archive.boxScores, rule, 1.5)
                 const createdAt = new Date(locksAt.getTime() - 3600000 - ((batchStart + n) % 180) * 60000)

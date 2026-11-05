@@ -150,7 +150,7 @@ export async function seedSeasonHistory(
         const locksAt = new Date(Math.min(...day.games.map(game => Date.parse(game.gameDateUtc))))
         const entries = selected.map((profileIndex, entryIndex): PlannedEntry => {
             const profile = profiles[profileIndex]
-            const picks = chooseDemoLineup(day.players, `${profile.demoKey}:${input.season}:${day.sourceDate}`, profile.strategy)
+            const picks = chooseDemoLineup(day.players, `${profile.demoKey}:${input.season}:${day.sourceDate}`, profile.strategy, profile.demoKey)
             const lineup = validateDailyLineup(picks, day.players, 80000)
             const scored = scoreDailyLineup(lineup, picks.captainExternalPlayerId ?? null, day.boxScores, rule, 1.5)
             return {

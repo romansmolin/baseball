@@ -1,111 +1,105 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
-import type { ContestCatalogItem, ContestCatalogKind, ContestCatalogView } from '@/shared/tournaments'
-import { useContestCatalogData } from '@/entities/tournaments'
-import { Button, buttonVariants } from '@/shared/ui/button'
-import { cn } from '@/shared/utils'
-import { LoadState, PageNavigation, number, timestamp } from '@/widgets/showcase/ui/showcase-primitives'
+import { Search, X } from 'lucide-react'
 
-const PAGE_SIZE = 20
-const KIND_OPTIONS: { value: ContestCatalogKind | 'ALL'; label: string }[] = [
-    { value: 'ALL', label: 'All formats' },
-    { value: 'DAILY', label: 'Daily' },
-    { value: 'SERIES', label: 'Series' },
-    { value: 'LEAGUE', label: 'Leagues' },
+import type { ContestCatalogView } from '@/shared/tournaments'
+import { Button } from '@/shared/ui/button'
+import { Input } from '@/shared/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import { groupTicketsByMonth, type ContestTab } from '../model/contest-ticket'
+import { CONTESTS_PAGE_SIZE, useContestsCatalog, type ContestKindFilter } from '../model/use-contests-catalog'
+import { ContestTicket } from './contest-ticket'
+
+const TABS: { value: ContestTab; label: string; empty: string }[] = [
+    { value: 'open', label: 'Open', empty: 'No contest is taking entries right now. New ones open as games are added to the schedule.' },
+    { value: 'live', label: 'In play', empty: 'No contest is being played right now.' },
+    { value: 'results', label: 'Results', empty: 'Finished contests appear here with their standings.' },
 ]
 
-function statusLabel(item: ContestCatalogItem): string {
-    if (item.status === 'OPEN' || item.status === 'DRAFTING') return 'Open for entries'
-    if (item.status === 'LOCKED' || item.status === 'IN_SEASON' || item.status === 'PLAYOFFS') return 'In progress'
-    if (item.status === 'CANCELLED') return 'Cancelled'
-    return 'Results'
-}
-
-function formatDate(item: ContestCatalogItem, view: ContestCatalogView): string {
-    const start = new Date(view === 'history' ? item.endsAt : item.startsAt)
-    const date = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-    if (item.kind === 'DAILY') return date
-    const end = new Date(item.endsAt)
-    return `${date} – ${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`
-}
-
-function kindLabel(item: ContestCatalogItem): string {
-    if (item.kind === 'DAILY') return item.slateKey === 'weekend' ? 'Weekend Series' : 'Daily Lineup'
-    if (item.kind === 'SERIES') return item.templateKey?.replaceAll('-', ' ') ?? 'Fantasy Series'
-    return 'League tournament'
-}
-
-function sourceLabel(slug: string): string {
-    if (slug === 'north-america') return 'North American Leagues'
-    if (slug === 'winter-leagues') return 'Winter Leagues'
-    if (slug === 'triple-a') return 'Triple-A'
-    if (slug === 'double-a') return 'Double-A'
-    return slug.toUpperCase()
-}
-
-function itemHref(item: ContestCatalogItem, view: ContestCatalogView): string {
-    return item.kind === 'DAILY'
-        ? `/contests/${encodeURIComponent(item.id)}?view=${view}`
-        : `/tournaments?tournament=${encodeURIComponent(item.id)}`
-}
-
-function ContestCard({ item, view }: { item: ContestCatalogItem; view: ContestCatalogView }) {
-    const href = itemHref(item, view)
-    const dateLabel = formatDate(item, view)
-    const deadline = item.locksAt ? timestamp(item.locksAt) : null
-    const joinable = item.status === 'OPEN' || item.status === 'DRAFTING'
-    const sourceNames = item.sourceLeagues?.map(sourceLabel).join(' · ') || sourceLabel(item.leagueSlug)
-    return <article className="flex flex-col gap-3 rounded-xl border border-foreground/10 bg-card p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{kindLabel(item)} · {sourceNames}</span>
-            <span className={cn('rounded-full px-2 py-1 text-[11px]', item.status === 'OPEN' || item.status === 'DRAFTING' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground')}>{statusLabel(item)}</span>
-        </div>
-        <Link href={href} className="font-anton text-xl tracking-wide hover:text-primary">{item.name}</Link>
-        <p className="text-xs text-muted-foreground">{dateLabel}{deadline ? ` · Lineups lock ${deadline}` : ''}</p>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-foreground/10 pt-3">
-            <span className="text-xs text-muted-foreground">{number(item.memberCount)} entries · {item.entryFeeCredits === 0 ? 'Free entry' : `${item.entryFeeCredits} credits`}</span>
-            <Link href={href} className={buttonVariants({ size: 'sm', variant: joinable && view === 'current' ? 'default' : 'outline' })}>{view === 'history' ? 'View results' : joinable ? 'Join contest' : 'View contest'}</Link>
-        </div>
-    </article>
-}
+const FORMATS: { value: ContestKindFilter; label: string }[] = [
+    { value: 'ALL', label: 'All formats' },
+    { value: 'DAILY', label: 'Daily and weekend' },
+    { value: 'SERIES', label: 'Series' },
+    { value: 'LEAGUE', label: 'League tournaments' },
+]
 
 export function ContestsCatalog({ initialView = 'current' }: { initialView?: ContestCatalogView }) {
-    const [view, setView] = useState<ContestCatalogView>(initialView)
-    const [kind, setKind] = useState<ContestCatalogKind | 'ALL'>('ALL')
-    const [searchText, setSearchText] = useState('')
-    const [search, setSearch] = useState('')
-    const [offset, setOffset] = useState(0)
-    const { data, isLoading, error } = useContestCatalogData({ view, kind, search, limit: PAGE_SIZE, offset })
+    const state = useContestsCatalog(initialView === 'history' ? 'results' : 'open')
+    const activeTab = TABS.find(tab => tab.value === state.tab) ?? TABS[0]
+    const groups = groupTicketsByMonth(state.items, state.tab)
+    const lastShown = Math.min(state.offset + CONTESTS_PAGE_SIZE, state.total)
 
-    const changeView = (value: ContestCatalogView) => { setView(value); setOffset(0) }
-    const changeKind = (value: ContestCatalogKind | 'ALL') => { setKind(value); setOffset(0) }
-    const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        setSearch(searchText.trim())
-        setOffset(0)
-    }
+    return (
+        <div className="mx-auto w-full max-w-[1280px] px-5 py-6 sm:px-8 lg:py-10">
+            <header>
+                <h1 className="font-anton text-4xl uppercase leading-none sm:text-5xl">Contests</h1>
+                <p className="mt-3 max-w-prose text-sm text-muted-foreground">Pick a contest, build one lineup for it, and score from real games. Each contest has its own lineup.</p>
+            </header>
 
-    return <div className="container mx-auto max-w-7xl space-y-6 px-6 py-8">
-        <div><p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">One lineup per contest</p><h1 className="mt-2 font-anton text-3xl">Contests</h1><p className="mt-2 text-sm text-muted-foreground">Daily lineups, weekend slates, recurring series and public league tournaments.</p></div>
-        <div className="flex flex-wrap gap-2" aria-label="Contest view">
-            <Button variant={view === 'current' ? 'default' : 'outline'} aria-pressed={view === 'current'} onClick={() => changeView('current')}>Current & upcoming</Button>
-            <Button variant={view === 'history' ? 'default' : 'outline'} aria-pressed={view === 'history'} onClick={() => changeView('history')}>Results</Button>
+            <Tabs value={state.tab} onValueChange={value => state.changeTab(value as ContestTab)} className="mt-8">
+                <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-foreground/10 pb-3">
+                    <TabsList variant="line">
+                        {TABS.map(tab => (
+                            <TabsTrigger key={tab.value} value={tab.value}>
+                                {tab.label}
+                                {state.counts[tab.value] !== undefined && <span className="tabular-nums text-muted-foreground">{state.counts[tab.value]?.toLocaleString('en-US')}</span>}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                        <Select items={FORMATS} value={state.kind} onValueChange={value => state.changeKind(value as ContestKindFilter)}>
+                            <SelectTrigger aria-label="Contest format" className="w-full sm:w-48"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {FORMATS.map(format => <SelectItem key={format.value} value={format.value}>{format.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <form role="search" className="relative w-full sm:w-auto" onSubmit={event => { event.preventDefault(); state.submitSearch() }}>
+                            <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input aria-label="Search contests" className="w-full pr-8 pl-9 sm:w-56" placeholder="Search by name" value={state.searchText} onChange={event => state.setSearchText(event.target.value)} />
+                            {state.searchText && (
+                                <button type="button" aria-label="Clear search" className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={state.clearSearch}>
+                                    <X className="size-4" aria-hidden="true" />
+                                </button>
+                            )}
+                        </form>
+                    </div>
+                </div>
+
+                <TabsContent value={state.tab} className="pt-6">
+                    {state.loading ? (
+                        <div className="grid gap-4 xl:grid-cols-2" role="status" aria-label="Loading contests">{[0, 1, 2, 3].map(i => <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted" />)}</div>
+                    ) : state.failed ? (
+                        <div role="alert" className="py-6">
+                            <p className="text-sm text-muted-foreground">We couldn’t load contests. Check your connection and try again.</p>
+                            <Button variant="outline" className="mt-4" onClick={state.retry}>Try again</Button>
+                        </div>
+                    ) : state.items.length === 0 ? (
+                        <div className="py-6">
+                            <p className="text-sm text-muted-foreground">{state.search ? `No contests match “${state.search}”.` : activeTab.empty}</p>
+                            {state.search && <Button variant="outline" className="mt-4" onClick={state.clearSearch}>Clear search</Button>}
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            {groups.map(group => (
+                                <section key={group.month} aria-label={group.month}>
+                                    <h2 className="pb-3 text-lg font-semibold">{group.month}</h2>
+                                    <ul className="grid gap-4 xl:grid-cols-2">
+                                        {group.items.map(item => <li key={`${item.kind}:${item.id}`}><ContestTicket item={item} tab={state.tab} /></li>)}
+                                    </ul>
+                                </section>
+                            ))}
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-foreground/10 pt-4">
+                                <p className="text-sm text-muted-foreground">{(state.offset + 1).toLocaleString('en-US')}–{lastShown.toLocaleString('en-US')} of {state.total.toLocaleString('en-US')}</p>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" disabled={state.offset === 0} onClick={() => state.setOffset(Math.max(0, state.offset - CONTESTS_PAGE_SIZE))}>Previous</Button>
+                                    <Button variant="outline" size="sm" disabled={lastShown >= state.total} onClick={() => state.setOffset(state.offset + CONTESTS_PAGE_SIZE)}>Next</Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </TabsContent>
+            </Tabs>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-            <label className="text-xs text-muted-foreground">Format <select aria-label="Contest format" className="ml-2 rounded-md border border-foreground/15 bg-card px-2 py-2 text-foreground" value={kind} onChange={event => changeKind(event.target.value as ContestCatalogKind | 'ALL')}>{KIND_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-            <form className="flex gap-2" onSubmit={submitSearch}>
-                <input aria-label="Search contests" className="w-56 rounded-md border border-foreground/15 bg-card px-3 py-2 text-sm" placeholder="Search by contest name" value={searchText} onChange={event => setSearchText(event.target.value)} />
-                <Button type="submit" variant="outline">Search</Button>
-            </form>
-            {search && <Button type="button" variant="ghost" onClick={() => { setSearch(''); setSearchText(''); setOffset(0) }}>Clear search</Button>}
-        </div>
-        <p className="text-xs text-muted-foreground">{view === 'history' ? 'Completed contests and published results.' : 'Real schedules determine when contests open. Lineups lock before the first included game.'}</p>
-        <LoadState loading={isLoading} error={error && !data} empty={data?.items.length === 0}>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{data?.items.map(item => <ContestCard key={`${item.kind}:${item.id}`} item={item} view={view} />)}</div>
-        </LoadState>
-        {!isLoading && !error && data?.items.length === 0 && <p className="text-sm text-muted-foreground">No contests match this view yet. Check back after the next real game schedule update.</p>}
-        {data && <PageNavigation offset={offset} total={data.total} onChange={setOffset} />}
-    </div>
+    )
 }

@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/button'
 import { cn } from '@/shared/utils'
 
 import type { LeagueOption, SortKey, StatusFilter } from '../model/tournament.type'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -51,20 +52,23 @@ export const TournamentsToolbar = ({
 }: TournamentsToolbarProps) => (
     <div className="flex flex-wrap items-center gap-3 border-b border-foreground/10 p-4">
         {/* Mobile-only league picker — sidebar is hidden under lg */}
-        <select
-            value={selectedLeague?.slug ?? ''}
-            onChange={(e) =>
-                onSelectLeague(e.target.value === '' ? null : e.target.value)
-            }
-            className="h-8 rounded-full border border-foreground/15 bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 lg:hidden"
+        <Select
+            items={[{ value: null, label: 'All leagues' }, ...leagues.map((league) => ({ value: league.slug, label: league.name }))]}
+            value={selectedLeague?.slug ?? null}
+            onValueChange={(value) => onSelectLeague(value)}
         >
-            <option value="">All leagues</option>
-            {leagues.map((league) => (
-                <option key={league.slug} value={league.slug}>
-                    {league.name}
-                </option>
-            ))}
-        </select>
+            <SelectTrigger size="sm" aria-label="League" className="lg:hidden">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value={null}>All leagues</SelectItem>
+                {leagues.map((league) => (
+                    <SelectItem key={league.slug} value={league.slug}>
+                        {league.name}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
 
         {/* Desktop-only active-league chip */}
         <div className="hidden items-center gap-2 lg:flex">
@@ -129,16 +133,17 @@ export const TournamentsToolbar = ({
             </Button>
         </div>
 
-        <select
-            value={sortKey}
-            onChange={(e) => onSortChange(e.target.value as SortKey)}
-            className="ml-auto h-8 rounded-full border border-foreground/15 bg-background px-3 text-sm transition-colors outline-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-        >
-            {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                </option>
-            ))}
-        </select>
+        <Select items={SORT_OPTIONS} value={sortKey} onValueChange={(value) => onSortChange(value as SortKey)}>
+            <SelectTrigger size="sm" aria-label="Sort by" className="ml-auto">
+                <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+                {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     </div>
 )

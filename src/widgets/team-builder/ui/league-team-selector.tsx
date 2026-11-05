@@ -1,7 +1,7 @@
 'use client'
 
 import type { BuilderLeague, BuilderTeam } from '@/shared/team-builder'
-import { cn } from '@/shared/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 
 interface LeagueTeamSelectorProps {
     leagues: BuilderLeague[]
@@ -17,9 +17,6 @@ interface LeagueTeamSelectorProps {
     onLeaguesRetry: () => void
     onTeamsRetry: () => void
 }
-
-const SELECT_CLASSES =
-    'h-9 w-full rounded-md border border-foreground/15 bg-card px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-60'
 
 export const LeagueTeamSelector = ({
     leagues,
@@ -41,6 +38,18 @@ export const LeagueTeamSelector = ({
 
     const teamEmptyForLeague =
         !!selectedLeagueSlug && !teamsLoading && !teamsError && teams.length === 0
+    const leaguePlaceholder = leaguesLoading
+        ? 'Loading…'
+        : leagues.length === 0
+          ? 'No leagues available'
+          : 'Select a league'
+    const teamPlaceholder = !selectedLeagueSlug
+        ? 'Pick a league first'
+        : teamsLoading
+          ? 'Loading…'
+          : teamEmptyForLeague
+            ? 'No teams available for this league yet'
+            : 'Select a team'
 
     return (
         <section className="rounded-2xl border border-foreground/10 bg-card p-4">
@@ -51,38 +60,24 @@ export const LeagueTeamSelector = ({
                     <label className="mb-1.5 block text-xs text-muted-foreground" htmlFor="league-select">
                         League
                     </label>
-                    <select
-                        id="league-select"
-                        className={cn(SELECT_CLASSES)}
-                        value={selectedLeagueSlug ?? ''}
+                    <Select
+                        items={[{ value: null, label: leaguePlaceholder }, ...leagues.map((league) => ({ value: league.slug, label: league.providerBacked ? league.name : `${league.name} (Coming soon)` }))]}
+                        value={selectedLeagueSlug}
                         disabled={leagueDisabled}
-                        onChange={(e) => {
-                            const value = e.target.value
-                            onLeagueChange(value === '' ? null : value)
-                        }}
+                        onValueChange={(value) => onLeagueChange(value)}
                     >
-                        <option value="">
-                            {leaguesLoading
-                                ? 'Loading…'
-                                : leagues.length === 0
-                                  ? 'No leagues available'
-                                  : 'Select a league'}
-                        </option>
-                        {leagues.map((league) => {
-                            const available = league.providerBacked
-                            return (
-                                <option
-                                    key={league.slug}
-                                    value={league.slug}
-                                    disabled={!available}
-                                >
-                                    {available
-                                        ? league.name
-                                        : `${league.name} (Coming soon)`}
-                                </option>
-                            )
-                        })}
-                    </select>
+                        <SelectTrigger id="league-select" className="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={null}>{leaguePlaceholder}</SelectItem>
+                            {leagues.map((league) => (
+                                <SelectItem key={league.slug} value={league.slug} disabled={!league.providerBacked}>
+                                    {league.providerBacked ? league.name : `${league.name} (Coming soon)`}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     {leaguesError ? (
                         <div className="mt-1.5 flex items-center gap-2 text-xs text-destructive">
                             <span>Failed to load leagues.</span>
@@ -101,31 +96,24 @@ export const LeagueTeamSelector = ({
                     <label className="mb-1.5 block text-xs text-muted-foreground" htmlFor="team-select">
                         Team
                     </label>
-                    <select
-                        id="team-select"
-                        className={cn(SELECT_CLASSES)}
-                        value={selectedTeamId ?? ''}
+                    <Select
+                        items={[{ value: null, label: teamPlaceholder }, ...teams.map((team) => ({ value: team.id, label: team.name }))]}
+                        value={selectedTeamId}
                         disabled={teamDisabled}
-                        onChange={(e) => {
-                            const value = e.target.value
-                            onTeamChange(value === '' ? null : Number(value))
-                        }}
+                        onValueChange={(value) => onTeamChange(value)}
                     >
-                        <option value="">
-                            {!selectedLeagueSlug
-                                ? 'Pick a league first'
-                                : teamsLoading
-                                  ? 'Loading…'
-                                  : teamEmptyForLeague
-                                    ? 'No teams available for this league yet'
-                                    : 'Select a team'}
-                        </option>
-                        {teams.map((team) => (
-                            <option key={team.id} value={team.id}>
-                                {team.name}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="team-select" className="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={null}>{teamPlaceholder}</SelectItem>
+                            {teams.map((team) => (
+                                <SelectItem key={team.id} value={team.id}>
+                                    {team.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     {teamsError ? (
                         <div className="mt-1.5 flex items-center gap-2 text-xs text-destructive">
                             <span>Failed to load teams.</span>

@@ -1,12 +1,13 @@
 'use client'
 
-import { ArrowDown01Icon, Search01Icon } from '@hugeicons/core-free-icons'
+import { Search01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import { cn } from '@/shared/utils'
 
 import { REGION_LABEL, REGION_ORDER } from '../model/league.type'
 import type { RegionFilter, SortKey } from '../model/league.type'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
     { value: 'tournaments', label: 'Sort: open tournaments' },
@@ -77,23 +78,18 @@ export const LeaguesToolbar = ({
                 />
                 <span>In season only</span>
             </label>
-            <div className="relative">
-                <select
-                    value={sortKey}
-                    onChange={(e) => onSortChange(e.target.value as SortKey)}
-                    className="h-9 appearance-none rounded-md border border-foreground/15 bg-card py-2 pr-9 pl-3 text-sm outline-none transition-colors hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-                >
+            <Select items={SORT_OPTIONS} value={sortKey} onValueChange={(value) => onSortChange(value as SortKey)}>
+                <SelectTrigger size="sm" aria-label="Sort by">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
+                        <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
-                        </option>
+                        </SelectItem>
                     ))}
-                </select>
-                <HugeiconsIcon
-                    icon={ArrowDown01Icon}
-                    className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-            </div>
+                </SelectContent>
+            </Select>
         </div>
     </div>
 )

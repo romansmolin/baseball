@@ -8,7 +8,7 @@ vi.mock('../../providers/mlb/mlb.provider', () => ({
     },
 }))
 
-import { tickShowcase } from './showcase-runner'
+import { parseShowcaseJobs, tickShowcase } from './showcase-runner'
 
 afterEach(() => vi.unstubAllEnvs())
 
@@ -20,7 +20,7 @@ describe('showcase weekly calendar', () => {
         const db = {
             showcaseJob: { upsert: vi.fn(async () => ({})), updateMany: vi.fn(async () => ({ count: 1 })), findUnique: vi.fn(async () => null) },
             dailyContest: { findMany: vi.fn(async () => []), findUnique: vi.fn(async () => null), upsert: vi.fn(async ({ create }: { create: { contestDate: string; slateKey: string } }) => { dates.push(`${create.slateKey}:${create.contestDate}`); return create }) },
-            demoProfile: { findMany: vi.fn(async () => []) },
+            demoProfile: { count: vi.fn(async () => 0), findMany: vi.fn(async () => []) },
             scoringRule: { findFirst: vi.fn(async () => ({ rules: {} })) },
         }
         const result = await tickShowcase(db as never, { now: new Date('2026-11-01T17:00:00Z') })
@@ -44,7 +44,7 @@ describe('showcase weekly calendar', () => {
                 findUnique: vi.fn(async ({ where }: { where: { mode_leagueSlug_contestDate_slateKey: { contestDate: string; slateKey: string } } }) => contests.get(`${where.mode_leagueSlug_contestDate_slateKey.slateKey}:${where.mode_leagueSlug_contestDate_slateKey.contestDate}`) ?? null),
                 upsert: vi.fn(async ({ create }: { create: { contestDate: string; slateKey: string } }) => { contests.set(`${create.slateKey}:${create.contestDate}`, create); return create }),
             },
-            demoProfile: { findMany: vi.fn(async () => []) },
+            demoProfile: { count: vi.fn(async () => 0), findMany: vi.fn(async () => []) },
             scoringRule: { findFirst: vi.fn(async () => ({ rules: {} })) },
         }
         await tickShowcase(db as never, { now: new Date('2026-11-01T17:00:00Z') })
@@ -52,5 +52,11 @@ describe('showcase weekly calendar', () => {
         await tickShowcase(db as never, { now: new Date('2026-11-02T17:00:00Z') })
         expect([...contests.keys()]).toEqual(['classic:2026-11-07', 'weekend:2026-11-07', 'classic:2026-11-08'])
         expect(contests.get('classic:2026-11-07')).toBe(original)
+    })
+
+    it('splits the tick into cron jobs and rejects unknown ones', () => {
+        expect(parseShowcaseJobs(null)).toEqual(['entries', 'calendar', 'series'])
+        expect(parseShowcaseJobs('series')).toEqual(['series'])
+        expect(parseShowcaseJobs('everything')).toBeNull()
     })
 })

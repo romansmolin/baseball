@@ -4,6 +4,7 @@ import type { BaseballProviderLeague } from '@/shared/baseball'
 import type { DailyPlayer } from '@/shared/daily-contests'
 import { providerPositionToPoolPosition } from '@/shared/team-builder'
 import { canPublishPool } from '../daily-contests/daily-rules'
+import { playerSalary, salaryStatsSeason } from '../daily-contests/player-salary'
 import type { RecurringGame, RecurringSourceSnapshot, RecurringWindow } from './recurring.types'
 
 export interface SourceCheckpoint {
@@ -132,7 +133,7 @@ export async function inspectRecurringSource(
                     if (!timeLeft()) return pending()
                 }
                 try {
-                    const players = await provider.getPlayersByTeam(team.id, { league: team.league, season: team.season })
+                    const players = await provider.getPlayersByTeam(team.id, { league: team.league, season: team.season, statsSeason: salaryStatsSeason(team.season, new Date()) })
                     checkpoint.rostersBySeasonAndTeam[keyForTeam] = players
                         .filter(player => acceptedPositions.has(player.primaryPosition))
                         .map(player => ({
@@ -141,7 +142,7 @@ export async function inspectRecurringSource(
                             position: providerPositionToPoolPosition(player.primaryPosition),
                             teamId: team.id,
                             teamName: player.teamName ?? checkpoint.teamNamesBySeason[`${team.league}:${team.season}`]?.[team.id] ?? `Club ${team.id}`,
-                            salary: 4000 + (player.id % 7) * 1000,
+                            salary: playerSalary(player),
                             photoUrl: player.photoUrl,
                         }))
                 } catch (error) {
@@ -216,11 +217,10 @@ export async function inspectRecurringSource(
 }
 
 /**
- * Start of the first real game in the eligible leagues between two dates, so the
- * publisher can skip windows that fall before the season starts. Returns null when
- * no game exists in the range and undefined when the schedule could not be read.
+ * Start times of real games in a source between two dates, read once so the publisher can
+ * skip windows without games in every week. Undefined when the schedule could not be read.
  */
-export async function firstContestGameAt(provider: ISportsProvider, from: Date, to: Date, source: RecurringWindow['sourceSlug'] = 'north-america'): Promise<number | null | undefined> {
+export async function contestGameTimes(provider: ISportsProvider, from: Date, to: Date, source: RecurringWindow['sourceSlug'] = 'north-america'): Promise<number[] | undefined> {
     const years = Array.from({ length: to.getUTCFullYear() - from.getUTCFullYear() + 1 }, (_, n) => from.getUTCFullYear() + n)
     const winter = source === 'winter-leagues'
     const seasons = winter ? [...new Set(years.flatMap(year => [year, year - 1]))] : years
@@ -228,8 +228,14 @@ export async function firstContestGameAt(provider: ISportsProvider, from: Date, 
     const settled = await Promise.allSettled(queries.map(({ league, season }) =>
         provider.getSchedule({ league, season, startDateUtc: from, endDateUtc: to, ...(winter ? {} : { gameTypes: CONTEST_GAME_TYPES }) })))
     if (settled.every(result => result.status === 'rejected')) return undefined
-    const starts = settled.flatMap(result => result.status === 'fulfilled'
-        ? result.value.filter(game => game.status !== 'CANCELLED').map(game => Date.parse(game.gameDateUtc)).filter(at => at >= from.getTime())
+    return settled.flatMap(result => result.status === 'fulfilled'
+        ? result.value.filter(game => game.status !== 'CANCELLED').map(game => Date.parse(game.gameDateUtc))
         : [])
-    return starts.length ? Math.min(...starts) : null
+}
+
+/** True when every week of the window has at least one game. */
+export function windowHasGamesEveryWeek(window: Pick<RecurringWindow, 'startsAt' | 'totalWeeks'>, gameTimes: readonly number[]): boolean {
+    const start = window.startsAt.getTime()
+    return Array.from({ length: window.totalWeeks }, (_, week) => week).every(week =>
+        gameTimes.some(at => at >= start + week * weekMs && at < start + (week + 1) * weekMs))
 }

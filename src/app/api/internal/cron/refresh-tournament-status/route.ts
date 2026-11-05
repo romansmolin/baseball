@@ -1,8 +1,8 @@
 // Tournament lifecycle cron: flips League.status based on the wall clock.
 //   - DRAFTING  → IN_SEASON   once startsAt <= now
-//   - IN_SEASON → COMPLETED   once endsAt  <= now
+//   - IN_SEASON / PLAYOFFS → COMPLETED   once endsAt  <= now
 // Fast (single SQL pass), idempotent, safe to run as often as the plan allows.
-// PLAYOFFS / ARCHIVED transitions are out of scope (manual for now).
+// ARCHIVED transitions are out of scope (manual for now).
 
 import { ApiError } from '../../../../../../server/errors/api.error'
 import { prisma } from '../../../../../../server/lib/prisma'
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     })
 
     const inSeasonToCompleted = await prisma.league.updateMany({
-        where: { status: 'IN_SEASON', endsAt: { lte: now }, ...ordinaryLeagueFilter },
+        where: { status: { in: ['IN_SEASON', 'PLAYOFFS'] }, endsAt: { lte: now }, ...ordinaryLeagueFilter },
         data: { status: 'COMPLETED' },
     })
 

@@ -20,7 +20,8 @@
     "showcase:tick": "node prisma/showcase-cli.mjs tick-showcase",
     "showcase:prepare-archive": "node prisma/showcase-cli.mjs prepare-showcase-archive",
     "showcase:retire-open-replays": "node prisma/showcase-cli.mjs retire-open-replays",
-    "showcase:rename-contests": "node prisma/showcase-cli.mjs rename-generic-contests"
+    "showcase:rename-contests": "node prisma/showcase-cli.mjs rename-generic-contests",
+    "showcase:rename-teams": "node prisma/showcase-cli.mjs rename-demo-teams"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

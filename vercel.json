@@ -2,24 +2,36 @@
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "crons": [
         {
-            "path": "/api/internal/cron/refresh-tournament-status",
-            "schedule": "0 7 * * *"
+            "path": "/api/internal/cron/snapshot-weekly-lineups",
+            "schedule": "0 5 * * *"
         },
         {
             "path": "/api/internal/cron/refresh-scoring",
             "schedule": "0 6 * * *"
         },
         {
-            "path": "/api/internal/cron/snapshot-weekly-lineups",
-            "schedule": "0 5 * * *"
+            "path": "/api/internal/cron/refresh-tournament-status",
+            "schedule": "0 * * * *"
         },
         {
             "path": "/api/internal/cron/settle-tournaments",
             "schedule": "0 8 * * 1"
         },
         {
-            "path": "/api/internal/cron/showcase",
-            "schedule": "0 4 * * *"
+            "path": "/api/internal/cron/showcase?job=calendar",
+            "schedule": "1,31 * * * *"
+        },
+        {
+            "path": "/api/internal/cron/showcase?job=entries",
+            "schedule": "3-53/10 * * * *"
+        },
+        {
+            "path": "/api/internal/cron/showcase?job=series",
+            "schedule": "7-57/10 * * * *"
+        },
+        {
+            "path": "/api/internal/cron/showcase-cleanup",
+            "schedule": "30 3 * * *"
         }
     ]
 }

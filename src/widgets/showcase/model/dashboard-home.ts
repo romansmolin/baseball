@@ -21,6 +21,18 @@ export function selectNextContest(items: readonly ContestCatalogItem[], now: num
         .sort((a, b) => closingTime(a) - closingTime(b) || a.id.localeCompare(b.id))[0] ?? null
 }
 
+/** Contests in play stay listed for a day after their end; later than that they are waiting for final scoring. */
+const OVERDUE_GRACE_MS = 24 * 3600000
+
+export function isOverdue(item: Pick<ContestCatalogItem, 'status' | 'endsAt'>, now: number): boolean {
+    return contestPhase(item) === 'live' && Date.parse(item.endsAt) < now - OVERDUE_GRACE_MS
+}
+
+/** The moment a listed contest matters most: when entries close, or when a running one ends. */
+export function activeTime(item: Pick<ContestCatalogItem, 'kind' | 'status' | 'startsAt' | 'locksAt' | 'endsAt'>): number {
+    return contestPhase(item) === 'live' && item.kind !== 'DAILY' ? Date.parse(item.endsAt) : closingTime(item)
+}
+
 export interface ContestSchedule {
     today: ContestCatalogItem[]
     thisMonth: ContestCatalogItem[]
@@ -48,8 +60,8 @@ export function groupContestsBySchedule(items: readonly ContestCatalogItem[], no
     const today = scheduleDay(now)
 
     const sorted = items
-        .filter(item => contestPhase(item) !== 'final' && Number.isFinite(closingTime(item)))
-        .sort((a, b) => closingTime(a) - closingTime(b) || a.id.localeCompare(b.id))
+        .filter(item => contestPhase(item) !== 'final' && Number.isFinite(closingTime(item)) && !isOverdue(item, now))
+        .sort((a, b) => activeTime(a) - activeTime(b) || a.id.localeCompare(b.id))
 
     for (const item of sorted) {
         const day = scheduleDay(closingTime(item))
@@ -85,6 +97,16 @@ export function contestHref(item: Pick<ContestCatalogItem, 'kind' | 'id'>): stri
 
 export function entryFeeLabel(credits: number): string {
     return credits > 0 ? `${credits.toLocaleString('en-US')} credits` : 'Free'
+}
+
+/** Gap between the winner and the runner-up; null when fewer than two entries scored. */
+export function winningMargin(standings: readonly { points: number }[]): number | null {
+    return standings.length >= 2 ? Math.max(0, standings[0].points - standings[1].points) : null
+}
+
+/** Bar length as a share of the winning score, never so short that the row looks empty. */
+export function barWidth(points: number, top: number): number {
+    return top > 0 ? Math.min(100, Math.max(8, Math.round(points / top * 100))) : 0
 }
 
 /** How far a manager is from the top of the standings, as a short sentence. */

@@ -3,6 +3,7 @@
 import { LoaderCircle, Login02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import Link from 'next/link'
+import { Controller } from 'react-hook-form'
 
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
@@ -19,6 +20,7 @@ import { Input } from '@/shared/ui/input'
 
 import { COUNTRIES } from '../model/countries.const'
 import { useSignUpForm } from '../model/use-sign-up-form'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 
 export const SignUpForm = () => {
     const { onSubmit, form, agreeToTerms, setAgreeToTerms, confirmAge, setConfirmAge } =
@@ -105,21 +107,28 @@ export const SignUpForm = () => {
 
                         <Field data-invalid={!!errors.countryOfResidence}>
                             <FieldLabel htmlFor="sign-up-country">Country of residence</FieldLabel>
-                            <select
-                                id="sign-up-country"
-                                defaultValue=""
-                                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                                {...register('countryOfResidence')}
-                            >
-                                <option value="" disabled>
-                                    Select your country
-                                </option>
-                                {COUNTRIES.map((c) => (
-                                    <option key={c.code} value={c.code}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
+                            <Controller
+                                control={form.control}
+                                name="countryOfResidence"
+                                render={({ field }) => (
+                                    <Select
+                                        items={[{ value: null, label: 'Select your country' }, ...COUNTRIES.map((c) => ({ value: c.code, label: c.name }))]}
+                                        value={field.value || null}
+                                        onValueChange={(value) => field.onChange(value ?? '')}
+                                    >
+                                        <SelectTrigger id="sign-up-country" ref={field.ref} onBlur={field.onBlur} className="w-full">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {COUNTRIES.map((c) => (
+                                                <SelectItem key={c.code} value={c.code}>
+                                                    {c.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             <FieldError errors={[errors.countryOfResidence]} />
                         </Field>
                     </FieldGroup>

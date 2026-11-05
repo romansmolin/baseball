@@ -34,6 +34,8 @@ export interface ManagerRow {
     entries: number;
 }
 export interface ManagerProfile extends ManagerRow {
+    /** How many managers have a season rank, for reading `rank` as "#12 of 1,500". */
+    rankedManagers: number;
     favoriteTeamId: number | null;
     favoriteTeamName?: string | null;
     strategy: string | null;
@@ -46,6 +48,8 @@ export interface ManagerProfile extends ManagerRow {
     }[];
 }
 export interface ManagerFilters {
+    /** Leave out managers without a finished contest in the period. */
+    rankedOnly?: boolean;
     mode?: DailyContestMode;
     period?: ManagerPeriod;
     limit?: number;

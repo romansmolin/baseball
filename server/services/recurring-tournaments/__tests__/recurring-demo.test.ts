@@ -30,7 +30,7 @@ describe('recurring demo plan', () => {
         expect(a[0].teamName).not.toBe(b[0].teamName)
     })
     it('rejects an invalid target instead of endlessly allocating names', () => {
-        expect(() => planRecurringDemoEntries({ ...context, demoTarget: 2000 }, profiles, 'recurring-v1', context.publishedAt)).toThrow('Invalid demo target')
-        expect(() => planRecurringDemoEntries({ ...context, demoTarget: 399 }, profiles, 'recurring-v1', context.publishedAt)).toThrow('Invalid demo target')
+        expect(() => planRecurringDemoEntries({ ...context, demoTarget: 5001 }, profiles, 'recurring-v1', context.publishedAt)).toThrow('Invalid demo target')
+        expect(() => planRecurringDemoEntries({ ...context, demoTarget: 99 }, profiles, 'recurring-v1', context.publishedAt)).toThrow('Invalid demo target')
     })
 })

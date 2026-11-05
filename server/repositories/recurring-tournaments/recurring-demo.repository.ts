@@ -7,6 +7,10 @@ type StoredPlanEntry = Omit<ScheduledDemoEntry, 'scheduledAt'> & { scheduledAt: 
 interface DemoCursor { plan: StoredPlanEntry[]; offset: number; done: boolean; skippedLate: number; skipReason?: string }
 const eligibleUser = { provider: 'demo', role: 'USER', status: 'ACTIVE', passwordHash: null, payments: { none: {} }, accounts: { none: {} }, sessions: { none: {} }, leaguesOwned: { none: {} } } as const
 
+const DEMO_BATCH_SIZE = 10
+/** Left for saving the cursor: entries write a lineup per week and can outlast the transaction on a remote database. */
+const TRANSACTION_RESERVE_MS = 3000
+
 export class RecurringDemoRepository {
     constructor(private readonly db: PrismaClient) {}
     async profiles(datasetSeed?: string) {
@@ -15,7 +19,9 @@ export class RecurringDemoRepository {
 
     async applyBatch(input: { context: RecurringTournamentContext; now: Date; permit: MutationPermit; deadline: number; initialPlan: ScheduledDemoEntry[] }): Promise<{ inserted: number; skippedLate: number; done: boolean; waiting: boolean }> {
         const key = `recurring:entries:${input.context.leagueId}`
+        const timeout = Math.max(5000, Math.min(10000, input.deadline - Date.now()))
         return this.db.$transaction(async tx => {
+            const stopAt = Date.now() + timeout - TRANSACTION_RESERVE_MS
             await input.permit.assertInTransaction(tx)
             await tx.$queryRaw`SELECT id FROM "League" WHERE id=${input.context.leagueId} FOR UPDATE`
             await tx.$queryRaw`SELECT id FROM "RecurringTournament" WHERE "leagueId"=${input.context.leagueId} FOR UPDATE`
@@ -28,11 +34,12 @@ export class RecurringDemoRepository {
             if (input.now >= league.startsAt || clock.now >= league.startsAt || ['COMPLETED', 'CANCELLED', 'ARCHIVED'].includes(league.status)) {
                 const skippedLate = cursor.plan.length - cursor.offset
                 cursor.offset = cursor.plan.length; cursor.done = true; cursor.skippedLate += skippedLate; cursor.skipReason = 'registration_closed'
-                await tx.showcaseJob.upsert({ where: { key }, create: { key, cursor: JSON.parse(JSON.stringify(cursor)) }, update: { cursor: JSON.parse(JSON.stringify(cursor)) } })
+                const closed = JSON.parse(JSON.stringify({ ...cursor, plan: [] }))
+                await tx.showcaseJob.upsert({ where: { key }, create: { key, cursor: closed }, update: { cursor: closed } })
                 return { inserted: 0, skippedLate, done: true, waiting: false }
             }
             const due: StoredPlanEntry[] = []
-            while (cursor.offset + due.length < cursor.plan.length && due.length < 25) {
+            while (cursor.offset + due.length < cursor.plan.length && due.length < DEMO_BATCH_SIZE) {
                 const next = cursor.plan[cursor.offset + due.length]
                 if (Date.parse(next.scheduledAt) > input.now.getTime()) break
                 due.push(next)
@@ -44,7 +51,10 @@ export class RecurringDemoRepository {
                 await tx.$queryRaw`SELECT id FROM "User" WHERE id IN (${Prisma.join(ids)}) ORDER BY id FOR UPDATE`
                 const eligible = new Set((await tx.demoProfile.findMany({ where: { userId: { in: ids }, user: eligibleUser }, select: { userId: true } })).map(row => row.userId))
                 const existing = new Set((await tx.leagueMember.findMany({ where: { leagueId: league.id, userId: { in: ids } }, select: { userId: true } })).map(row => row.userId))
+                let processed = 0
                 for (const row of due) {
+                    if (processed > 0 && Date.now() >= stopAt) break
+                    processed++
                     if (!eligible.has(row.userId) || existing.has(row.userId)) continue
                     const slots = canonicalRecurringSlots(row.lineup, input.context.snapshot.playerPool)
                     const member = await tx.leagueMember.create({ data: { leagueId: league.id, userId: row.userId } })
@@ -52,11 +62,13 @@ export class RecurringDemoRepository {
                     await createRecurringWeeklyDrafts(tx, { memberId: member.id, startsAt: league.startsAt, totalWeeks: league.totalWeeks, slots, captain: row.lineup.captainExternalPlayerId ?? null })
                     inserted++
                 }
-                cursor.offset += due.length
+                cursor.offset += processed
             }
             cursor.done = cursor.offset >= cursor.plan.length
-            await tx.showcaseJob.upsert({ where: { key }, create: { key, cursor: JSON.parse(JSON.stringify(cursor)) }, update: { cursor: JSON.parse(JSON.stringify(cursor)) } })
+            // A finished plan is never read again; keeping it would leave about a megabyte per series.
+            const stored = JSON.parse(JSON.stringify(cursor.done ? { ...cursor, plan: [] } : cursor))
+            await tx.showcaseJob.upsert({ where: { key }, create: { key, cursor: stored }, update: { cursor: stored } })
             return { inserted, skippedLate: 0, done: cursor.done, waiting: !due.length && !cursor.done }
-        }, { maxWait: 1000, timeout: Math.max(1000, Math.min(10000, input.deadline - Date.now())) })
+        }, { maxWait: 1000, timeout })
     }
 }

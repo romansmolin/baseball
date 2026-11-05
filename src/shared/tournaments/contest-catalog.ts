@@ -1,4 +1,6 @@
 export type ContestCatalogView = 'current' | 'history'
+/** Narrows the current view: contests taking entries, or those already being played. */
+export type ContestCatalogPhase = 'open' | 'live'
 export type ContestCatalogKind = 'DAILY' | 'SERIES' | 'LEAGUE'
 export type ContestCatalogStatus = 'OPEN' | 'LOCKED' | 'DRAFTING' | 'IN_SEASON' | 'PLAYOFFS' | 'COMPLETED' | 'ARCHIVED' | 'CANCELLED'
 

@@ -17,5 +17,6 @@ export {
     TOURNAMENT_STATUS_SLUGS,
     TOURNAMENT_VISIBILITY_SLUGS,
 } from './types'
+export { RECURRING_SERIES_LABELS } from './recurring'
 export type { RecurringTemplateKey, RecurringTournamentInfo } from './recurring'
-export type { ContestCatalogItem, ContestCatalogKind, ContestCatalogPage, ContestCatalogStatus, ContestCatalogView } from './contest-catalog'
+export type { ContestCatalogItem, ContestCatalogKind, ContestCatalogPage, ContestCatalogPhase, ContestCatalogStatus, ContestCatalogView } from './contest-catalog'

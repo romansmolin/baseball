@@ -212,6 +212,12 @@ export class MlbSportsProvider implements ISportsProvider {
 
         const personIds = roster.roster.map((entry) => entry.person.id)
         const peopleById = await this.hydratePeople(personIds)
+        const statsById = opts.statsSeason
+            ? await this.hydratePlayerSeasonStats(personIds, opts.statsSeason, resolveSportId(opts.league)).catch((error: unknown) => {
+                  if (error instanceof Error && error.name === 'WorkDeadlineError') throw error
+                  return new Map<number, MlbRawPerson>()
+              })
+            : new Map<number, MlbRawPerson>()
 
         return roster.roster.map((entry) => {
             const raw =
@@ -222,10 +228,11 @@ export class MlbSportsProvider implements ISportsProvider {
                     primaryPosition: entry.position,
                 } satisfies MlbRawPerson)
 
-            return mapMlbPersonToProviderPlayer(raw, {
+            return mapMlbPersonToProviderPlayer({ ...raw, stats: statsById.get(entry.person.id)?.stats ?? raw.stats }, {
                 teamLookup,
                 teamId,
                 rosterEntry: entry,
+                season: opts.statsSeason,
             })
         })
     }

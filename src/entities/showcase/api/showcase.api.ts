@@ -18,6 +18,6 @@ export const saveDailyEntry = withErrorHandling((id: string, input: SaveDailyEnt
 export const fetchDailyStandings = withErrorHandling((id: string, offset: number = 0) => httpClient.get<Page<DailyStanding>>(`/api/daily-contests/${encodeURIComponent(id)}/standings?${query({ offset, limit: 20 })}`))
 export const fetchCommunityOverview = withErrorHandling(() => httpClient.get<CommunityOverview>('/api/community/overview'))
 export const fetchCommunityActivity = withErrorHandling((cursor?: string) => httpClient.get<{ items: CommunityActivity[]; nextCursor: string | null }>(`/api/community/activity?${query({ cursor, limit: 8 })}`))
-export const fetchManagers = withErrorHandling((filters: ManagerFilters) => httpClient.get<Page<ManagerRow>>(`/api/managers?${query({ ...filters })}`))
+export const fetchManagers = withErrorHandling((filters: ManagerFilters) => httpClient.get<Page<ManagerRow>>(`/api/managers?${query({ ...filters, rankedOnly: filters.rankedOnly ? 'true' : undefined })}`))
 export const fetchManager = withErrorHandling((id: string) => httpClient.get<ManagerProfile>(`/api/managers/${encodeURIComponent(id)}`))
 export const refreshShowcase = withErrorHandling(() => httpClient.post('/api/me/showcase/refresh'))

@@ -1,6 +1,6 @@
 import { prisma } from '../../lib/prisma'
 import type { Prisma, PrismaClient } from '../../../src/generated/prisma/client'
-import type { ContestCatalogItem, ContestCatalogKind, ContestCatalogPage, ContestCatalogView } from '@/shared/tournaments'
+import type { ContestCatalogItem, ContestCatalogKind, ContestCatalogPage, ContestCatalogPhase, ContestCatalogView } from '@/shared/tournaments'
 import type { DailyGame } from '@/shared/daily-contests'
 import { hasRecurringTournamentTable } from '../recurring-tournaments/recurring-schema'
 import { showcaseEnabled } from '../../shared/showcase-config'
@@ -8,18 +8,22 @@ import { showcaseEnabled } from '../../shared/showcase-config'
 const CURRENT_LEAGUE_STATUSES = ['DRAFTING', 'IN_SEASON', 'PLAYOFFS'] as const
 const HISTORY_LEAGUE_STATUSES = ['COMPLETED', 'ARCHIVED', 'CANCELLED'] as const
 const MAX_PAGE_WINDOW = 5000
+/** A contest past its end stays "in play" for a day; after that it is waiting for final scoring. */
+const IN_PLAY_GRACE_MS = 24 * 3600000
 
 export interface ContestCatalogFilter {
     view: ContestCatalogView
+    phase?: ContestCatalogPhase
     kind?: ContestCatalogKind
     search?: string
     limit: number
     offset: number
 }
 
-function compareItems(a: ContestCatalogItem, b: ContestCatalogItem, view: ContestCatalogView): number {
-    const aAt = Date.parse(view === 'history' ? a.endsAt : a.startsAt)
-    const bAt = Date.parse(view === 'history' ? b.endsAt : b.startsAt)
+function compareItems(a: ContestCatalogItem, b: ContestCatalogItem, view: ContestCatalogView, phase?: ContestCatalogPhase): number {
+    const byEnd = view === 'history' || phase === 'live'
+    const aAt = Date.parse(byEnd ? a.endsAt : a.startsAt)
+    const bAt = Date.parse(byEnd ? b.endsAt : b.startsAt)
     return (view === 'history' ? bAt - aAt : aAt - bAt)
         || a.kind.localeCompare(b.kind)
         || a.id.localeCompare(b.id)
@@ -39,6 +43,8 @@ export class ContestCatalogRepository {
         }
         const lookAhead = filter.offset + filter.limit
         const now = new Date()
+        const inPlayCutoff = new Date(now.getTime() - IN_PLAY_GRACE_MS)
+        const phase = filter.view === 'current' ? filter.phase : undefined
         const search = filter.search?.trim().slice(0, 100)
         const nameFilter = search ? { contains: search, mode: 'insensitive' as const } : undefined
         const includeDaily = (!filter.kind || filter.kind === 'DAILY') && showcaseEnabled()
@@ -52,7 +58,11 @@ export class ContestCatalogRepository {
                 ? { status: { in: ['COMPLETED', 'CANCELLED'] as ('COMPLETED' | 'CANCELLED')[] }, ...(nameFilter ? { name: nameFilter } : {}) }
                 : {
                     mode: 'LIVE' as const,
-                    status: { in: ['OPEN', 'LOCKED'] as ('OPEN' | 'LOCKED')[] },
+                    ...(phase === 'open'
+                        ? { status: 'OPEN' as const, locksAt: { gt: now } }
+                        : phase === 'live'
+                            ? { locksAt: { gte: inPlayCutoff }, OR: [{ status: 'LOCKED' as const }, { status: 'OPEN' as const, locksAt: { lte: now } }] }
+                            : { status: { in: ['OPEN', 'LOCKED'] as ('OPEN' | 'LOCKED')[] } }),
                     ...(nameFilter ? { name: nameFilter } : {}),
                 }
             const [dailyRows, count] = await this.db.$transaction([
@@ -92,7 +102,11 @@ export class ContestCatalogRepository {
             const statuses = filter.view === 'history' ? HISTORY_LEAGUE_STATUSES : CURRENT_LEAGUE_STATUSES
             const baseWhere: Prisma.LeagueWhereInput = {
                 visibility: 'PUBLIC' as const,
-                status: { in: [...statuses] },
+                ...(phase === 'open'
+                    ? { status: 'DRAFTING' as const, startsAt: { gt: now } }
+                    : phase === 'live'
+                        ? { endsAt: { gte: inPlayCutoff }, OR: [{ status: { in: ['IN_SEASON', 'PLAYOFFS'] as ('IN_SEASON' | 'PLAYOFFS')[] } }, { status: 'DRAFTING' as const, startsAt: { lte: now } }] }
+                        : { status: { in: [...statuses] } }),
                 ...(nameFilter ? { name: nameFilter } : {}),
             }
             const recurringAvailable = await hasRecurringTournamentTable(this.db)
@@ -107,7 +121,7 @@ export class ContestCatalogRepository {
                     where,
                     orderBy: filter.view === 'history'
                         ? [{ endsAt: 'desc' }, { id: 'asc' }]
-                        : [{ startsAt: 'asc' }, { id: 'asc' }],
+                        : phase === 'live' ? [{ endsAt: 'asc' }, { id: 'asc' }] : [{ startsAt: 'asc' }, { id: 'asc' }],
                     take: lookAhead,
                     include: {
                         _count: { select: { members: true } },
@@ -144,7 +158,7 @@ export class ContestCatalogRepository {
             }
         }
 
-        items.sort((a, b) => compareItems(a, b, filter.view))
+        items.sort((a, b) => compareItems(a, b, filter.view, phase))
         return {
             items: items.slice(filter.offset, filter.offset + filter.limit),
             total: dailyTotal + leagueTotal,
