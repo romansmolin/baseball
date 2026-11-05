@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer'
+
 import { COMPANY } from '@/shared/company'
 
 export interface PaymentReceipt {
@@ -45,37 +47,43 @@ export function buildReceiptEmail(receipt: PaymentReceipt): { subject: string; t
     return { subject: `Your receipt from ${COMPANY.siteName}: ${amount}`, text, html }
 }
 
-/** Sends receipts through the Resend HTTP API; needs RESEND_API_KEY and RECEIPT_FROM_EMAIL. */
-export class ResendReceiptMailer implements IReceiptMailer {
-    private readonly apiKey: string
+interface MailTransport {
+    sendMail(message: { from: string; to: string; subject: string; text: string; html: string }): Promise<unknown>
+}
+
+/** Sends receipts over SMTP. */
+export class SmtpReceiptMailer implements IReceiptMailer {
+    private readonly transport: MailTransport
     private readonly from: string
 
-    constructor(apiKey: string, from: string) {
-        this.apiKey = apiKey
+    constructor(transport: MailTransport, from: string) {
+        this.transport = transport
         this.from = from
     }
 
     async send(receipt: PaymentReceipt): Promise<void> {
         const email = buildReceiptEmail(receipt)
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: { authorization: `Bearer ${this.apiKey}`, 'content-type': 'application/json' },
-            body: JSON.stringify({ from: this.from, to: [receipt.to], subject: email.subject, text: email.text, html: email.html }),
-            signal: AbortSignal.timeout(8000),
-        })
-        if (!response.ok) throw new Error(`Receipt email failed: HTTP ${response.status}`)
+        await this.transport.sendMail({ from: this.from, to: receipt.to, subject: email.subject, text: email.text, html: email.html })
     }
 }
 
-/** Without a configured mail service a receipt is logged, never lost silently and never blocks a payment. */
+/** Without SMTP settings a receipt is logged, never lost silently and never blocks a payment. */
 export class LoggingReceiptMailer implements IReceiptMailer {
     async send(receipt: PaymentReceipt): Promise<void> {
-        console.warn(`[receipt] RESEND_API_KEY is not set; receipt ${receipt.transactionId} was not emailed`)
+        console.warn(`[receipt] SMTP is not configured; receipt ${receipt.transactionId} was not emailed`)
     }
 }
 
+/** Uses SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, EMAIL_FROM and EMAIL_FROM_NAME. */
 export function createReceiptMailer(env: Record<string, string | undefined> = process.env): IReceiptMailer {
-    const apiKey = env.RESEND_API_KEY
-    const from = env.RECEIPT_FROM_EMAIL ?? `${COMPANY.siteName} <${COMPANY.billingEmail}>`
-    return apiKey ? new ResendReceiptMailer(apiKey, from) : new LoggingReceiptMailer()
+    if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS) return new LoggingReceiptMailer()
+
+    const transport = nodemailer.createTransport({
+        host: env.SMTP_HOST,
+        port: Number(env.SMTP_PORT ?? '465'),
+        secure: (env.SMTP_SECURE ?? 'true') === 'true',
+        auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+    })
+    const fromName = (env.EMAIL_FROM_NAME ?? COMPANY.siteName).replace(/["\r\n]/g, '')
+    return new SmtpReceiptMailer(transport, `"${fromName}" <${env.EMAIL_FROM ?? env.SMTP_USER}>`)
 }
