@@ -23,6 +23,12 @@ import { mapWithConcurrency } from '../../shared/concurrency.utils'
 import { isPrismaError } from '../../shared/db/prisma-error.utils'
 
 export const DAILY_CALENDAR_DAYS = 7
+// A slate with fewer real games than this is not worth entering, so it is not published.
+export const DEFAULT_MIN_SLATE_GAMES = 3
+export const minSlateGames = (env: Record<string, string | undefined> = process.env): number => {
+    const value = Number(env.CONTEST_MIN_SLATE_GAMES)
+    return Number.isInteger(value) && value >= 1 ? value : DEFAULT_MIN_SLATE_GAMES
+}
 const DAY_MS = 86400000
 const ACCEPTED_POSITIONS = new Set(['P', 'SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'OF', 'DH'])
 
@@ -239,7 +245,7 @@ export class DailyCalendarService {
                     && (rosterCache.get(`${prefix}${game.homeTeamId}`)?.length ?? 0) > 0
                     && (rosterCache.get(`${prefix}${game.awayTeamId}`)?.length ?? 0) > 0
             })
-            if (!eligible.length) continue
+            if (eligible.length < minSlateGames()) continue
 
             const eligibleTeamKeys = new Set(eligible.flatMap(({ game, apiSeason, sourceLeagueSlug }) => sourceLeagueSlug
                 ? [`${sourceLeagueSlug}:${apiSeason}:${game.homeTeamId}`, `${sourceLeagueSlug}:${apiSeason}:${game.awayTeamId}`]
