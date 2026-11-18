@@ -2,8 +2,8 @@ import type { BuilderLeague } from '@/shared/team-builder'
 import { PRODUCT_BASEBALL_LEAGUES, UNBACKED_BASEBALL_LEAGUES } from '@/shared/baseball'
 
 // The league catalogue served by `GET /api/leagues`. Derived from the single
-// canonical baseball-league config so the API, team builder, tournament logic
-// and `/leagues` page can never drift apart. Provider-backed leagues come
+// canonical baseball-league config so the API and team builder
+// can never drift apart. Provider-backed leagues come
 // first, then the "coming soon" ones.
 export const SPORT_LEAGUES: BuilderLeague[] = [
     ...PRODUCT_BASEBALL_LEAGUES.map(

@@ -34,9 +34,9 @@ const KIND_BY_TYPE: Record<WalletTransactionType, CreditEventKind> = {
 const LABEL_BY_TYPE: Record<WalletTransactionType, string> = {
     PURCHASE: 'Credit purchase',
     REFUND: 'Refund',
-    TOURNAMENT_WINNINGS: 'Tournament winnings',
+    TOURNAMENT_WINNINGS: 'Winnings (legacy)',
     ADMIN_GRANT: 'Credits granted',
-    TOURNAMENT_ENTRY_FEE: 'Tournament entry',
+    TOURNAMENT_ENTRY_FEE: 'Entry fee (legacy)',
     AI_USAGE: 'AI feature used',
     ADMIN_DEDUCT: 'Credits deducted',
 }

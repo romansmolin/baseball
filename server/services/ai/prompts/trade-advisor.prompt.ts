@@ -1,7 +1,6 @@
 export interface TradeAdvisorPromptContext {
     nowIso: string
-    leagueName: string
-    scoringRuleSummary: Record<string, number>
+    scoringPreset: 'POINTS' | 'CATEGORIES_5X5'
     userRoster: Array<{
         externalPlayerId: number
         playerName: string
@@ -26,18 +25,18 @@ export function buildTradeAdvisorPrompt(
     ctx: TradeAdvisorPromptContext,
 ): { instructions: string; input: string } {
     const instructions = [
-        'You are an assistant evaluating a hypothetical trade in a season-long fantasy baseball league.',
+        'You are an assistant evaluating a hypothetical trade in a fantasy baseball league on an outside fantasy platform.',
         `Today is ${ctx.nowIso}.`,
         'Use ONLY the supplied data — never invent player stats, injury news, or transactions not in the input.',
         'Respond ONLY with JSON matching the provided schema. No prose, no markdown fences.',
         'Score fairness from the perspective of the user accepting the proposal: +1 means the trade is great for them, -1 means it hurts them, 0 means it is even.',
         'Provide a counterProposal only if the verdict is "counter" — otherwise omit that field entirely.',
-        'Use the scoring rule to weigh which categories matter; for example, if rbi is worth 2 and walk is 2, a high-OBP slugger is more valuable than a contact-only hitter.',
+        'The league scores either by generic points (POINTS) or by 5x5 rotisserie categories (CATEGORIES_5X5): weigh the players accordingly, e.g. in categories leagues steals and batting average matter more than in points leagues.',
     ].join(' ')
 
     const input = JSON.stringify(
         {
-            league: { name: ctx.leagueName, scoringRule: ctx.scoringRuleSummary },
+            league: { scoringPreset: ctx.scoringPreset },
             userRoster: ctx.userRoster,
             proposal: {
                 giving: ctx.giving,

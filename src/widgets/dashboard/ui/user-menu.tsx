@@ -1,7 +1,6 @@
 'use client'
 
 import {
-    BookOpenCheckIcon,
     Logout02Icon,
     UserCircleIcon,
     Wallet02Icon,

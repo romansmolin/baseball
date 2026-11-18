@@ -9,13 +9,8 @@ import type { IGamesService } from './games.service.interface'
 // the next 5–10 games even if a team has an off-day.
 const UPCOMING_WINDOW_DAYS = 4
 const MS_PER_DAY = 24 * 60 * 60 * 1000
-// How far back the results list reaches.
-const RECENT_WINDOW_DAYS = 3
-// Short TTL so LIVE scores don't lag the default 15-minute schedule cache.
-const LIVE_SCORE_REVALIDATE_SECONDS = 60
 
-// MLB plays in season; the Winter Leagues keep real games on the schedule between seasons.
-const GAME_LEAGUES: BaseballProviderLeague[] = ['mlb', 'winter-leagues']
+const GAME_LEAGUES: BaseballProviderLeague[] = ['mlb']
 
 interface LeagueGame {
     league: BaseballProviderLeague
@@ -41,24 +36,6 @@ export class GamesService implements IGamesService {
             .sort((a, b) => a.game.gameDateUtc.localeCompare(b.game.gameDateUtc))
 
         return this.toRecords(upcoming.slice(0, limit))
-    }
-
-    async getRecentGames(limit: number): Promise<UpcomingGameRecord[]> {
-        const now = new Date()
-        const start = new Date(now.getTime() - RECENT_WINDOW_DAYS * MS_PER_DAY)
-
-        const games = await this.loadSchedule({
-            startDateUtc: start,
-            endDateUtc: now,
-            revalidateSeconds: LIVE_SCORE_REVALIDATE_SECONDS,
-        })
-
-        // Newest first; only games that have actually started.
-        const started = games
-            .filter(({ game: g }) => g.status === 'LIVE' || g.status === 'FINAL')
-            .sort((a, b) => b.game.gameDateUtc.localeCompare(a.game.gameDateUtc))
-
-        return this.toRecords(started.slice(0, limit))
     }
 
     // One failing league must not blank the page; only a total failure is an error.

@@ -1,5 +1,4 @@
 import { ApiError } from '../../errors/api.error'
-import { activityQuerySchema } from '../../entities/me/activity.schema'
 import { createTeamSchema } from '../../entities/me/create-team.schema'
 import { updateLineupSchema } from '../../entities/me/update-lineup.schema'
 import { updateTeamSchema } from '../../entities/me/update-team.schema'
@@ -15,47 +14,6 @@ export class MeController implements IMeController {
 
     constructor(meService: IMeService) {
         this.meService = meService
-    }
-
-    async getOnboarding(userId: string): Promise<Response> {
-        try {
-            const steps = await this.meService.getOnboarding(userId)
-            return Response.json(steps)
-        } catch (error) {
-            return this.handleError(error)
-        }
-    }
-
-    async getCredits(userId: string): Promise<Response> {
-        try {
-            const summary = await this.meService.getCredits(userId)
-            return Response.json(summary)
-        } catch (error) {
-            return this.handleError(error)
-        }
-    }
-
-    async getMetrics(userId: string): Promise<Response> {
-        try {
-            const metrics = await this.meService.getMetrics(userId)
-            return Response.json(metrics)
-        } catch (error) {
-            return this.handleError(error)
-        }
-    }
-
-    async getActivity(userId: string, searchParams: URLSearchParams): Promise<Response> {
-        try {
-            const result = activityQuerySchema.safeParse(Object.fromEntries(searchParams))
-            if (!result.success) {
-                return ApiError.validationError(result.error.issues[0].message).toResponse()
-            }
-
-            const events = await this.meService.getActivity(userId, result.data.limit)
-            return Response.json(events)
-        } catch (error) {
-            return this.handleError(error)
-        }
     }
 
     async getMyTeams(userId: string): Promise<Response> {
@@ -126,30 +84,6 @@ export class MeController implements IMeController {
                 result.data as UpdateLineupPayload,
             )
             return Response.json(updated)
-        } catch (error) {
-            return this.handleError(error)
-        }
-    }
-
-    async getMyTournaments(userId: string): Promise<Response> {
-        try {
-            const tournaments = await this.meService.getMyTournaments(userId)
-            return Response.json(tournaments)
-        } catch (error) {
-            return this.handleError(error)
-        }
-    }
-
-    async getMyTournamentProgress(
-        userId: string,
-        tournamentId: string,
-    ): Promise<Response> {
-        try {
-            const progress = await this.meService.getMyTournamentProgress(
-                userId,
-                tournamentId,
-            )
-            return Response.json(progress)
         } catch (error) {
             return this.handleError(error)
         }

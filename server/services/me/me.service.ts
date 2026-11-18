@@ -1,35 +1,15 @@
 import { ApiError } from '../../errors/api.error'
 import { ErrorCode } from '../../errors/error-code.enum'
-import {
-    creditsSummary,
-    dashboardMetrics,
-    onboardingSteps,
-    recentActivity,
-} from '../../shared/dashboard-stubs'
 import { SPORT_LEAGUES } from '../../shared/sport-leagues.const'
 import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-team.model'
 import type {
     CreateRosterSlotInput,
     IFantasyTeamRepository,
 } from '../../repositories/fantasy-team/fantasy-team.repository.interface'
-import type { ILeagueMemberRepository, LeagueMemberRecord } from '../../repositories/league-member/league-member.repository.interface'
-import type { ILeagueRepository, LeagueRecord } from '../../repositories/league/league.repository.interface'
-import type { IScoringRuleRepository } from '../../repositories/scoring-rule/scoring-rule.repository.interface'
 import {
     PlayerPosition,
     RosterSlotPosition,
 } from '../../../src/generated/prisma/enums'
-import type {
-    IWeeklyScoringService,
-    ScoringInputLeague,
-} from '../scoring/weekly-scoring.service.interface'
-import { computeTournamentCurrentWeek } from '../tournaments/tournament-week.util'
-import type {
-    ActivityEvent,
-    CreditsSummary,
-    DashboardMetrics,
-    OnboardingStep,
-} from '@/shared/dashboard'
 import {
     ROSTER_SIZE,
     SALARY_CAP_DEFAULT,
@@ -45,16 +25,7 @@ import type {
     UpdateLineupPayload,
 } from '@/shared/team-builder'
 import type { MyTeamsPayload, Team } from '@/shared/teams'
-import type {
-    TournamentRecord,
-    TournamentStatus,
-    UserTournamentProgress,
-    UserTournamentWeeklyScore,
-} from '@/shared/tournaments'
 import type { IMeService } from './me.service.interface'
-import type { PrismaClient } from '../../../src/generated/prisma/client'
-import { prisma } from '../../lib/prisma'
-import { saveRecurringLineup } from '../recurring-tournaments/recurring-entry.service'
 
 const SLOT_KEY_TO_ROSTER_POSITION: Record<SlotKey, RosterSlotPosition> = {
     P: RosterSlotPosition.P,
@@ -111,67 +82,13 @@ const NON_OF_ROSTER_TO_SLOT_KEY: Partial<Record<RosterSlotPosition, SlotKey>> = 
 
 const OF_SLOT_KEYS: SlotKey[] = ['LF', 'CF', 'RF']
 
-const DEFAULT_ACTIVITY_LIMIT = 10
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 export class MeService implements IMeService {
     private readonly fantasyTeamRepository: IFantasyTeamRepository
-    private readonly leagueRepository: ILeagueRepository
-    private readonly leagueMemberRepository: ILeagueMemberRepository
-    private readonly weeklyScoringService: IWeeklyScoringService
-    private readonly scoringRuleRepository: IScoringRuleRepository
 
-    constructor(
-        fantasyTeamRepository: IFantasyTeamRepository,
-        leagueRepository: ILeagueRepository,
-        leagueMemberRepository: ILeagueMemberRepository,
-        weeklyScoringService: IWeeklyScoringService,
-        scoringRuleRepository: IScoringRuleRepository,
-        private readonly db: PrismaClient = prisma,
-    ) {
+    constructor(fantasyTeamRepository: IFantasyTeamRepository) {
         this.fantasyTeamRepository = fantasyTeamRepository
-        this.leagueRepository = leagueRepository
-        this.leagueMemberRepository = leagueMemberRepository
-        this.weeklyScoringService = weeklyScoringService
-        this.scoringRuleRepository = scoringRuleRepository
-    }
-
-    // The 'account' step is implicitly done — they had to sign in to hit /me.
-    // The 'team' step flips to done as soon as the user has at least one
-    // FantasyTeam; while team is still 'next' the tournament step stays
-    // 'locked'. Cheap to compute (two findMany over indexed userId columns).
-    async getOnboarding(userId: string): Promise<OnboardingStep[]> {
-        const [teams, memberships] = await Promise.all([
-            this.fantasyTeamRepository.findByUserId(userId),
-            this.leagueMemberRepository.findByUserId(userId),
-        ])
-
-        const hasTeam = teams.length > 0
-        const hasTournament = memberships.length > 0
-
-        return onboardingSteps.map((step) => {
-            if (step.id === 'team') {
-                return { ...step, status: hasTeam ? 'done' : 'next' }
-            }
-            if (step.id === 'tournament') {
-                if (hasTournament) return { ...step, status: 'done' }
-                return { ...step, status: hasTeam ? 'next' : 'locked' }
-            }
-            return step
-        })
-    }
-
-    async getCredits(_userId: string): Promise<CreditsSummary> {
-        return creditsSummary
-    }
-
-    async getMetrics(_userId: string): Promise<DashboardMetrics> {
-        return dashboardMetrics
-    }
-
-    async getActivity(_userId: string, limit?: number): Promise<ActivityEvent[]> {
-        const effectiveLimit = limit ?? DEFAULT_ACTIVITY_LIMIT
-        return recentActivity.slice(0, effectiveLimit)
     }
 
     async getMyTeams(userId: string): Promise<MyTeamsPayload> {
@@ -244,17 +161,6 @@ export class MeService implements IMeService {
                 ErrorCode.TEAM_NOT_OWNED,
                 `Team ${teamId} is not owned by this user`,
             )
-        }
-
-        if (existing.leagueMemberId) {
-            const member = (await this.leagueMemberRepository.findByUserId(userId)).find(row => row.id === existing.leagueMemberId)
-            const league = member ? await this.leagueRepository.findById(member.leagueId) : null
-            if (league?.recurringTournament) {
-                await saveRecurringLineup(this.db, { userId, teamId, input: { players: payload.players.map(p => ({ slotKey: p.slotKey, externalPlayerId: p.externalPlayerId })), captainExternalPlayerId: payload.captainExternalPlayerId } })
-                const updated = await this.fantasyTeamRepository.findById(teamId)
-                if (!updated) throw ApiError.notFound(ErrorCode.TEAM_NOT_FOUND, 'Team not found')
-                return this.toWidgetTeam(updated)
-            }
         }
 
         this.validateLineupPayload(payload.players, payload.captainExternalPlayerId)
@@ -382,18 +288,18 @@ export class MeService implements IMeService {
 
         return {
             id: row.id,
-            leagueMemberId: row.leagueMemberId,
+            leagueMemberId: null,
             name: row.name,
             leagueSlug: row.leagueSlug,
             format: this.toTeamFormat(row.format),
             players: row.rosterSlots.length,
             proj: 0,
-            best: Number(row.totalScore),
-            entered: row.leagueMemberId ? 1 : 0,
+            best: 0,
+            entered: 0,
             captain: captainId !== null,
             fav: false,
             savedDaysAgo,
-            status: row.leagueMemberId ? 'active' : 'draft',
+            status: 'draft',
             rosterSlots,
         }
     }
@@ -403,210 +309,5 @@ export class MeService implements IMeService {
             return rawFormat
         }
         return 'Weekly'
-    }
-
-    async getMyTournaments(userId: string): Promise<TournamentRecord[]> {
-        const memberships = await this.leagueMemberRepository.findByUserId(userId)
-        if (memberships.length === 0) return []
-
-        const leagueIds = memberships.map((m) => m.leagueId)
-        const leagues = await this.leagueRepository.findManyByIds(leagueIds)
-
-        const now = new Date()
-        const records: TournamentRecord[] = await Promise.all(
-            leagues.map(async (league) => {
-                const members = await this.leagueMemberRepository.findAllByLeagueId(
-                    league.id,
-                )
-                return this.toTournamentRecord(league, members.length, now)
-            }),
-        )
-
-        return records.sort(
-            (a, b) => new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime(),
-        )
-    }
-
-    async getMyTournamentProgress(
-        userId: string,
-        tournamentId: string,
-    ): Promise<UserTournamentProgress> {
-        const league = await this.leagueRepository.findById(tournamentId)
-        if (!league) {
-            throw ApiError.notFound(
-                ErrorCode.TOURNAMENT_NOT_FOUND,
-                'Tournament not found',
-            )
-        }
-
-        const membership = await this.leagueMemberRepository.findByLeagueAndUser(
-            league.id,
-            userId,
-        )
-        if (!membership) {
-            throw ApiError.notFound(
-                ErrorCode.USER_NOT_IN_TOURNAMENT,
-                'You have not joined this tournament',
-            )
-        }
-
-        const now = new Date()
-        const currentWeek = computeTournamentCurrentWeek({
-            status: league.status,
-            startsAt: league.startsAt,
-            totalWeeks: league.totalWeeks,
-            now,
-        })
-
-        const allMembers = await this.leagueMemberRepository.findAllByLeagueId(league.id)
-        const team = await this.findFantasyTeamForMember(membership)
-
-        // No weeks scored yet — short-circuit before any provider/cache work.
-        if (currentWeek <= 0) {
-            const weeklyScores: UserTournamentWeeklyScore[] = []
-            for (let week = 1; week <= league.totalWeeks; week += 1) {
-                weeklyScores.push({ week, points: 0, awarded: false, slots: [] })
-            }
-            return {
-                tournamentId: league.id,
-                tournamentName: league.name,
-                leagueSlug: league.leagueSlug,
-                status: league.status as TournamentStatus,
-                leagueMemberId: membership.id,
-                fantasyTeamId: team?.id ?? null,
-                fantasyTeamName: team?.name ?? null,
-                currentWeek,
-                totalWeeks: league.totalWeeks,
-                totalPoints: 0,
-                rank: allMembers.length,
-                memberCount: allMembers.length,
-                weeklyScores,
-            }
-        }
-
-        const rule = await this.scoringRuleRepository.findByLeagueId(league.id)
-        if (!rule) {
-            throw new ApiError(
-                500,
-                ErrorCode.SCORING_RULE_NOT_FOUND,
-                'Scoring rule not configured for tournament',
-            )
-        }
-
-        const scoringLeague: ScoringInputLeague = {
-            id: league.id,
-            leagueSlug: league.leagueSlug,
-            season: league.externalSeasonId,
-            startsAt: league.startsAt,
-            totalWeeks: league.totalWeeks,
-        }
-
-        const memberIds = allMembers.map((member) => member.id)
-        const scoreSummary = await this.weeklyScoringService.summarizeScoresForMembers(
-            memberIds,
-            currentWeek,
-        )
-        // Opening the detail panel must only score the caller. Re-scoring every
-        // member (hundreds per tournament, each pulling box scores) made this
-        // endpoint take minutes; the refresh-scoring cron owns the rest.
-        const membersNeedingRefresh = scoreSummary.membersNeedingRefresh.includes(
-            membership.id,
-        )
-            ? [membership.id]
-            : []
-
-        if (membersNeedingRefresh.length > 0) {
-            await this.weeklyScoringService.warmProviderCache(
-                scoringLeague,
-                currentWeek,
-                membersNeedingRefresh,
-            )
-            await this.weeklyScoringService.prepareMemberWeeks(
-                membership.id,
-                scoringLeague,
-                rule,
-                currentWeek,
-            )
-        }
-
-        const breakdown = await this.weeklyScoringService.weeklyBreakdown(
-            membership.id,
-            league.totalWeeks,
-        )
-
-        const weeklyScores: UserTournamentWeeklyScore[] = breakdown.map((row) => ({
-            week: row.week,
-            points: row.points,
-            awarded: row.awarded && row.week <= currentWeek,
-            slots: row.awarded && row.week <= currentWeek ? row.slots : [],
-        }))
-
-        const totalByMember =
-            membersNeedingRefresh.length === 0
-                ? scoreSummary.totals
-                : await this.weeklyScoringService.totalsThroughWeek(memberIds, currentWeek)
-        const totalPoints = totalByMember.get(membership.id) ?? 0
-        const totals = allMembers.map((member) => ({
-            memberId: member.id,
-            total: totalByMember.get(member.id) ?? 0,
-        }))
-
-        totals.sort((a, b) => {
-            if (b.total !== a.total) return b.total - a.total
-            return a.memberId.localeCompare(b.memberId)
-        })
-
-        const rank = totals.findIndex((r) => r.memberId === membership.id) + 1
-
-        return {
-            tournamentId: league.id,
-            tournamentName: league.name,
-            leagueSlug: league.leagueSlug,
-            status: league.status as TournamentStatus,
-            leagueMemberId: membership.id,
-            fantasyTeamId: team?.id ?? null,
-            fantasyTeamName: team?.name ?? null,
-            currentWeek,
-            totalWeeks: league.totalWeeks,
-            totalPoints,
-            rank: rank > 0 ? rank : allMembers.length,
-            memberCount: allMembers.length,
-            weeklyScores,
-        }
-    }
-
-    private async findFantasyTeamForMember(
-        membership: LeagueMemberRecord,
-    ): Promise<FantasyTeamWithRoster | null> {
-        const teams = await this.fantasyTeamRepository.findByUserId(membership.userId)
-        return teams.find((t) => t.leagueMemberId === membership.id) ?? null
-    }
-
-    private toTournamentRecord(
-        league: LeagueRecord,
-        memberCount: number,
-        now: Date,
-    ): TournamentRecord {
-        const currentWeek = computeTournamentCurrentWeek({
-            status: league.status,
-            startsAt: league.startsAt,
-            totalWeeks: league.totalWeeks,
-            now,
-        })
-
-        return {
-            id: league.id,
-            name: league.name,
-            leagueSlug: league.leagueSlug,
-            visibility: league.visibility,
-            status: league.status as TournamentStatus,
-            startsAt: league.startsAt.toISOString(),
-            endsAt: league.endsAt.toISOString(),
-            totalWeeks: league.totalWeeks,
-            currentWeek,
-            entryFeeCredits: league.entryFeeCredits,
-            prizePoolCredits: league.prizePoolCredits,
-            memberCount,
-        }
     }
 }

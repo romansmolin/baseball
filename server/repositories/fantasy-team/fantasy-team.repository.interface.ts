@@ -28,17 +28,12 @@ export interface ReplaceRosterInput {
 export interface IFantasyTeamRepository {
     findByUserId(userId: string): Promise<FantasyTeamWithRoster[]>
     findById(id: string): Promise<FantasyTeamWithRoster | null>
-    findByLeagueMemberId(
-        leagueMemberId: string,
-    ): Promise<FantasyTeamWithRoster | null>
     create(input: CreateFantasyTeamInput): Promise<FantasyTeamWithRoster>
     updateName(id: string, name: string): Promise<FantasyTeamWithRoster>
     /**
      * Replace the live roster of an existing FantasyTeam: deletes every
      * existing RosterSlot for the team, recreates from the supplied set, and
-     * updates the captain pointer. Runs in a single transaction. Does NOT
-     * touch already-locked WeeklyLineup snapshots — only the mutable
-     * "current/upcoming" lineup is replaced.
+     * updates the captain pointer. Runs in a single transaction.
      */
     replaceRoster(input: ReplaceRosterInput): Promise<FantasyTeamWithRoster>
 }

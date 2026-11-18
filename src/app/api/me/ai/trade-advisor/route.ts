@@ -4,9 +4,6 @@ import { ApiError } from '../../../../../../server/errors/api.error'
 import { getSportsProvider } from '../../../../../../server/providers/sports-provider.factory'
 import { prisma } from '../../../../../../server/lib/prisma'
 import { FantasyTeamRepository } from '../../../../../../server/repositories/fantasy-team/fantasy-team.repository'
-import { LeagueMemberRepository } from '../../../../../../server/repositories/league-member/league-member.repository'
-import { LeagueRepository } from '../../../../../../server/repositories/league/league.repository'
-import { ScoringRuleRepository } from '../../../../../../server/repositories/scoring-rule/scoring-rule.repository'
 import { AIBillingService } from '../../../../../../server/services/ai/ai-billing.service'
 import { TradeAdvisorFeature } from '../../../../../../server/services/ai/features/trade-advisor.feature'
 import { OpenAIProvider } from '../../../../../../server/services/ai/provider/openai.provider'
@@ -21,16 +18,14 @@ function buildOrchestrator() {
     const feature = new TradeAdvisorFeature(
         new OpenAIProvider(),
         getSportsProvider(),
-        new LeagueRepository(),
-        new LeagueMemberRepository(),
-        new ScoringRuleRepository(),
         new FantasyTeamRepository(),
     )
     return { orchestrator, feature }
 }
 
 const requestSchema = z.object({
-    leagueId: z.string().min(1),
+    teamId: z.string().min(1).optional(),
+    scoringPreset: z.enum(['POINTS', 'CATEGORIES_5X5']).default('POINTS'),
     giving: z.array(z.string().min(1)).min(1),
     receiving: z.array(z.string().min(1)).min(1),
 })

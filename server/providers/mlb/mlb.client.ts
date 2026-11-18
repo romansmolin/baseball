@@ -1,4 +1,3 @@
-import { assertWorkTime, remainingWorkMs } from '../../services/showcase/work-deadline'
 import { env } from '../../lib/env'
 import {
     ProviderError,
@@ -13,14 +12,13 @@ export interface MlbFetchOptions {
 }
 
 export async function mlbFetch<T>(path: string, opts: MlbFetchOptions): Promise<T> {
-    assertWorkTime()
     const url = `${env.mlbBaseUrl()}${path}`
 
     let res: Response
     try {
         res = await fetch(url, {
             headers: { accept: 'application/json' },
-            signal: AbortSignal.timeout(Math.max(1, Math.min(remainingWorkMs(),8000, (opts.deadline ?? Date.now() + 8000) - Date.now()))),
+            signal: AbortSignal.timeout(Math.max(1, Math.min(8000, (opts.deadline ?? Date.now() + 8000) - Date.now()))),
             next: { revalidate: opts.revalidate, tags: opts.tags },
         })
     } catch (cause) {

@@ -3,13 +3,6 @@ import type { IAIFeaturesService } from './ai-features.service.interface'
 
 const AI_FEATURES: AIFeature[] = [
     {
-        id: 'lineup',
-        name: 'Lineup optimizer',
-        description: 'Best lineup for your budget',
-        costPerUse: 20,
-        iconKey: 'lineup',
-    },
-    {
         id: 'analysis',
         name: 'Player analysis',
         description: 'Stats, trends, matchups',

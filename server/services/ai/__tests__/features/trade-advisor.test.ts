@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import type { IFantasyTeamRepository } from '../../../../repositories/fantasy-team/fantasy-team.repository.interface'
-import type { ILeagueRepository } from '../../../../repositories/league/league.repository.interface'
-import type { ILeagueMemberRepository } from '../../../../repositories/league-member/league-member.repository.interface'
-import type { IScoringRuleRepository } from '../../../../repositories/scoring-rule/scoring-rule.repository.interface'
 import type { ISportsProvider } from '../../../../providers/sports-provider.interface'
 import type { IOpenAIProvider } from '../../provider/openai.provider'
 import {
@@ -12,55 +9,28 @@ import {
     tradeAdvisorOutputSchema,
 } from '../../features/trade-advisor.feature'
 
-const buildLeagueRepo = (): ILeagueRepository =>
+const buildFantasyTeamRepo = (team: unknown = null): IFantasyTeamRepository =>
     ({
-        findById: vi.fn().mockResolvedValue({
-            id: 'lg1',
-            name: 'MLB Summer Classic',
-            scoringRuleId: 'sr1',
-        }),
-        findManyByIds: vi.fn(),
-        findByCommissionerId: vi.fn(),
-        findManyPublic: vi.fn(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any
-
-const buildLeagueMemberRepo = (): ILeagueMemberRepository =>
-    ({
-        findByUserId: vi.fn().mockResolvedValue([
-            { id: 'lm1', leagueId: 'lg1', userId: 'u1' },
-        ]),
-        findAllByLeagueId: vi.fn(),
-        findByLeagueId: vi.fn(),
-        findById: vi.fn(),
-        findByLeagueAndUser: vi.fn(),
-        create: vi.fn(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any
-
-const buildFantasyTeamRepo = (): IFantasyTeamRepository =>
-    ({
-        findById: vi.fn(),
+        findById: vi.fn().mockResolvedValue(team),
         findByUserId: vi.fn(),
-        findByLeagueMemberId: vi.fn().mockResolvedValue(null),
         updateName: vi.fn(),
         create: vi.fn(),
         replaceRoster: vi.fn(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any
 
-const buildScoringRuleRepo = (): IScoringRuleRepository =>
-    ({
-        findByLeagueId: vi.fn().mockResolvedValue({
-            id: 'sr1',
-            name: 'standard',
-            version: 1,
-            rule: { single: 3, double: 5, homeRun: 10, rbi: 2 },
-        }),
-        findDefault: vi.fn(),
-        findById: vi.fn(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any
+const savedTeam = (userId: string) => ({
+    id: 't1',
+    userId,
+    rosterSlots: [
+        {
+            externalPlayerId: 999,
+            playerName: 'Roster Guy',
+            slotPosition: 'SS',
+            playerPosition: 'SS',
+        },
+    ],
+})
 
 const buildSportsProvider = (): ISportsProvider =>
     ({
@@ -114,17 +84,21 @@ const validOutput = {
 describe('TradeAdvisorFeature', () => {
     it('input schema requires non-empty giving and receiving arrays', () => {
         expect(
-            tradeAdvisorInputSchema.safeParse({
-                leagueId: 'x',
-                giving: [],
-                receiving: ['1'],
-            }).success,
+            tradeAdvisorInputSchema.safeParse({ giving: [], receiving: ['1'] }).success,
         ).toBe(false)
         expect(
+            tradeAdvisorInputSchema.safeParse({ giving: ['1'], receiving: [] }).success,
+        ).toBe(false)
+    })
+
+    it('input schema defaults scoringPreset to POINTS and rejects unknown presets', () => {
+        const ok = tradeAdvisorInputSchema.parse({ giving: ['1'], receiving: ['2'] })
+        expect(ok.scoringPreset).toBe('POINTS')
+        expect(
             tradeAdvisorInputSchema.safeParse({
-                leagueId: 'x',
                 giving: ['1'],
-                receiving: [],
+                receiving: ['2'],
+                scoringPreset: 'ROTO',
             }).success,
         ).toBe(false)
     })
@@ -143,59 +117,98 @@ describe('TradeAdvisorFeature', () => {
         const feature = new TradeAdvisorFeature(
             openai,
             buildSportsProvider(),
-            buildLeagueRepo(),
-            buildLeagueMemberRepo(),
-            buildScoringRuleRepo(),
             buildFantasyTeamRepo(),
         )
         await feature.invoke('u1', {
-            leagueId: 'lg1',
             giving: ['100'],
             receiving: ['200'],
+            scoringPreset: 'POINTS',
         })
         const opts = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0]
         expect(opts.tier).toBe('complex_reasoning')
         expect(opts.schemaName).toBe('TradeAdvisorOutput')
     })
 
-    it('happy path returns structured verdict', async () => {
+    it('happy path returns structured verdict and sends the scoring preset', async () => {
         const openai = buildOpenAI(validOutput)
         const feature = new TradeAdvisorFeature(
             openai,
             buildSportsProvider(),
-            buildLeagueRepo(),
-            buildLeagueMemberRepo(),
-            buildScoringRuleRepo(),
             buildFantasyTeamRepo(),
         )
         const result = await feature.invoke('u1', {
-            leagueId: 'lg1',
             giving: ['100'],
             receiving: ['200', '300'],
+            scoringPreset: 'CATEGORIES_5X5',
         })
         expect(result.output.verdict).toBe('accept')
         const inputJson = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0].input
         expect(inputJson).toContain('Player 100')
         expect(inputJson).toContain('Player 200')
+        expect(inputJson).toContain('CATEGORIES_5X5')
     })
 
-    it('throws when league is missing', async () => {
-        const leagueRepo = buildLeagueRepo()
-        ;(leagueRepo.findById as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null)
+    it('includes the saved team roster when a teamId is given', async () => {
+        const openai = buildOpenAI(validOutput)
+        const feature = new TradeAdvisorFeature(
+            openai,
+            buildSportsProvider(),
+            buildFantasyTeamRepo(savedTeam('u1')),
+        )
+        await feature.invoke('u1', {
+            teamId: 't1',
+            giving: ['1'],
+            receiving: ['2'],
+            scoringPreset: 'POINTS',
+        })
+        const inputJson = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0].input
+        expect(inputJson).toContain('Roster Guy')
+    })
+
+    it('rejects a team owned by another user', async () => {
         const feature = new TradeAdvisorFeature(
             buildOpenAI(validOutput),
             buildSportsProvider(),
-            leagueRepo,
-            buildLeagueMemberRepo(),
-            buildScoringRuleRepo(),
+            buildFantasyTeamRepo(savedTeam('someone-else')),
+        )
+        await expect(
+            feature.invoke('u1', {
+                teamId: 't1',
+                giving: ['1'],
+                receiving: ['2'],
+                scoringPreset: 'POINTS',
+            }),
+        ).rejects.toThrow(/not owned/)
+    })
+
+    it('throws when the team is missing', async () => {
+        const feature = new TradeAdvisorFeature(
+            buildOpenAI(validOutput),
+            buildSportsProvider(),
+            buildFantasyTeamRepo(null),
+        )
+        await expect(
+            feature.invoke('u1', {
+                teamId: 'nope',
+                giving: ['1'],
+                receiving: ['2'],
+                scoringPreset: 'POINTS',
+            }),
+        ).rejects.toThrow(/Team nope not found/)
+    })
+
+    it('throws when a player id is not numeric', async () => {
+        const feature = new TradeAdvisorFeature(
+            buildOpenAI(validOutput),
+            buildSportsProvider(),
             buildFantasyTeamRepo(),
         )
         await expect(
             feature.invoke('u1', {
-                leagueId: 'nope',
-                giving: ['1'],
+                giving: ['abc'],
                 receiving: ['2'],
+                scoringPreset: 'POINTS',
             }),
-        ).rejects.toThrow(/League nope not found/)
+        ).rejects.toThrow(/numeric/)
     })
 })

@@ -1,8 +1,8 @@
-// trade_advisor feature. Evaluates a hypothetical trade — no Trade table
-// exists in this codebase, so this is pure advisory. The user supplies the
-// league they're in plus the players they'd give and receive (by external
-// id); we pull the league's scoring rule and their current roster for
-// context and ask the model for a verdict + fairness score.
+// trade_advisor feature. Evaluates a hypothetical trade on an outside fantasy
+// platform — pure advisory. The user supplies the players they'd give and
+// receive (by external id), the scoring style of their league, and optionally
+// one of their saved teams for roster context; we ask the model for a verdict
+// + fairness score.
 //
 // Complex-reasoning tier — multi-player valuation + counter-proposal
 // generation warrants the more capable model.
@@ -11,21 +11,20 @@ import { z } from 'zod'
 
 import type { ISportsProvider } from '../../../providers/sports-provider.interface'
 import type { IFantasyTeamRepository } from '../../../repositories/fantasy-team/fantasy-team.repository.interface'
-import type { ILeagueRepository } from '../../../repositories/league/league.repository.interface'
-import type { ILeagueMemberRepository } from '../../../repositories/league-member/league-member.repository.interface'
-import type { IScoringRuleRepository } from '../../../repositories/scoring-rule/scoring-rule.repository.interface'
 
 import { AI_FEATURE_KEYS } from '../types'
 import type { AIFeatureModule, AIInvocationResult } from '../types'
 import type { IOpenAIProvider } from '../provider/openai.provider'
 import { buildTradeAdvisorPrompt } from '../prompts/trade-advisor.prompt'
+import type { TradeAdvisorPromptContext } from '../prompts/trade-advisor.prompt'
 
 export const tradeAdvisorInputSchema = z.object({
-    leagueId: z.string().min(1),
+    teamId: z.string().min(1).optional(),
+    scoringPreset: z.enum(['POINTS', 'CATEGORIES_5X5']).default('POINTS'),
     giving: z.array(z.string().min(1)).min(1),
     receiving: z.array(z.string().min(1)).min(1),
 })
-export type TradeAdvisorInput = z.infer<typeof tradeAdvisorInputSchema>
+export type TradeAdvisorInput = z.input<typeof tradeAdvisorInputSchema>
 
 export const tradeAdvisorOutputSchema = z.object({
     verdict: z.enum(['accept', 'decline', 'counter']),
@@ -55,24 +54,15 @@ export class TradeAdvisorFeature
 
     private readonly provider: IOpenAIProvider
     private readonly sportsProvider: ISportsProvider
-    private readonly leagueRepo: ILeagueRepository
-    private readonly leagueMemberRepo: ILeagueMemberRepository
-    private readonly scoringRuleRepo: IScoringRuleRepository
     private readonly fantasyTeamRepo: IFantasyTeamRepository
 
     constructor(
         provider: IOpenAIProvider,
         sportsProvider: ISportsProvider,
-        leagueRepo: ILeagueRepository,
-        leagueMemberRepo: ILeagueMemberRepository,
-        scoringRuleRepo: IScoringRuleRepository,
         fantasyTeamRepo: IFantasyTeamRepository,
     ) {
         this.provider = provider
         this.sportsProvider = sportsProvider
-        this.leagueRepo = leagueRepo
-        this.leagueMemberRepo = leagueMemberRepo
-        this.scoringRuleRepo = scoringRuleRepo
         this.fantasyTeamRepo = fantasyTeamRepo
     }
 
@@ -82,41 +72,19 @@ export class TradeAdvisorFeature
     ): Promise<AIInvocationResult<TradeAdvisorOutput>> {
         const parsed = this.inputSchema.parse(input)
 
-        const league = await this.leagueRepo.findById(parsed.leagueId)
-        if (!league) throw new Error(`League ${parsed.leagueId} not found`)
-
-        const scoringRule = await this.scoringRuleRepo.findByLeagueId(
-            parsed.leagueId,
-        )
-        if (!scoringRule) {
-            throw new Error(`No scoring rule for league ${parsed.leagueId}`)
-        }
-        const scoringRuleSummary =
-            scoringRule.rule as unknown as Record<string, number>
-
-        // Locate the user's membership + their fantasy roster (if any). Not
-        // strictly required — the user might be evaluating a trade before
-        // they've joined — so we keep an empty roster fallback.
-        const memberships = await this.leagueMemberRepo.findByUserId(userId)
-        const membership = memberships.find((m) => m.leagueId === parsed.leagueId)
-        let userRoster: Array<{
-            externalPlayerId: number
-            playerName: string
-            slotPosition: string
-            playerPosition: string
-        }> = []
-        if (membership) {
-            const team = await this.fantasyTeamRepo.findByLeagueMemberId(
-                membership.id,
-            )
-            if (team) {
-                userRoster = team.rosterSlots.map((s) => ({
-                    externalPlayerId: s.externalPlayerId,
-                    playerName: s.playerName,
-                    slotPosition: String(s.slotPosition),
-                    playerPosition: String(s.playerPosition),
-                }))
+        let userRoster: TradeAdvisorPromptContext['userRoster'] = []
+        if (parsed.teamId) {
+            const team = await this.fantasyTeamRepo.findById(parsed.teamId)
+            if (!team) throw new Error(`Team ${parsed.teamId} not found`)
+            if (team.userId !== userId) {
+                throw new Error(`Team ${parsed.teamId} is not owned by this user`)
             }
+            userRoster = team.rosterSlots.map((s) => ({
+                externalPlayerId: s.externalPlayerId,
+                playerName: s.playerName,
+                slotPosition: String(s.slotPosition),
+                playerPosition: String(s.playerPosition),
+            }))
         }
 
         const givingPlayers = await this.lookupPlayers(parsed.giving)
@@ -124,8 +92,7 @@ export class TradeAdvisorFeature
 
         const { instructions, input: serialized } = buildTradeAdvisorPrompt({
             nowIso: new Date().toISOString(),
-            leagueName: league.name,
-            scoringRuleSummary,
+            scoringPreset: parsed.scoringPreset,
             userRoster,
             giving: givingPlayers,
             receiving: receivingPlayers,

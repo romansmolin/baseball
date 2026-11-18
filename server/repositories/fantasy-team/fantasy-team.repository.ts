@@ -4,7 +4,6 @@ import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-te
 import { handleRepositoryError } from '../../shared/db/prisma-error.utils'
 import { ApiError } from '../../errors/api.error'
 import { ErrorCode } from '../../errors/error-code.enum'
-import { hasRecurringTournamentTable } from '../recurring-tournaments/recurring-schema'
 
 import type {
     CreateFantasyTeamInput,
@@ -31,19 +30,6 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
         try {
             return await this.db.fantasyTeam.findUnique({
                 where: { id },
-                include: { rosterSlots: true },
-            })
-        } catch (error) {
-            throw handleRepositoryError(error)
-        }
-    }
-
-    async findByLeagueMemberId(
-        leagueMemberId: string,
-    ): Promise<FantasyTeamWithRoster | null> {
-        try {
-            return await this.db.fantasyTeam.findUnique({
-                where: { leagueMemberId },
                 include: { rosterSlots: true },
             })
         } catch (error) {
@@ -92,24 +78,9 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
 
     async replaceRoster(input: ReplaceRosterInput): Promise<FantasyTeamWithRoster> {
         try {
-            // Single transaction so we never leave a team in a half-replaced
-            // state. We do NOT touch WeeklyLineup here — historical snapshots
-            // stay frozen; only the live RosterSlots are swapped.
+            // Single transaction so we never leave a team in a half-replaced state.
             return await this.db.$transaction(async (tx) => {
                 await tx.$queryRaw`SELECT id FROM "FantasyTeam" WHERE id=${input.teamId} FOR UPDATE`
-                const current = await hasRecurringTournamentTable(tx) ? await tx.fantasyTeam.findUnique({
-                    where: { id: input.teamId },
-                    select: {
-                        leagueMember: {
-                            select: {
-                                league: {
-                                    select: { recurringTournament: { select: { leagueId: true } } },
-                                },
-                            },
-                        },
-                    },
-                }) : null
-                if (current?.leagueMember?.league.recurringTournament) throw ApiError.conflict(ErrorCode.TEAM_ALREADY_IN_LEAGUE, 'Team joined a recurring tournament; reload the lineup editor')
                 await tx.rosterSlot.deleteMany({
                     where: { fantasyTeamId: input.teamId },
                 })

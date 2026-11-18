@@ -32,6 +32,6 @@ export interface ICreditRepository {
     grantCredits(input: GrantCreditsInput): Promise<CreditTransactionRecord>
     // True if any transaction exists with this referenceType and a referenceId
     // starting with the given prefix. Used to make idempotent one-shot
-    // payouts (settle a tournament week exactly once).
+    // one-shot grants.
     existsByReference(referenceType: string, referenceIdPrefix: string): Promise<boolean>
 }
