@@ -1,17 +1,9 @@
 import { AIFeaturesGrid } from './ai-features-grid'
 import { CreditsSummary } from './credits-summary'
 import { NextGames } from './next-games'
-import { OnboardingChecklist } from './onboarding-checklist'
 
-interface NewUserDashboardProps {
-    firstName: string
-    compact?: boolean
-}
-
-export const NewUserDashboard = ({ firstName, compact = false }: NewUserDashboardProps) => (
+export const DashboardOverview = () => (
     <div className="space-y-6">
-        <OnboardingChecklist firstName={firstName} compact={compact} />
-        {!compact && <>
         <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
                 <AIFeaturesGrid />
@@ -21,6 +13,5 @@ export const NewUserDashboard = ({ firstName, compact = false }: NewUserDashboar
             </div>
         </div>
         <NextGames />
-        </>}
     </div>
 )

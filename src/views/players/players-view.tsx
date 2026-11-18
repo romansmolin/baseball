@@ -13,7 +13,6 @@ import {
     PlayersViewLayout,
     usePlayersState,
 } from '@/widgets/players'
-import { StatsNav } from '@/widgets/stats'
 
 export const PlayersView = () => {
     const state = usePlayersState()
@@ -65,7 +64,6 @@ export const PlayersView = () => {
 
     return (
         <>
-            <StatsNav className="max-w-7xl" />
         <PlayersViewLayout
             header={<PlayersHeader totalPlayers={state.totalPlayers} />}
             sidebar={

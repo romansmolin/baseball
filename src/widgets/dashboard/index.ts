@@ -1,5 +1,3 @@
 export { DashboardHeader } from './ui/dashboard-header'
-export { NewUserDashboard } from './ui/new-user-dashboard'
+export { DashboardOverview } from './ui/dashboard-overview'
 export { NextGames } from './ui/next-games'
-export { OnboardingChecklist } from './ui/onboarding-checklist'
-export { ReturningUserDashboard } from './ui/returning-user-dashboard'

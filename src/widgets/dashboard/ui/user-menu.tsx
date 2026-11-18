@@ -21,7 +21,6 @@ interface UserMenuProps {
 const LINKS = [
     { label: 'Wallet', href: '/wallet', icon: Wallet02Icon },
     { label: 'Profile', href: '/profile', icon: UserCircleIcon },
-    { label: 'Rules', href: '/rules', icon: BookOpenCheckIcon },
 ] as const
 
 export const UserMenu = ({ initials }: UserMenuProps) => {

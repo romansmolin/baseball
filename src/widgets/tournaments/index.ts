@@ -1,8 +1,0 @@
-export { LeaguesSidebar } from './ui/leagues-sidebar'
-export { TournamentsToolbar } from './ui/tournaments-toolbar'
-export { TournamentsList } from './ui/tournaments-list'
-export { TournamentDetailPanel } from './ui/tournament-detail-panel'
-export { TournamentsViewLayout } from './ui/tournaments-view-layout'
-export { StandingsTable } from './ui/standings-table'
-export { useTournamentsState } from './model/use-tournaments-state'
-export { ContestsCatalog } from './ui/contests-catalog'
