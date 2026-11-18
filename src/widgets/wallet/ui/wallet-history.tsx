@@ -9,8 +9,8 @@ import type { WalletTransactionType } from '@/shared/wallet'
 const TYPE_LABEL: Record<WalletTransactionType, string> = {
     PURCHASE: 'Purchase',
     REFUND: 'Refund',
-    TOURNAMENT_ENTRY_FEE: 'Entry fee',
-    TOURNAMENT_WINNINGS: 'Winnings',
+    TOURNAMENT_ENTRY_FEE: 'Entry fee (legacy)',
+    TOURNAMENT_WINNINGS: 'Winnings (legacy)',
     AI_USAGE: 'AI feature',
     ADMIN_GRANT: 'Grant',
     ADMIN_DEDUCT: 'Adjustment',

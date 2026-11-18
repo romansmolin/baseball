@@ -11,7 +11,7 @@ export const TeamsFirstTimeEmptyState = () => (
         </span>
         <div className="font-medium">Build your first fantasy team</div>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Draft a lineup from today&apos;s slate and join your first tournament.
+            Save a team you play on another fantasy platform, then check player outlooks and game picks for it.
         </p>
         <Link
             href="/teams/new"

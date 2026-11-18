@@ -130,7 +130,7 @@ export function getBaseballLeague(slug: string): BaseballLeagueConfig | undefine
 
 // Leagues that are advertised in the product but do not yet have a data
 // provider behind them. They still render in the league pickers, flagged as
-// "coming soon", but cannot be selected for tournaments or team building.
+// "coming soon", but cannot be selected for team building.
 export interface UnbackedBaseballLeague {
     slug: string
     name: string

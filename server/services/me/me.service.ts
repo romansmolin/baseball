@@ -130,7 +130,6 @@ export class MeService implements IMeService {
             userId,
             name: payload.name,
             leagueSlug: payload.leagueSlug,
-            format: payload.format,
             captainExternalPlayerId: payload.captainExternalPlayerId,
             rosterSlots,
         })
@@ -288,26 +287,14 @@ export class MeService implements IMeService {
 
         return {
             id: row.id,
-            leagueMemberId: null,
             name: row.name,
             leagueSlug: row.leagueSlug,
-            format: this.toTeamFormat(row.format),
             players: row.rosterSlots.length,
             proj: 0,
-            best: 0,
-            entered: 0,
             captain: captainId !== null,
             fav: false,
             savedDaysAgo,
-            status: 'draft',
             rosterSlots,
         }
-    }
-
-    private toTeamFormat(rawFormat: string | null): Team['format'] {
-        if (rawFormat === 'Daily' || rawFormat === 'Weekly' || rawFormat === 'Tournament') {
-            return rawFormat
-        }
-        return 'Weekly'
     }
 }

@@ -77,7 +77,6 @@ export interface BuilderRosterSlotPayload {
 export interface CreateTeamPayload {
     name: string
     leagueSlug: string
-    format?: 'Daily' | 'Weekly' | 'Tournament'
     captainExternalPlayerId?: number
     players: BuilderRosterSlotPayload[]
 }

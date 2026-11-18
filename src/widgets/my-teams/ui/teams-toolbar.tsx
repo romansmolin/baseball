@@ -10,8 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string; withIcon?: boolean }[] = [
     { value: 'all', label: 'All' },
-    { value: 'active', label: 'In play' },
-    { value: 'draft', label: 'Drafts' },
     { value: 'captain', label: 'Captain' },
     { value: 'favorite', label: 'Starred', withIcon: true },
 ]
@@ -19,7 +17,6 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string; withIcon?: boolean }
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
     { value: 'recent', label: 'Sort: recently saved' },
     { value: 'proj', label: 'Sort: projected pts' },
-    { value: 'best', label: 'Sort: best score' },
     { value: 'name', label: 'Sort: name' },
 ]
 

@@ -66,22 +66,9 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
 
     const pills = (
         <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
-                {team.format}
-            </span>
             {team.captain && (
                 <span className="rounded-full border border-board/30 px-2 py-0.5 text-xs font-medium text-board">
                     Captain ×1.5
-                </span>
-            )}
-            {team.status === 'active' ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-board/10 px-2 py-0.5 text-xs font-medium text-board">
-                    <span className="size-1.5 rounded-full bg-board" />
-                    In {team.entered} tournament{team.entered === 1 ? '' : 's'}
-                </span>
-            ) : (
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    Draft
                 </span>
             )}
         </div>
@@ -107,7 +94,7 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
                 <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{team.name}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                        {leagueName} · {team.format} · {team.players} players
+                        {leagueName} · {team.players} players
                     </div>
                 </div>
                 <div className="hidden items-center gap-1.5 md:flex">{pills}</div>
@@ -130,7 +117,7 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
                 <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{team.name}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                        {leagueName} · {team.format}
+                        {leagueName}
                     </div>
                 </div>
                 <ProjChip value={team.proj} />
@@ -138,7 +125,7 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
             </div>
             {pills}
             <div className="mt-1 grid grid-cols-2 gap-2 border-t border-border pt-3">
-                <Stat label="Best score" value={team.best.toFixed(1)} />
+                <Stat label="Captain" value={team.captain ? "Yes" : "No"} />
                 <Stat label="Players" value={String(team.players)} />
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

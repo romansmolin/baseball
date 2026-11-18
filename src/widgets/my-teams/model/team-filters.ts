@@ -11,8 +11,6 @@ export const filterTeams = (teams: Team[], { search, leagueSlug, status, favs }:
     const q = search.trim().toLowerCase()
     return teams.filter((team) => {
         if (leagueSlug && team.leagueSlug !== leagueSlug) return false
-        if (status === 'active' && team.status !== 'active') return false
-        if (status === 'draft' && team.status !== 'draft') return false
         if (status === 'captain' && !team.captain) return false
         if (status === 'favorite' && !favs[team.id]) return false
         if (q && !team.name.toLowerCase().includes(q)) return false
@@ -27,8 +25,6 @@ export const sortTeams = (teams: Team[], sort: SortKey): Team[] => {
             return out.sort((a, b) => a.name.localeCompare(b.name))
         case 'proj':
             return out.sort((a, b) => b.proj - a.proj)
-        case 'best':
-            return out.sort((a, b) => b.best - a.best)
         case 'recent':
             return out.sort((a, b) => a.savedDaysAgo - b.savedDaysAgo)
     }

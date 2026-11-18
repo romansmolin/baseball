@@ -155,7 +155,7 @@ export const TeamDetailDrawer = ({ team, league, isFav, onClose, onToggleFav }: 
                     <>
                         <div className="flex items-center justify-between border-b border-foreground/10 px-6 py-4">
                             <div className="text-xs text-muted-foreground">
-                                {leagueName} · {team.format}
+                                {leagueName}
                             </div>
                             <button
                                 type="button"
@@ -240,9 +240,6 @@ export const TeamDetailDrawer = ({ team, league, isFav, onClose, onToggleFav }: 
                                             />
                                             {leagueName}
                                         </span>
-                                        <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
-                                            {team.format}
-                                        </span>
                                         {team.captain && (
                                             <span className="rounded-full border border-primary/30 px-2 py-0.5 text-xs text-primary">
                                                 Captain ×1.5
@@ -254,13 +251,12 @@ export const TeamDetailDrawer = ({ team, league, isFav, onClose, onToggleFav }: 
 
                             <div className="mt-6 grid grid-cols-2 gap-3">
                                 <BigStat label="Projected points" value={team.proj.toFixed(1)} accent />
-                                <BigStat label="Best score" value={team.best.toFixed(1)} />
+                                <BigStat label="Avg score" value={avg.toFixed(1)} />
                             </div>
 
-                            <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+                            <div className="mt-3 grid grid-cols-2 gap-3 text-center">
                                 <SmallStat label="Players" value={String(team.players)} />
-                                <SmallStat label="Avg score" value={avg.toFixed(1)} />
-                                <SmallStat label="Entries" value={String(team.entered)} />
+                                <SmallStat label="Captain" value={team.captain ? 'Yes' : 'No'} />
                             </div>
 
                             <button
@@ -306,13 +302,13 @@ export const TeamDetailDrawer = ({ team, league, isFav, onClose, onToggleFav }: 
                                 Edit lineup
                             </Link>
                             <div className="flex gap-2">
-                                <button
-                                    type="button"
+                                <Link
+                                    href="/games"
                                     className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:brightness-95"
                                 >
                                     <HugeiconsIcon icon={GameController01Icon} className="size-4" />
-                                    Join tournament
-                                </button>
+                                    Find picks for a game
+                                </Link>
                                 <button
                                     type="button"
                                     onClick={onToggleFav}

@@ -17,9 +17,6 @@ export interface League {
     providerBacked?: boolean
 }
 
-export type TeamStatus = 'active' | 'draft'
-export type TeamFormat = 'Daily' | 'Weekly' | 'Tournament'
-
 export interface TeamRosterSlot {
     id: string
     externalPlayerId: number
@@ -34,18 +31,13 @@ export interface TeamRosterSlot {
 
 export interface Team {
     id: string
-    leagueMemberId: string | null
     name: string
     leagueSlug: string
-    format: TeamFormat
     players: number
     proj: number
-    best: number
-    entered: number
     captain: boolean
     fav: boolean
     savedDaysAgo: number
-    status: TeamStatus
     rosterSlots: TeamRosterSlot[]
 }
 

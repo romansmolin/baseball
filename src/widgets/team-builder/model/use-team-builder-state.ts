@@ -554,7 +554,6 @@ export const useTeamBuilderState = (
             const payload: CreateTeamPayload = {
                 name: teamName.trim() || 'Untitled lineup',
                 leagueSlug: selectedLeagueSlug,
-                format: 'Daily',
                 captainExternalPlayerId: captainId ?? undefined,
                 players: playersPayload,
             }

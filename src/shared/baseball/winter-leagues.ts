@@ -1,5 +1,5 @@
 // The winter leagues the MLB Stats API groups under one "Winter Leagues" sport.
-// Each becomes its own daily contest source, named by the league the API reports for a team.
+// Each is a provider league named by the API for a team.
 export const WINTER_LEAGUE_SOURCES = [
     { slug: 'winter-lmp', apiName: 'Liga Mexicana del Pacifico', label: 'Mexican Pacific League' },
     { slug: 'winter-lvbp', apiName: 'Liga Venezuela Beisbol Profesional', label: 'Venezuelan League' },
