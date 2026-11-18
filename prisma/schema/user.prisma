@@ -38,16 +38,9 @@ model User {
   sessions Session[]
   accounts Account[]
 
-  demoProfile DemoProfile?
-  dailyEntries DailyEntry[]
-  communityEvents CommunityEvent[]
-  managerStandings ManagerStanding[]
-
   // Domain
   fantasyTeams  FantasyTeam[]
   creditLedger  CreditTransaction[]
   aiUsage       AIUsageLog[]
   payments      Payment[]
-  leaguesOwned  League[]            @relation("LeagueCommissioner")
-  leagueMembers LeagueMember[]
 }
