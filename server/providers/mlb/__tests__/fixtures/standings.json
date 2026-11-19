@@ -1,0 +1,54 @@
+{
+ "records": [
+  {
+   "teamRecords": [
+    {
+     "team": {
+      "id": 141
+     },
+     "wins": 94,
+     "losses": 68,
+     "records": {
+      "splitRecords": [
+       {
+        "wins": 54,
+        "losses": 27,
+        "type": "home",
+        "pct": ".667"
+       },
+       {
+        "wins": 5,
+        "losses": 5,
+        "type": "lastTen",
+        "pct": ".500"
+       }
+      ]
+     }
+    },
+    {
+     "team": {
+      "id": 147
+     },
+     "wins": 94,
+     "losses": 68,
+     "records": {
+      "splitRecords": [
+       {
+        "wins": 50,
+        "losses": 31,
+        "type": "home",
+        "pct": ".617"
+       },
+       {
+        "wins": 9,
+        "losses": 1,
+        "type": "lastTen",
+        "pct": ".900"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

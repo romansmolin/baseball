@@ -4,9 +4,9 @@ import type { ProviderGameContext } from '../../providers/dto/provider-game-cont
 import type {
     ProviderPlayerProfile,
     ProviderStatGroup,
-    StatLine,
 } from '../../providers/dto/provider-player-profile.dto'
 
+import { innings, num, sum } from '../../shared/stat-parse'
 import {
     BATTER_HIGH_PLATE_APPEARANCES,
     BATTER_LOW_PLATE_APPEARANCES,
@@ -47,23 +47,6 @@ interface Judgement {
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
-
-function num(value: string | number | undefined): number | null {
-    if (value === undefined) return null
-    const parsed = typeof value === 'number' ? value : Number.parseFloat(value)
-    return Number.isFinite(parsed) ? parsed : null
-}
-
-// MLB writes innings as "150.1" meaning 150 and one out.
-function innings(value: string | number | undefined): number | null {
-    const raw = num(value)
-    if (raw === null) return null
-    const whole = Math.trunc(raw)
-    return whole + Math.round((raw - whole) * 10) / 3
-}
-
-const sum = (lines: StatLine[], key: string) =>
-    lines.reduce((total, line) => total + (num(line[key]) ?? 0), 0)
 
 function recent<T extends { date: string }>(lines: T[], count: number): T[] {
     return [...lines].sort((a, b) => a.date.localeCompare(b.date)).slice(-count)

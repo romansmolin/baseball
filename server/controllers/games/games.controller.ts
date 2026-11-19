@@ -1,5 +1,9 @@
+import { gamePkParamSchema } from '../../entities/analytics/analytics.schema'
 import { ApiError } from '../../errors/api.error'
+import { ErrorCode } from '../../errors/error-code.enum'
 import type { IGamesService } from '../../services/games/games.service.interface'
+
+import { errorResponse } from '../provider-error.response'
 
 import type { IGamesController } from './games.controller.interface'
 
@@ -22,6 +26,23 @@ export class GamesController implements IGamesController {
             if (error instanceof ApiError) return error.toResponse()
             console.error('[GamesController]', error)
             return ApiError.internal().toResponse()
+        }
+    }
+
+    async getGameDetail(gamePkParam: string): Promise<Response> {
+        try {
+            const gamePk = gamePkParamSchema.safeParse(gamePkParam)
+            if (!gamePk.success) {
+                return ApiError.validationError('gamePk must be a positive integer').toResponse()
+            }
+
+            const detail = await this.gamesService.getGameDetail(gamePk.data)
+            if (!detail) {
+                return ApiError.notFound(ErrorCode.GAME_NOT_FOUND, `Game not found: ${gamePk.data}`).toResponse()
+            }
+            return Response.json(detail)
+        } catch (error) {
+            return errorResponse(error, ErrorCode.GAME_NOT_FOUND, 'GamesController')
         }
     }
 }

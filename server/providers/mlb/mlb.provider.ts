@@ -11,6 +11,7 @@ import type {
     ProviderGameStatus,
     ProviderScheduledGame,
 } from '../dto/provider-schedule.dto'
+import type { ProviderTeamStanding } from '../dto/provider-team-standing.dto'
 import type { ProviderTeam } from '../dto/provider-team.dto'
 import type {
     GetBoxScoreOptions,
@@ -32,13 +33,16 @@ import {
     mapMlbDetailedStateToStatus,
     mapMlbScheduleGameToProvider,
 } from './mappers/mlb-schedule.mapper'
+import { mapMlbStandingsToProvider } from './mappers/mlb-standings.mapper'
 import { mapMlbTeamToProviderTeam } from './mappers/mlb-team.mapper'
 import type { MlbRawBoxScoreResponse } from './types/mlb-boxscore.raw'
 import type { MlbRawPeopleResponse, MlbRawPerson } from './types/mlb-person.raw'
 import type { MlbRawRosterResponse } from './types/mlb-roster.raw'
 import type { MlbRawScheduleResponse } from './types/mlb-schedule.raw'
+import type { MlbRawStandingsResponse } from './types/mlb-standings.raw'
 import type { MlbRawTeamsResponse } from './types/mlb-team.raw'
 
+const GAME_CONTEXT_HYDRATE = 'probablePitcher,weather,venue,lineups'
 const DEFAULT_LIMIT = 10
 const MAX_LIMIT = 10
 
@@ -289,13 +293,38 @@ export class MlbSportsProvider implements ISportsProvider {
 
         let path =
             `/schedule?sportId=${sportId}&season=${season}&startDate=${startStr}&endDate=${endStr}` +
-            '&hydrate=probablePitcher,weather,venue,lineups'
+            `&hydrate=${GAME_CONTEXT_HYDRATE}`
         if (filters.gameTypes) path += `&gameType=${encodeURIComponent(filters.gameTypes)}`
 
-        const data = await mlbFetch<MlbRawScheduleResponse>(path, {
+        return this.loadGameContexts(path, season, {
             revalidate: filters.revalidateSeconds ?? MLB_REVALIDATE.gameContexts,
             tags: [mlbTags.gameContexts(sportId, startStr, endStr)],
         })
+    }
+
+    async getGameContext(gamePk: number, season = env.defaultSeason()): Promise<ProviderGameContext | null> {
+        const path = `/schedule?sportId=1&gamePks=${gamePk}&hydrate=${GAME_CONTEXT_HYDRATE}`
+        const [context] = await this.loadGameContexts(path, season, {
+            revalidate: MLB_REVALIDATE.gameContexts,
+            tags: [mlbTags.gameContext(gamePk)],
+        })
+        return context ?? null
+    }
+
+    async getTeamStandings(season: number): Promise<ProviderTeamStanding[]> {
+        const data = await mlbFetch<MlbRawStandingsResponse>(
+            `/standings?leagueId=103,104&season=${season}`,
+            { revalidate: MLB_REVALIDATE.standings, tags: [mlbTags.standings(season)] },
+        )
+        return mapMlbStandingsToProvider(data)
+    }
+
+    private async loadGameContexts(
+        path: string,
+        season: number,
+        cache: { revalidate: number; tags: string[] },
+    ): Promise<ProviderGameContext[]> {
+        const data = await mlbFetch<MlbRawScheduleResponse>(path, cache)
 
         const games = data.dates.flatMap((date) => date.games)
         const pitcherIds = games.flatMap((g) =>
@@ -303,9 +332,9 @@ export class MlbSportsProvider implements ISportsProvider {
                 (id): id is number => id !== undefined,
             ),
         )
-        const people = await this.hydratePeople(pitcherIds)
+        const people = await this.hydratePeople(pitcherIds, season)
         const pitchersById = new Map(
-            [...people].map(([id, raw]) => [id, mapMlbPersonToProviderPlayer(raw)]),
+            [...people].map(([id, raw]) => [id, mapMlbPersonToProviderPlayer(raw, { season })]),
         )
 
         return games.map((game) => mapMlbScheduleGameToContext(game, pitchersById))
@@ -366,13 +395,17 @@ export class MlbSportsProvider implements ISportsProvider {
         return new Map(teams.map((t) => [t.id, t]))
     }
 
-    private async hydratePeople(ids: number[]): Promise<Map<number, MlbRawPerson>> {
+    // `statsSeason` adds that season's pitching line to every person.
+    private async hydratePeople(ids: number[], statsSeason?: number): Promise<Map<number, MlbRawPerson>> {
         const result = new Map<number, MlbRawPerson>()
         const unique = Array.from(new Set(ids))
 
         for (let i = 0; i < unique.length; i += MLB_PEOPLE_HYDRATE_CHUNK) {
             const chunk = unique.slice(i, i + MLB_PEOPLE_HYDRATE_CHUNK)
-            const path = `/people?personIds=${chunk.join(',')}&hydrate=currentTeam`
+            const hydrate = statsSeason
+                ? `currentTeam,stats(group=[pitching],type=[season],season=${statsSeason})`
+                : 'currentTeam'
+            const path = `/people?personIds=${chunk.join(',')}&hydrate=${hydrate}`
             const data = await mlbFetch<MlbRawPeopleResponse>(path, {
                 revalidate: MLB_REVALIDATE.person,
                 tags: chunk.map((id) => mlbTags.person(id)),

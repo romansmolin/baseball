@@ -1,3 +1,5 @@
+import type { GameEstimate } from '@/shared/estimates'
+
 export type UpcomingGameStatus = 'SCHEDULED' | 'LIVE' | 'FINAL' | 'POSTPONED' | 'CANCELLED'
 
 export interface UpcomingGameTeam {
@@ -21,4 +23,8 @@ export interface UpcomingGameRecord {
     // Runs; null until the game has started.
     homeScore: number | null
     awayScore: number | null
+    homeProbablePitcher: string | null
+    awayProbablePitcher: string | null
+    // Only for games that have not started; null when the data to estimate is missing.
+    estimate: GameEstimate | null
 }
