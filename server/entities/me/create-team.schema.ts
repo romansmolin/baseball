@@ -4,6 +4,7 @@ import { FANTASY_PLATFORMS } from '@/shared/team-builder'
 
 import { baseballLeagueEnum } from '../baseball-league.schema'
 import {
+    categoriesSchema,
     fantasyFormatSchema,
     forecastPeriodSchema,
     lineupChangesSchema,
@@ -34,6 +35,7 @@ export const createTeamSchema = z.object({
     lineupChanges: lineupChangesSchema.default('DAILY'),
     scoringRules: scoringRulesSchema.optional(),
     slotConfig: slotConfigSchema.optional(),
+    categories: categoriesSchema.optional(),
     salaryCap: salaryCapSchema.default(null),
     captainExternalPlayerId: z.number().int().positive().optional(),
     players: z.array(rosterSlotPayloadSchema).max(30),

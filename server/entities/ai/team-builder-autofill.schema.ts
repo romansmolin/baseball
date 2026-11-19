@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { baseballLeagueEnum } from '../baseball-league.schema'
 import {
+    categoriesSchema,
     fantasyFormatSchema,
     forecastPeriodSchema,
     salaryCapSchema,
@@ -15,11 +16,13 @@ export const tbAutofillInputSchema = z.object({
     league: baseballLeagueEnum.optional(),
     // Candidate pool: union of these teams' rosters. At least one required.
     mlbTeamIds: z.array(z.number().int().positive()).min(1).max(30),
-    format: fantasyFormatSchema.refine((format) => format === 'H2H_POINTS', {
-        message: 'Only H2H Points is supported for now',
+    format: fantasyFormatSchema.refine((format) => format !== 'DFS', {
+        message: 'DFS is not supported yet',
     }),
     period: forecastPeriodSchema,
     rules: scoringRulesSchema,
+    // Categories formats: which categories count (all ten when omitted).
+    categories: categoriesSchema.optional(),
     slotConfig: slotConfigSchema,
     salaryCap: salaryCapSchema.optional(),
     // Slots the user already filled by hand. They stay exactly as they are.
@@ -41,6 +44,8 @@ export const tbAutofillOutputSchema = z.object({
             externalPlayerId: z.number().int().positive(),
             playerName: z.string(),
             projectedPoints: z.number(),
+            // What the pick was chosen on: points in H2H Points, weighted category strength otherwise.
+            score: z.number(),
             // Enough to render the player without loading rosters again.
             position: z.enum(['P', 'C', '1B', '2B', '3B', 'SS', 'OF']),
             teamName: z.string(),

@@ -6,7 +6,7 @@ import type {
     PlayerPosition,
     RosterSlotPosition,
 } from '../../../src/generated/prisma/enums'
-import type { ScoringRules, SlotConfig } from '@/shared/team-builder'
+import type { CategoryKey, ScoringRules, SlotConfig } from '@/shared/team-builder'
 import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-team.model'
 
 export interface CreateRosterSlotInput {
@@ -25,6 +25,7 @@ export interface FantasyTeamSettingsInput {
     lineupChanges: LineupChanges
     scoringRules: ScoringRules
     slotConfig: SlotConfig
+    categories: CategoryKey[]
     salaryCap: number | null
 }
 

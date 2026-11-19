@@ -1,3 +1,4 @@
+import type { CategoryChip, CategoryKey } from './categories'
 import type { ForecastPeriod, FantasyFormat, LineupChanges } from './format.type'
 import type { ScoringRules } from './scoring-rules.const'
 import type { SlotConfig, SlotId } from './slots'
@@ -25,6 +26,9 @@ export interface PoolPlayer {
     // null when no real value exists (no cap in Points; no forecast yet).
     salary: number | null
     proj: number | null
+    // Categories formats: weighted category strength and the player's best categories.
+    score?: number | null
+    categoryChips?: CategoryChip[]
     photoUrl: string | null
 }
 
@@ -36,6 +40,8 @@ export interface TeamSettings {
     lineupChanges: LineupChanges
     scoringRules: ScoringRules
     slotConfig: SlotConfig
+    // Categories formats only; always non-empty on a saved team.
+    categories: CategoryKey[]
     salaryCap: number | null
 }
 

@@ -78,6 +78,8 @@ model FantasyTeam {
   // `{}` / `[]` mean "use the defaults" (scoring preset / 9-slot lineup).
   scoringRules            Json            @default("{}")
   slotConfig              Json            @default("[]")
+  // Categories formats: which of the ten count. `[]` = all (the 5x5 default).
+  categories              Json            @default("[]")
   // null = no salary cap (Points formats have none).
   salaryCap               Int?
   captainExternalPlayerId Int?

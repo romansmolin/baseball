@@ -20,8 +20,8 @@ export class ProjectionsController implements IProjectionsController {
         }
 
         try {
-            const { basis, projections } = await this.projectionsService.projectTeams(parsed.data)
-            return Response.json({ basis, projections })
+            const { basis, projections, scales } = await this.projectionsService.projectTeams(parsed.data)
+            return Response.json({ basis, projections, scales })
         } catch (error) {
             return errorResponse(error, ErrorCode.PLAYER_NOT_FOUND, 'ProjectionsController')
         }

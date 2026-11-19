@@ -28,14 +28,18 @@ import { ApiError } from '@/shared/api/api-error'
 import { getBaseballLeague, type SupportedBaseballLeague } from '@/shared/baseball'
 import {
     CAPTAIN_MULTIPLIER,
+    DEFAULT_CATEGORIES,
     DEFAULT_SCORING_RULES,
     DEFAULT_SLOT_CONFIG,
     SUPPORTED_FORMATS,
     buildSlots,
+    categoryTotals as computeCategoryTotals,
     parseSlotId,
     type BuilderLeague,
     type BuilderRosterSlotPayload,
     type BuilderTeam,
+    type CategoryKey,
+    type CategoryScales,
     type CreateTeamPayload,
     type FantasyFormat,
     type FantasyPlatform,
@@ -53,6 +57,7 @@ import {
 } from '@/shared/team-builder'
 import type { Team, TeamRosterSlot } from '@/shared/teams'
 
+import { withCategoryView } from './category-view'
 import {
     createEmptyRoster,
     evaluatePlayerPlacement,
@@ -77,6 +82,11 @@ export interface TeamBuilderState {
     forecastPeriod: ForecastPeriod
     lineupChanges: LineupChanges
     scoringRules: ScoringRules
+    // Categories formats: which categories count.
+    categories: CategoryKey[]
+    isCategoryFormat: boolean
+    // Expected team totals per category for the lineup (rates from the sums).
+    categoryTotals: Partial<Record<CategoryKey, number>>
     slotConfig: SlotConfig
     slots: RosterSlotDef[]
     // True while the lineup uses the classic 9 slots, so the diamond can be drawn.
@@ -137,6 +147,8 @@ export interface TeamBuilderState {
     discardAutofill: () => void
     saveLineup: () => Promise<void>
     chooseFormat: (format: FantasyFormat) => void
+    changeFormat: (format: FantasyFormat) => void
+    setCategories: (categories: CategoryKey[]) => void
     setForecastPeriod: (period: ForecastPeriod) => void
     setLineupChanges: (changes: LineupChanges) => void
     setScoringRules: (rules: ScoringRules) => void
@@ -222,6 +234,7 @@ export const useTeamBuilderState = (
     const [forecastPeriod, setForecastPeriodState] = useState<ForecastPeriod>('WEEK')
     const [lineupChanges, setLineupChanges] = useState<LineupChanges>('DAILY')
     const [scoringRules, setScoringRules] = useState<ScoringRules>(DEFAULT_SCORING_RULES)
+    const [categories, setCategoriesState] = useState<CategoryKey[]>(DEFAULT_CATEGORIES)
     const [slotConfig, setSlotConfigState] = useState<SlotConfig>(DEFAULT_SLOT_CONFIG)
     const [salaryCap, setSalaryCap] = useState<number | null>(null)
     const slots = useMemo(() => buildSlots(slotConfig), [slotConfig])
@@ -281,6 +294,7 @@ export const useTeamBuilderState = (
     // Projections depend on the period and the scoring rules, so the cache is
     // tied to them and starts over when either changes.
     const settingsKey = `${forecastPeriod}|${JSON.stringify(scoringRules)}`
+    const isCategoryFormat = format !== 'H2H_POINTS'
     const projectionsQuery = useProjectionsData(
         selectedLeagueSlug && selectedTeamId != null
             ? {
@@ -295,8 +309,9 @@ export const useTeamBuilderState = (
         key: string
         byId: Map<number, PlayerProjection>
         basis: ProjectionBasis | null
+        scales: CategoryScales
         sources: { team?: ProjectionsResult; roster?: ProjectionsResult }
-    }>({ key: '', byId: new Map(), basis: null, sources: {} })
+    }>({ key: '', byId: new Map(), basis: null, scales: {}, sources: {} })
     const projectionById = useMemo(
         () => (projectionState.key === settingsKey ? projectionState.byId : new Map<number, PlayerProjection>()),
         [projectionState, settingsKey],
@@ -337,6 +352,8 @@ export const useTeamBuilderState = (
             key: settingsKey,
             byId: merged,
             basis: (teamResult ?? rosterResult)?.basis ?? null,
+            // Category values are judged against the pool the team on screen came from.
+            scales: teamResult?.scales ?? rosterResult?.scales ?? projectionState.scales,
             sources: { team: teamResult, roster: rosterResult },
         })
     }
@@ -355,6 +372,7 @@ export const useTeamBuilderState = (
         setForecastPeriodState(existingTeam.forecastPeriod)
         setLineupChanges(existingTeam.lineupChanges)
         setScoringRules(existingTeam.scoringRules)
+        setCategoriesState(existingTeam.categories)
         setSlotConfigState(existingTeam.slotConfig)
         setSalaryCap(existingTeam.salaryCap)
         setSelectedLeagueSlug(existingTeam.leagueSlug)
@@ -406,15 +424,36 @@ export const useTeamBuilderState = (
         () => (playersQuery.data ?? []).map(withProjection),
         [playersQuery.data, withProjection],
     )
-    // Best projection first; players without a forecast sink to the bottom.
-    const visiblePool = useMemo(
-        () => [...pool].sort((a, b) => (b.proj ?? -Infinity) - (a.proj ?? -Infinity)),
-        [pool],
-    )
-
     const rosteredIds = useMemo(
         () => Object.values(roster).filter((v): v is number => v !== null),
         [roster],
+    )
+
+    // Best first (projected points, or category score in the categories
+    // formats); players without a forecast sink to the bottom.
+    const visiblePool = useMemo(() => {
+        const base = isCategoryFormat
+            ? withCategoryView({
+                  pool,
+                  statsById: (id) => projectionById.get(id)?.stats,
+                  scales: projectionState.scales,
+                  categories,
+                  rosterIds: rosteredIds,
+              })
+            : pool
+        const rank = (player: PoolPlayer) => (isCategoryFormat ? player.score : player.proj) ?? -Infinity
+        return [...base].sort((a, b) => rank(b) - rank(a))
+    }, [pool, isCategoryFormat, projectionById, projectionState.scales, categories, rosteredIds])
+
+    const categoryTotals = useMemo(
+        () =>
+            computeCategoryTotals(
+                rosteredIds.flatMap((id) => {
+                    const stats = projectionById.get(id)?.stats
+                    return stats ? [stats] : []
+                }),
+            ),
+        [rosteredIds, projectionById],
     )
 
     const salaryUsed = useMemo(
@@ -509,19 +548,46 @@ export const useTeamBuilderState = (
         invalidateAutofill()
     }, [slots, invalidateAutofill])
 
-    const chooseFormat = useCallback((next: FantasyFormat) => {
+    const changeFormat = useCallback((next: FantasyFormat) => {
         if (!SUPPORTED_FORMATS.includes(next)) {
             toast('That format is coming soon')
             return
         }
         setFormat(next)
-        setFormatChosen(true)
-    }, [])
-
-    const setForecastPeriod = useCallback((period: ForecastPeriod) => {
-        setForecastPeriodState(period)
+        // Roto is scored over the whole season.
+        if (next === 'ROTO') setForecastPeriodState('SEASON')
         invalidateAutofill()
     }, [invalidateAutofill])
+
+    const chooseFormat = useCallback(
+        (next: FantasyFormat) => {
+            if (!SUPPORTED_FORMATS.includes(next)) {
+                toast('That format is coming soon')
+                return
+            }
+            changeFormat(next)
+            setFormatChosen(true)
+        },
+        [changeFormat],
+    )
+
+    const setCategories = useCallback(
+        (next: CategoryKey[]) => {
+            if (next.length === 0) return
+            setCategoriesState(next)
+            invalidateAutofill()
+        },
+        [invalidateAutofill],
+    )
+
+    const setForecastPeriod = useCallback(
+        (period: ForecastPeriod) => {
+            if (format === 'ROTO') return
+            setForecastPeriodState(period)
+            invalidateAutofill()
+        },
+        [format, invalidateAutofill],
+    )
 
     const handleScoringRules = useCallback((rules: ScoringRules) => {
         setScoringRules(rules)
@@ -582,6 +648,7 @@ export const useTeamBuilderState = (
                 format,
                 period: forecastPeriod,
                 rules: scoringRules,
+                categories,
                 slotConfig,
                 salaryCap,
                 filledSlots,
@@ -610,8 +677,9 @@ export const useTeamBuilderState = (
             )
             setCachedPlayers((previous) => new Map([...previous, ...picked]))
 
-            // The server's numbers are the ones the AI used; show the same.
-            setProjectionState((previous) => {
+            // The server's numbers are the ones the AI used; show the same. (Categories
+            // formats need full stats, which the roster projections load by id once accepted.)
+            if (format === 'H2H_POINTS') setProjectionState((previous) => {
                 const base = previous.key === settingsKey ? previous.byId : new Map<number, PlayerProjection>()
                 const next = new Map(base)
                 for (const pick of response.suggestedPicks) {
@@ -625,7 +693,7 @@ export const useTeamBuilderState = (
                         })
                     }
                 }
-                return { key: settingsKey, byId: next, basis: response.basis, sources: previous.sources }
+                return { key: settingsKey, byId: next, basis: response.basis, scales: previous.scales, sources: previous.sources }
             })
 
             if (response.suggestedPicks.length === 0 && response.unfilled.length === 0) {
@@ -665,6 +733,7 @@ export const useTeamBuilderState = (
         format,
         forecastPeriod,
         scoringRules,
+        categories,
         salaryCap,
         settingsKey,
         selectedLeagueSlug,
@@ -750,7 +819,7 @@ export const useTeamBuilderState = (
                 salaryAtLock: player.salary,
             })
         }
-        const settings = { format, forecastPeriod, lineupChanges, scoringRules, slotConfig, salaryCap }
+        const settings = { format, forecastPeriod, lineupChanges, scoringRules, categories, slotConfig, salaryCap }
         const savedMessage = (name: string) =>
             isComplete
                 ? `"${name}" saved · ${projTotal.toFixed(1)} proj pts`
@@ -816,6 +885,7 @@ export const useTeamBuilderState = (
         forecastPeriod,
         lineupChanges,
         scoringRules,
+        categories,
         slotConfig,
         salaryCap,
         isComplete,
@@ -841,6 +911,9 @@ export const useTeamBuilderState = (
         forecastPeriod,
         lineupChanges,
         scoringRules,
+        categories,
+        isCategoryFormat,
+        categoryTotals,
         slotConfig,
         slots,
         isDefaultLayout: isDefaultSlotConfig(slotConfig),
@@ -897,6 +970,8 @@ export const useTeamBuilderState = (
         discardAutofill,
         saveLineup,
         chooseFormat,
+        changeFormat,
+        setCategories,
         setForecastPeriod,
         setLineupChanges,
         setScoringRules: handleScoringRules,

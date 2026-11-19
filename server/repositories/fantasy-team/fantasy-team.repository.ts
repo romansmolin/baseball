@@ -18,6 +18,7 @@ function settingsData(settings: Partial<FantasyTeamSettingsInput>) {
         ...settings,
         scoringRules: settings.scoringRules as unknown as Prisma.InputJsonValue | undefined,
         slotConfig: settings.slotConfig as unknown as Prisma.InputJsonValue | undefined,
+        categories: settings.categories as unknown as Prisma.InputJsonValue | undefined,
     }
 }
 

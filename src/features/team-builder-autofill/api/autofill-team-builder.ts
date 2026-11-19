@@ -2,6 +2,7 @@ import type { SupportedBaseballLeague } from '@/shared/baseball'
 import { httpClient } from '@/shared/api/http-client'
 import { withErrorHandling } from '@/shared/api/with-error-handling'
 import type {
+    CategoryKey,
     FantasyFormat,
     ForecastPeriod,
     PoolPosition,
@@ -16,6 +17,8 @@ export interface AutofillRequest {
     format: FantasyFormat
     period: ForecastPeriod
     rules: ScoringRules
+    // Categories formats: the categories that count.
+    categories?: CategoryKey[]
     slotConfig: SlotConfig
     salaryCap: number | null
     filledSlots: Array<{ slotId: SlotId; externalPlayerId: number }>
@@ -26,6 +29,8 @@ export interface AutofillSuggestion {
     externalPlayerId: number
     playerName: string
     projectedPoints: number
+    // What the pick was chosen on: points in H2H Points, category strength otherwise.
+    score: number
     position: PoolPosition
     teamName: string
     photoUrl: string | null

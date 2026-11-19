@@ -12,6 +12,7 @@ import {
     RosterSlotPosition,
 } from '../../../src/generated/prisma/enums'
 import {
+    DEFAULT_CATEGORIES,
     DEFAULT_SCORING_RULES,
     DEFAULT_SLOT_CONFIG,
     buildSlots,
@@ -25,6 +26,7 @@ import type {
     CreateTeamPayload,
     CreateTeamResult,
     PoolPosition,
+    CategoryKey,
     ScoringRules,
     SlotConfig,
     SlotType,
@@ -168,11 +170,11 @@ export class MeService implements IMeService {
         }
 
         // Settings that were not sent stay as saved.
-        const { format, forecastPeriod, lineupChanges, scoringRules, slotConfig, salaryCap } = payload
-        const settings: FantasyTeamSettingsInput = {
+        const { format, forecastPeriod, lineupChanges, scoringRules, slotConfig, categories, salaryCap } = payload
+        const settings = withFormatRules({
             ...this.settingsOf(existing),
-            ...definedOnly({ format, forecastPeriod, lineupChanges, scoringRules, slotConfig, salaryCap }),
-        }
+            ...definedOnly({ format, forecastPeriod, lineupChanges, scoringRules, slotConfig, categories, salaryCap }),
+        })
         this.validateLineupPayload(
             payload.players,
             payload.captainExternalPlayerId,
@@ -256,26 +258,29 @@ export class MeService implements IMeService {
     private resolveSettings(
         payload: Partial<TeamSettings>,
     ): FantasyTeamSettingsInput {
-        return {
+        return withFormatRules({
             format: payload.format ?? 'H2H_POINTS',
             forecastPeriod: payload.forecastPeriod ?? 'WEEK',
             lineupChanges: payload.lineupChanges ?? 'DAILY',
             scoringRules: payload.scoringRules ?? DEFAULT_SCORING_RULES,
             slotConfig: payload.slotConfig ?? DEFAULT_SLOT_CONFIG,
+            categories: payload.categories ?? DEFAULT_CATEGORIES,
             salaryCap: payload.salaryCap ?? null,
-        }
+        })
     }
 
     // `{}` and `[]` are stored for teams saved before settings existed.
     private settingsOf(row: FantasyTeamWithRoster): FantasyTeamSettingsInput {
         const rules = row.scoringRules as unknown as ScoringRules | Record<string, never>
         const slotConfig = row.slotConfig as unknown as SlotConfig
+        const categories = row.categories as unknown as CategoryKey[] | undefined
         return {
             format: row.format,
             forecastPeriod: row.forecastPeriod,
             lineupChanges: row.lineupChanges,
             scoringRules: 'hitting' in rules ? (rules as ScoringRules) : DEFAULT_SCORING_RULES,
             slotConfig: slotConfig.length > 0 ? slotConfig : DEFAULT_SLOT_CONFIG,
+            categories: Array.isArray(categories) && categories.length > 0 ? categories : DEFAULT_CATEGORIES,
             salaryCap: row.salaryCap,
         }
     }
@@ -356,6 +361,11 @@ export class MeService implements IMeService {
             rosterSlots,
         }
     }
+}
+
+// Roto is scored over the whole season, whatever period was sent.
+function withFormatRules(settings: FantasyTeamSettingsInput): FantasyTeamSettingsInput {
+    return settings.format === 'ROTO' ? { ...settings, forecastPeriod: 'SEASON' } : settings
 }
 
 function definedOnly<T extends object>(value: T): Partial<T> {

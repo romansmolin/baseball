@@ -35,6 +35,7 @@ const legacyRow = {
     lineupChanges: 'DAILY',
     scoringRules: {},
     slotConfig: [],
+    categories: [],
     salaryCap: null,
     captainExternalPlayerId: null,
     createdAt: new Date(),
@@ -62,6 +63,32 @@ const player = (externalPlayerId: number, slotKey: string, position = 'SS') => (
     salaryAtLock: null,
 })
 
+describe('categories and Roto', () => {
+    it('a team saved before categories existed opens with all ten', async () => {
+        const { teams } = await new MeService(fakeRepo([legacyRow])).getMyTeams('u1')
+
+        expect(teams[0].categories).toEqual(['R', 'HR', 'RBI', 'SB', 'AVG', 'W', 'SV', 'K', 'ERA', 'WHIP'])
+    })
+
+    it('Roto always saves on the season horizon, and chosen categories are kept', async () => {
+        const create = vi.fn().mockResolvedValue(legacyRow)
+        const repo = { ...fakeRepo([]), create } as unknown as IFantasyTeamRepository
+
+        await new MeService(repo).createMyTeam('u1', {
+            name: 'Roto',
+            leagueSlug: 'mlb',
+            format: 'ROTO',
+            forecastPeriod: 'WEEK',
+            categories: ['HR', 'SB'],
+            players: [],
+        })
+
+        const settings = create.mock.calls[0][0].settings
+        expect(settings.forecastPeriod).toBe('SEASON')
+        expect(settings.categories).toEqual(['HR', 'SB'])
+    })
+})
+
 describe('MeService.updateMyTeamLineup', () => {
     it('passes only the six settings to the repository, never players or platform', async () => {
         const replaceRoster = vi.fn().mockResolvedValue(legacyRow)
@@ -75,7 +102,7 @@ describe('MeService.updateMyTeamLineup', () => {
 
         const input = replaceRoster.mock.calls[0][0]
         expect(Object.keys(input.settings).sort()).toEqual(
-            ['forecastPeriod', 'format', 'lineupChanges', 'salaryCap', 'scoringRules', 'slotConfig'],
+            ['categories', 'forecastPeriod', 'format', 'lineupChanges', 'salaryCap', 'scoringRules', 'slotConfig'],
         )
         expect(input.settings.forecastPeriod).toBe('DAY')
         expect(input.platform).toBe('YAHOO')

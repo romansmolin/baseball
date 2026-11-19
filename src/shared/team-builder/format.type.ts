@@ -2,7 +2,7 @@ export const FANTASY_FORMATS = ['H2H_POINTS', 'H2H_CATEGORIES', 'ROTO', 'DFS'] a
 export type FantasyFormat = (typeof FANTASY_FORMATS)[number]
 
 // Formats the builder can already project and fill. The rest show as "soon".
-export const SUPPORTED_FORMATS: FantasyFormat[] = ['H2H_POINTS']
+export const SUPPORTED_FORMATS: FantasyFormat[] = ['H2H_POINTS', 'H2H_CATEGORIES', 'ROTO']
 
 export const FORMAT_LABEL: Record<FantasyFormat, string> = {
     H2H_POINTS: 'Head-to-Head Points',

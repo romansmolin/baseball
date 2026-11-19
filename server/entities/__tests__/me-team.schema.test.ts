@@ -36,6 +36,14 @@ describe('createTeamSchema', () => {
     })
 })
 
+describe('categories', () => {
+    it('rejects an empty or repeated category list', () => {
+        expect(createTeamSchema.safeParse({ ...baseTeam, categories: [] }).success).toBe(false)
+        expect(createTeamSchema.safeParse({ ...baseTeam, categories: ['HR', 'HR'] }).success).toBe(false)
+        expect(createTeamSchema.safeParse({ ...baseTeam, categories: ['HR', 'SB'] }).success).toBe(true)
+    })
+})
+
 describe('updateLineupSchema', () => {
     it('leaves settings undefined when they are not sent, so a save never resets them', () => {
         const parsed = updateLineupSchema.parse({ players: [player] })

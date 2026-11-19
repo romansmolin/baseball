@@ -1,6 +1,6 @@
 import type { ProviderPlayer } from '../../providers/dto/provider-player.dto'
 import type { ISportsProvider } from '../../providers/sports-provider.interface'
-import type { ForecastPeriod } from '../../../src/shared/team-builder'
+import { buildCategoryScales, type ForecastPeriod, type ProjectedStats } from '../../../src/shared/team-builder'
 
 import { projectPlayerPoints } from './project-points'
 import type {
@@ -84,7 +84,8 @@ export class ProjectionsService implements IProjectionsService {
             })
         }
 
-        return { basis, projections, players }
+        const poolStats = Object.values(projections).flatMap((projection) => (projection.stats ? [projection.stats] : []))
+        return { basis, projections, scales: buildCategoryScales(poolStats as ProjectedStats[]), players }
     }
 
     // One failed team must not block the others. Falls back to last season's

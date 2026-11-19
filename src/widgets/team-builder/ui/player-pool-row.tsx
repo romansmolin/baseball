@@ -129,6 +129,11 @@ export const PlayerPoolRow = ({
                             <span className="font-mono">{money(player.salary)}</span>
                         </>
                     )}
+                    {player.categoryChips?.map((chip) => (
+                        <span key={chip.key} className="rounded bg-primary/10 px-1 font-semibold text-primary">
+                            {chip.key} +{chip.value.toFixed(1)}
+                        </span>
+                    ))}
                     {projection?.confidence === 'low' && (
                         <>
                             <span className="opacity-40">·</span>
@@ -138,12 +143,25 @@ export const PlayerPoolRow = ({
                 </div>
             </div>
             <div className="text-right">
-                <div className="font-anton text-base leading-none text-primary">
-                    {player.proj === null ? '—' : player.proj.toFixed(1)}
-                </div>
-                <div className="text-[10px] text-muted-foreground" title={noForecastReason(projection)}>
-                    {player.proj === null ? 'no forecast' : 'proj'}
-                </div>
+                {player.score !== undefined ? (
+                    <>
+                        <div className="font-anton text-base leading-none text-primary">
+                            {player.score === null ? '—' : `${player.score > 0 ? '+' : ''}${player.score.toFixed(1)}`}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground" title={noForecastReason(projection)}>
+                            {player.score === null ? 'no forecast' : 'score'}
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="font-anton text-base leading-none text-primary">
+                            {player.proj === null ? '—' : player.proj.toFixed(1)}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground" title={noForecastReason(projection)}>
+                            {player.proj === null ? 'no forecast' : 'proj'}
+                        </div>
+                    </>
+                )}
             </div>
             <button
                 type="button"

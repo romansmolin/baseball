@@ -68,6 +68,8 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     filledCount={state.filledCount}
                     rosterSize={state.rosterSize}
                     projTotal={state.projTotal}
+                    categories={state.isCategoryFormat ? state.categories : null}
+                    categoryTotals={state.categoryTotals}
                     period={state.forecastPeriod}
                     basis={state.projectionBasis}
                     isLoading={state.projectionsLoading}
@@ -93,6 +95,9 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     />
                     <TeamSettingsPanel
                         format={state.format}
+                        onFormatChange={state.changeFormat}
+                        categories={state.categories}
+                        onCategoriesChange={state.setCategories}
                         forecastPeriod={state.forecastPeriod}
                         onForecastPeriodChange={state.setForecastPeriod}
                         lineupChanges={state.lineupChanges}
@@ -107,6 +112,7 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                         <AutofillPreviewBar
                             preview={state.autofillPreview}
                             slots={state.slots}
+                            format={state.format}
                             onAccept={state.acceptAutofill}
                             onDiscard={state.discardAutofill}
                         />

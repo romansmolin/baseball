@@ -1,4 +1,4 @@
-import type { ScoringRules } from '../../../src/shared/team-builder'
+import type { ProjectedStats, ScoringRules } from '../../../src/shared/team-builder'
 import type { ProviderPlayer } from '../../providers/dto/provider-player.dto'
 
 // 'schedule' counts the team's real games in the period; 'season-pace' is the
@@ -14,6 +14,8 @@ export interface Projection {
     starts: number
     confidence: 'normal' | 'low'
     basis: ProjectionBasis
+    // Expected category stats for the period; absent when there is nothing to project from.
+    stats?: ProjectedStats
     reason?: 'NO_STATS' | 'INACTIVE' | 'NO_GAMES'
 }
 

@@ -7,7 +7,8 @@
 // positions, no duplicates, hand-picked players untouched. The cheap model
 // only writes the explanation. 3 cr keeps iteration fast.
 
-import { buildSlots, slotAcceptsPoolPosition } from '../../../../src/shared/team-builder'
+import { DEFAULT_CATEGORIES, buildSlots, slotAcceptsPoolPosition } from '../../../../src/shared/team-builder'
+import type { CategoryKey } from '../../../../src/shared/team-builder'
 import type { PoolPosition } from '../../../../src/shared/team-builder'
 import {
     tbAutofillExplanationSchema,
@@ -22,6 +23,7 @@ import type { AIFeatureKey, AIFeatureModule, AIInvocationResult } from '../types
 import type { IOpenAIProvider } from '../provider/openai.provider'
 import { buildTBAutofillPrompt } from '../prompts/team-builder-autofill.prompt'
 
+import { planCategoryLineup } from './category-lineup'
 import { optimizeLineup } from './optimize-lineup'
 import type { OptimizerPlayer } from './optimize-lineup'
 
@@ -57,7 +59,7 @@ export class TeamBuilderAutofillFeature
         const filledSlots = parsed.filledSlots ?? []
         const salaryCap = parsed.salaryCap ?? null
 
-        const { basis, projections, players } = await this.projections.projectTeams({
+        const { basis, projections, scales, players } = await this.projections.projectTeams({
             league: parsed.league,
             teamIds: [...new Set(parsed.mlbTeamIds)],
             period: parsed.period,
@@ -75,16 +77,33 @@ export class TeamBuilderAutofillFeature
         }))
 
         const slots = buildSlots(parsed.slotConfig)
-        const result = optimizeLineup({
-            slots,
-            pinned: filledSlots.map((slot) => ({
-                slotId: slot.slotId,
-                playerId: slot.externalPlayerId,
-                salary: null,
-            })),
-            pool,
-            salaryCap,
-        })
+        const pinned = filledSlots.map((slot) => ({
+            slotId: slot.slotId,
+            playerId: slot.externalPlayerId,
+            salary: null,
+        }))
+        const categories: CategoryKey[] | null = parsed.format === 'H2H_POINTS' ? null : (parsed.categories ?? DEFAULT_CATEGORIES)
+
+        // Points formats pick on projected points; categories formats on weighted
+        // category strength. Both are valid by construction.
+        const planned = categories
+            ? planCategoryLineup({
+                  slots,
+                  pinned,
+                  pool: pool.map((player) => ({ ...player, stats: projections[player.id]?.stats ?? null })),
+                  scales,
+                  categories,
+                  salaryCap,
+              })
+            : null
+        const result = planned ?? optimizeLineup({ slots, pinned, pool, salaryCap })
+        const scoreOf = (playerId: number) => planned?.scores[playerId] ?? pool.find((p) => p.id === playerId)?.points ?? 0
+        const topCategories = (playerId: number) =>
+            Object.entries(planned?.values[playerId] ?? {})
+                .filter(([, value]) => (value as number) > 0)
+                .sort((a, b) => (b[1] as number) - (a[1] as number))
+                .slice(0, 2)
+                .map(([key]) => key)
 
         const labelOf = (slotId: string) => slots.find((slot) => slot.id === slotId)?.label ?? slotId
         const poolById = new Map(pool.map((player) => [player.id, player]))
@@ -95,7 +114,8 @@ export class TeamBuilderAutofillFeature
                 slotId: pick.slotId,
                 externalPlayerId: pick.playerId,
                 playerName: player.fullName,
-                projectedPoints: poolById.get(pick.playerId)?.points ?? 0,
+                projectedPoints: projections[pick.playerId]?.points ?? 0,
+                score: Math.round(scoreOf(pick.playerId) * 100) / 100,
                 position: poolPosition(player),
                 teamName: player.teamAbbreviation ?? player.teamName ?? '—',
                 photoUrl: player.photoUrl,
@@ -108,6 +128,7 @@ export class TeamBuilderAutofillFeature
             period: parsed.period,
             basis,
             rules: parsed.rules,
+            categories,
             pinned: filledSlots.map((slot) => ({
                 slotLabel: labelOf(slot.slotId),
                 playerName: byId.get(slot.externalPlayerId)?.fullName ?? `Player ${slot.externalPlayerId}`,
@@ -120,7 +141,9 @@ export class TeamBuilderAutofillFeature
                     playerName: player?.fullName ?? `Player ${pick.playerId}`,
                     position: player ? poolPosition(player) : '',
                     teamName: player?.teamName ?? '',
-                    projectedPoints: poolById.get(pick.playerId)?.points ?? 0,
+                    projectedPoints: projections[pick.playerId]?.points ?? 0,
+                    score: Math.round(scoreOf(pick.playerId) * 100) / 100,
+                    topCategories: topCategories(pick.playerId),
                 }
             }),
             unfilled: result.unfilled.map((slot) => ({ slotLabel: labelOf(slot.slotId), message: slot.message })),

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { FANTASY_PLATFORMS } from '@/shared/team-builder'
 
 import {
+    categoriesSchema,
     fantasyFormatSchema,
     forecastPeriodSchema,
     lineupChangesSchema,
@@ -35,6 +36,7 @@ export const updateLineupSchema = z.object({
     lineupChanges: lineupChangesSchema.optional(),
     scoringRules: scoringRulesSchema.optional(),
     slotConfig: slotConfigSchema.optional(),
+    categories: categoriesSchema.optional(),
     salaryCap: salaryCapSchema.optional(),
     captainExternalPlayerId: z.number().int().positive().optional(),
     players: z.array(rosterSlotPayloadSchema).max(30),

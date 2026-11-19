@@ -1,17 +1,19 @@
 'use client'
 
-import type { RosterSlotDef } from '@/shared/team-builder'
+import type { FantasyFormat, RosterSlotDef } from '@/shared/team-builder'
 
 import type { AutofillPreview } from '../model/use-team-builder-state'
 
 interface AutofillPreviewBarProps {
     preview: AutofillPreview
     slots: RosterSlotDef[]
+    format?: FantasyFormat
     onAccept: () => void
     onDiscard: () => void
 }
 
-export const AutofillPreviewBar = ({ preview, slots, onAccept, onDiscard }: AutofillPreviewBarProps) => {
+export const AutofillPreviewBar = ({ preview, slots, format = 'H2H_POINTS', onAccept, onDiscard }: AutofillPreviewBarProps) => {
+    const isCategories = format !== 'H2H_POINTS'
     const labelOf = (slotId: string) => slots.find((slot) => slot.id === slotId)?.label ?? slotId
     const hasPicks = preview.picks.length > 0
 
@@ -23,7 +25,8 @@ export const AutofillPreviewBar = ({ preview, slots, onAccept, onDiscard }: Auto
                 </div>
                 {hasPicks && (
                     <div className="text-xs text-muted-foreground">
-                        <span className="font-anton text-base text-primary">{preview.totalPoints.toFixed(1)}</span> proj pts for the suggested slots
+                        <span className="font-anton text-base text-primary">{preview.totalPoints.toFixed(1)}</span>{' '}
+                        {isCategories ? 'category score' : 'proj pts'} for the suggested slots
                         {preview.basis === 'season-pace' && ' · season-pace estimate'}
                     </div>
                 )}
@@ -36,7 +39,7 @@ export const AutofillPreviewBar = ({ preview, slots, onAccept, onDiscard }: Auto
                     {preview.picks.map((pick) => (
                         <li key={pick.slotId} className="rounded-full border border-foreground/15 bg-card px-2 py-0.5">
                             <span className="font-semibold">{labelOf(pick.slotId)}</span> {pick.playerName}{' '}
-                            <span className="text-primary">{pick.projectedPoints.toFixed(1)}</span>
+                            <span className="text-primary">{(isCategories ? pick.score : pick.projectedPoints).toFixed(1)}</span>
                         </li>
                     ))}
                 </ul>

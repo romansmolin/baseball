@@ -9,6 +9,7 @@ export function mapProjectionToModel(dto: ProjectionDto): PlayerProjection {
         starts: dto.starts,
         confidence: dto.confidence,
         basis: dto.basis,
+        stats: dto.stats,
         reason: dto.reason,
     }
 }
@@ -16,6 +17,7 @@ export function mapProjectionToModel(dto: ProjectionDto): PlayerProjection {
 export function mapProjectionsToModel(dto: ProjectionsResponseDto): ProjectionsResult {
     return {
         basis: dto.basis,
+        scales: dto.scales,
         projections: new Map(
             Object.entries(dto.projections).map(([id, projection]) => [Number(id), mapProjectionToModel(projection)]),
         ),

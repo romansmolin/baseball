@@ -13,7 +13,7 @@ const hitter = (overrides: Partial<ProviderPlayer> = {}): ProviderPlayer =>
         primaryPosition: 'SS',
         active: true,
         battingStats: {
-            gamesPlayed: 100, plateAppearances: 450, hits: 150, doubles: 30, triples: 3, homeRuns: 20,
+            gamesPlayed: 100, plateAppearances: 450, atBats: 400, hits: 150, doubles: 30, triples: 3, homeRuns: 20,
             runs: 60, rbi: 70, baseOnBalls: 50, hitByPitch: 5, stolenBases: 10, strikeOuts: 80,
         },
         ...overrides,
@@ -37,6 +37,25 @@ describe('projectPlayerPoints', () => {
 
         expect(result.points).toBeCloseTo(6 * 4.11, 1)
         expect(result.confidence).toBe('normal')
+    })
+
+    it('hitter: category stats use the same expected games', () => {
+        const result = projectPlayerPoints({ ...base, player: hitter() })
+
+        expect(result.stats).toMatchObject({ side: 'hitting' })
+        expect(result.stats?.hr).toBeCloseTo(1.2, 2) // 20 HR over 100 games, 6 games
+        expect(result.stats?.sb).toBeCloseTo(0.6, 2)
+        expect(result.stats?.ab).toBeGreaterThan(0)
+    })
+
+    it('starter: category stats scale with starts; no stats means no stats object', () => {
+        const result = projectPlayerPoints({ ...base, announcedStarts: 2, player: starter() })
+
+        expect(result.stats).toMatchObject({ side: 'pitching' })
+        expect(result.stats?.k).toBeCloseTo(2 * (200 / 30), 2)
+        expect(result.stats?.ip).toBeCloseTo(12, 2) // 2 starts of 6 innings
+        expect(result.stats?.bbh).toBeCloseTo(2 * ((150 + 50) / 30), 2)
+        expect(projectPlayerPoints({ ...base, player: hitter({ battingStats: {} }) }).stats).toBeUndefined()
     })
 
     it('hitter: scales by the share of team games the player appeared in', () => {

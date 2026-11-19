@@ -1,3 +1,5 @@
+import type { CategoryScales, ProjectedStats } from '@/shared/team-builder'
+
 export type ProjectionBasis = 'schedule' | 'season-pace'
 
 export type ProjectionReason = 'NO_STATS' | 'INACTIVE' | 'NO_GAMES'
@@ -10,10 +12,13 @@ export interface PlayerProjection {
     starts: number
     confidence: 'normal' | 'low'
     basis: ProjectionBasis
+    // Expected category stats; absent when there is nothing to project from.
+    stats?: ProjectedStats
     reason?: ProjectionReason
 }
 
 export interface ProjectionsResult {
     basis: ProjectionBasis
     projections: Map<number, PlayerProjection>
+    scales: CategoryScales
 }

@@ -17,9 +17,10 @@ const roster: Array<[number, string, ProviderPlayer['primaryPosition'], number |
 const projectionsFor = (rows: typeof roster): IProjectionsService => ({
     projectTeams: vi.fn().mockResolvedValue({
         basis: 'schedule',
+        scales: {},
         players: rows.map(([id, fullName, primaryPosition]) => ({ id, fullName, primaryPosition, active: true, teamName: 'NYY', teamAbbreviation: 'NYY', photoUrl: null })),
         projections: Object.fromEntries(
-            rows.map(([id, , , points]) => [id, { points, games: 6, starts: 0, confidence: 'normal', basis: 'schedule' } satisfies Projection]),
+            rows.map(([id, , position, points]) => [id, { points, games: 6, starts: 0, confidence: 'normal', basis: 'schedule', stats: { side: position === 'SP' ? 'pitching' : 'hitting', r: 1, hr: points ?? 0, rbi: 1, sb: 0, ab: 20, h: 5, w: 0, sv: 0, k: points ?? 0, ip: 6, er: 2, bbh: 7 } } satisfies Projection]),
         ),
     }),
 })
@@ -54,6 +55,20 @@ describe('TeamBuilderAutofillFeature', () => {
         expect(output.explanation).toBe('Best projected points at each slot.')
         // Picks carry what the client needs to show them without loading rosters.
         expect(output.suggestedPicks.find((pick) => pick.externalPlayerId === 6)).toMatchObject({ position: 'SS', teamName: 'NYY', playerName: 'Short' })
+    })
+
+    it('fills a categories lineup with scored picks', async () => {
+        const feature = new TeamBuilderAutofillFeature(openai(), projectionsFor(roster))
+
+        const { output } = await feature.invoke('u1', {
+            ...input,
+            format: 'H2H_CATEGORIES',
+            categories: ['HR', 'K', 'ERA'],
+        })
+
+        expect(output.suggestedPicks).toHaveLength(9)
+        expect(output.suggestedPicks.every((pick) => typeof pick.score === 'number')).toBe(true)
+        expect(output.unfilled).toEqual([])
     })
 
     it('keeps two hand-picked players on their slots and fills the rest', async () => {
@@ -94,7 +109,8 @@ describe('TeamBuilderAutofillFeature', () => {
 
     it('input schema needs a team, a supported format and valid slot ids', () => {
         expect(tbAutofillInputSchema.safeParse({ ...input, mlbTeamIds: [] }).success).toBe(false)
-        expect(tbAutofillInputSchema.safeParse({ ...input, format: 'ROTO' }).success).toBe(false)
+        expect(tbAutofillInputSchema.safeParse({ ...input, format: 'DFS' }).success).toBe(false)
+        expect(tbAutofillInputSchema.safeParse({ ...input, format: 'ROTO' }).success).toBe(true)
         expect(tbAutofillInputSchema.safeParse({ ...input, filledSlots: [{ slotId: 'LF', externalPlayerId: 1 }] }).success).toBe(false)
         expect(tbAutofillInputSchema.safeParse(input).success).toBe(true)
     })

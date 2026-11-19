@@ -1,11 +1,14 @@
 'use client'
 
 import {
+    FANTASY_FORMATS,
+    FORMAT_LABEL,
+    SUPPORTED_FORMATS,
     FORECAST_PERIODS,
     FORECAST_PERIOD_LABEL,
-    FORMAT_LABEL,
     LINEUP_CHANGES,
     LINEUP_CHANGES_LABEL,
+    type CategoryKey,
     type FantasyFormat,
     type ForecastPeriod,
     type LineupChanges,
@@ -13,11 +16,15 @@ import {
     type SlotConfig,
 } from '@/shared/team-builder'
 
+import { CategorySelector } from './category-selector'
 import { ScoringRulesEditor } from './scoring-rules-editor'
 import { SlotConfigEditor } from './slot-config-editor'
 
 interface TeamSettingsPanelProps {
     format: FantasyFormat
+    onFormatChange: (format: FantasyFormat) => void
+    categories: CategoryKey[]
+    onCategoriesChange: (categories: CategoryKey[]) => void
     forecastPeriod: ForecastPeriod
     onForecastPeriodChange: (period: ForecastPeriod) => void
     lineupChanges: LineupChanges
@@ -33,6 +40,9 @@ const selectClass = 'rounded-md border border-foreground/15 bg-card px-2 py-1 te
 
 export const TeamSettingsPanel = ({
     format,
+    onFormatChange,
+    categories,
+    onCategoriesChange,
     forecastPeriod,
     onForecastPeriodChange,
     lineupChanges,
@@ -50,9 +60,26 @@ export const TeamSettingsPanel = ({
         <div className="space-y-4 border-t border-foreground/10 p-4">
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                 <label className="flex items-center gap-1.5">
+                    Format
+                    <select
+                        value={format}
+                        onChange={(e) => onFormatChange(e.target.value as FantasyFormat)}
+                        className={selectClass}
+                    >
+                        {FANTASY_FORMATS.map((value) => (
+                            <option key={value} value={value} disabled={!SUPPORTED_FORMATS.includes(value)}>
+                                {FORMAT_LABEL[value]}
+                                {SUPPORTED_FORMATS.includes(value) ? '' : ' (soon)'}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <label className="flex items-center gap-1.5">
                     Forecast period
                     <select
                         value={forecastPeriod}
+                        disabled={format === 'ROTO'}
+                        title={format === 'ROTO' ? 'Roto is scored over the whole season' : undefined}
                         onChange={(e) => onForecastPeriodChange(e.target.value as ForecastPeriod)}
                         className={selectClass}
                     >
@@ -75,7 +102,11 @@ export const TeamSettingsPanel = ({
                 </label>
             </div>
             <SlotConfigEditor config={slotConfig} onChange={onSlotConfigChange} />
-            <ScoringRulesEditor rules={scoringRules} onChange={onScoringRulesChange} onReset={onResetScoringRules} />
+            {format === 'H2H_POINTS' ? (
+                <ScoringRulesEditor rules={scoringRules} onChange={onScoringRulesChange} onReset={onResetScoringRules} />
+            ) : (
+                <CategorySelector categories={categories} onChange={onCategoriesChange} />
+            )}
         </div>
     </details>
 )

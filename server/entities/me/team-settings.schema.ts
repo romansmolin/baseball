@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import {
+    CATEGORY_KEYS,
     FANTASY_FORMATS,
     FORECAST_PERIODS,
     LINEUP_CHANGES,
@@ -54,6 +55,13 @@ export const slotConfigSchema = z
         },
         { message: 'A lineup needs between 1 and 30 slots' },
     )
+
+export const categoriesSchema = z
+    .array(z.enum(CATEGORY_KEYS))
+    .min(1)
+    .refine((categories) => categories.length === new Set(categories).size, {
+        message: 'Each category can appear only once',
+    })
 
 export const slotIdSchema = z.string().regex(/^(P|C|1B|2B|3B|SS|OF|UTIL|BENCH):\d+$/)
 
