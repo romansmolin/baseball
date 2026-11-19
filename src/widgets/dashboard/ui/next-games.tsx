@@ -3,7 +3,7 @@
 import { Calendar01Icon, LiveStreaming01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
-import { useUpcomingGamesData } from '@/entities/dashboard'
+import { useUpcomingGamesData } from '@/entities/games'
 import type { UpcomingGameRecord, UpcomingGameStatus } from '@/shared/games'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { cn } from '@/shared/utils'

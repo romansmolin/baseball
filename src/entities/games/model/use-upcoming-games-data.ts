@@ -1,6 +1,6 @@
 import useSWR from 'swr'
 
-import { fetchUpcomingGames } from './fetch-upcoming-games'
+import { fetchUpcomingGames } from '../api/fetch-upcoming-games'
 
 // 5-minute refresh — the upstream MLB schedule moves rarely (only when games
 // get postponed or rescheduled), and we don't want to thrash the provider.
