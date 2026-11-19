@@ -1,18 +1,7 @@
 import type { Position } from '@/shared/sports'
 
+import { parseSlotId, slotTypeAcceptsPosition } from './slots'
 import type { PoolPosition, SlotKey } from './types'
-
-const SLOT_TO_POOL_POSITION: Record<SlotKey, PoolPosition> = {
-    P: 'P',
-    C: 'C',
-    '1B': '1B',
-    '2B': '2B',
-    '3B': '3B',
-    SS: 'SS',
-    LF: 'OF',
-    CF: 'OF',
-    RF: 'OF',
-}
 
 /** The canonical provider-position normalization used by AI and manual picks. */
 export function providerPositionToPoolPosition(position: Position): PoolPosition {
@@ -25,7 +14,8 @@ export function slotAcceptsPoolPosition(
     slotKey: SlotKey,
     position: PoolPosition,
 ): boolean {
-    return SLOT_TO_POOL_POSITION[slotKey] === position
+    const slot = parseSlotId(slotKey)
+    return slot != null && slotTypeAcceptsPosition(slot.type, position)
 }
 
 export function slotAcceptsProviderPosition(

@@ -1,379 +1,101 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import type { ISportsProvider } from '../../../../providers/sports-provider.interface'
+import { DEFAULT_SCORING_RULES, DEFAULT_SLOT_CONFIG } from '@/shared/team-builder'
+
+import type { ProviderPlayer } from '../../../../providers/dto/provider-player.dto'
+import type { IProjectionsService } from '../../../projections/projections.service.interface'
+import type { Projection } from '../../../projections/projections.type'
 import type { IOpenAIProvider } from '../../provider/openai.provider'
-import type { TBAutofillPromptPlayer } from '../../prompts/team-builder-autofill.prompt'
-import {
-    completeAutofill,
-    TeamBuilderAutofillFeature,
-    tbAutofillInputSchema,
-    tbAutofillOutputSchema,
-} from '../../features/team-builder-autofill.feature'
+import { TeamBuilderAutofillFeature, tbAutofillInputSchema } from '../../features/team-builder-autofill.feature'
 
-const ALL_SLOTS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'] as const
-
-// A pool with at least one cheap, available, eligible player for every slot.
-const fullPool = (): TBAutofillPromptPlayer[] => [
-    { externalPlayerId: 1, fullName: 'Pitcher', primaryPosition: 'SP', teamName: 'T', salary: 3000, projectedPoints: 10, available: true },
-    { externalPlayerId: 2, fullName: 'Reliever', primaryPosition: 'RP', teamName: 'T', salary: 3000, projectedPoints: 9, available: true },
-    { externalPlayerId: 3, fullName: 'Catcher', primaryPosition: 'C', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 4, fullName: 'First', primaryPosition: '1B', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 5, fullName: 'Second', primaryPosition: '2B', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 6, fullName: 'Third', primaryPosition: '3B', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 7, fullName: 'Short', primaryPosition: 'SS', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 8, fullName: 'OF One', primaryPosition: 'OF', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 9, fullName: 'OF Two', primaryPosition: 'OF', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 10, fullName: 'OF Three', primaryPosition: 'OF', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-    { externalPlayerId: 11, fullName: 'DH Bench', primaryPosition: 'DH', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
+const roster: Array<[number, string, ProviderPlayer['primaryPosition'], number | null]> = [
+    [1, 'Pitcher', 'SP', 30], [2, 'Catcher', 'C', 20], [3, 'First', '1B', 22], [4, 'Second', '2B', 19],
+    [5, 'Third', '3B', 21], [6, 'Short', 'SS', 25], [7, 'OF One', 'OF', 18], [8, 'OF Two', 'OF', 17],
+    [9, 'OF Three', 'OF', 16], [10, 'OF Four', 'OF', 15],
 ]
 
-const buildSportsProvider = (): ISportsProvider =>
-    ({
-        name: 'mlb-test',
-        getTeams: vi.fn(),
-        getTeamById: vi.fn().mockResolvedValue({
-            id: 147,
-            name: 'New York Yankees',
-            abbreviation: 'NYY',
-            locationName: null,
-            teamName: null,
-        }),
-        getPlayers: vi.fn(),
-        getPlayerById: vi.fn(),
-        getPlayersByTeam: vi.fn().mockResolvedValue([
-            {
-                id: 100,
-                fullName: 'Pitcher One',
-                firstName: 'P',
-                lastName: 'O',
-                // Provider emits normalized Position codes ('SP'/'RP'),
-                // never the raw 'P' — the prompt must map accordingly.
-                primaryPosition: 'SP',
-                teamId: 147,
-                teamName: 'NYY',
-                teamAbbreviation: 'NYY',
-                birthDate: null,
-                age: null,
-                bats: null,
-                throws: null,
-                jerseyNumber: null,
-                photoUrl: null,
-                active: true,
-            },
-        ]),
-        getSchedule: vi.fn(),
-        getBoxScore: vi.fn(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }) as any
-
-const buildOpenAI = (output: unknown): IOpenAIProvider => ({
-    complete: vi.fn().mockResolvedValue({
-        output,
-        tokenUsage: { inputTokens: 200, outputTokens: 100 },
-        modelUsed: 'gpt-5.2',
+const projectionsFor = (rows: typeof roster): IProjectionsService => ({
+    projectTeams: vi.fn().mockResolvedValue({
+        basis: 'schedule',
+        players: rows.map(([id, fullName, primaryPosition]) => ({ id, fullName, primaryPosition, active: true, teamName: 'NYY', teamAbbreviation: 'NYY', photoUrl: null })),
+        projections: Object.fromEntries(
+            rows.map(([id, , , points]) => [id, { points, games: 6, starts: 0, confidence: 'normal', basis: 'schedule' } satisfies Projection]),
+        ),
     }),
 })
 
-const validOutput = {
-    suggestedPicks: [
-        {
-            slotKey: 'P' as const,
-            externalPlayerId: 100,
-            playerName: 'Pitcher One',
-        },
-    ],
-    strategy: 'Filled pitcher with the steadiest option.',
-    salaryUsed: 4000,
+const openai = (): IOpenAIProvider => ({
+    complete: vi.fn().mockResolvedValue({
+        output: { explanation: 'Best projected points at each slot.' },
+        tokenUsage: { inputTokens: 200, outputTokens: 100 },
+        modelUsed: 'gpt-test',
+    }),
+})
+
+const input = {
+    mlbTeamIds: [147],
+    format: 'H2H_POINTS' as const,
+    period: 'WEEK' as const,
+    rules: DEFAULT_SCORING_RULES,
+    slotConfig: DEFAULT_SLOT_CONFIG,
 }
 
 describe('TeamBuilderAutofillFeature', () => {
-    it('input schema requires mlbTeamIds (>=1) and salaryCap', () => {
-        expect(
-            tbAutofillInputSchema.safeParse({ mlbTeamIds: [147] }).success,
-        ).toBe(false)
-        expect(
-            tbAutofillInputSchema.safeParse({ mlbTeamIds: [], salaryCap: 60000 })
-                .success,
-        ).toBe(false)
-        expect(
-            tbAutofillInputSchema.safeParse({
-                mlbTeamIds: [147],
-                salaryCap: 60000,
-            }).success,
-        ).toBe(true)
-        expect(
-            tbAutofillInputSchema.safeParse({
-                mlbTeamIds: [147, 121],
-                salaryCap: 60000,
-            }).success,
-        ).toBe(true)
+    it('fills an empty 9-slot lineup with the best projected players', async () => {
+        const feature = new TeamBuilderAutofillFeature(openai(), projectionsFor(roster))
+
+        const { output } = await feature.invoke('u1', input)
+
+        expect(output.suggestedPicks).toHaveLength(9)
+        expect(output.unfilled).toEqual([])
+        // OF slots take the three best outfielders, not the fourth.
+        const outfielders = output.suggestedPicks.filter((pick) => pick.slotId.startsWith('OF')).map((pick) => pick.externalPlayerId)
+        expect(outfielders.sort()).toEqual([7, 8, 9])
+        expect(output.explanation).toBe('Best projected points at each slot.')
+        // Picks carry what the client needs to show them without loading rosters.
+        expect(output.suggestedPicks.find((pick) => pick.externalPlayerId === 6)).toMatchObject({ position: 'SS', teamName: 'NYY', playerName: 'Short' })
     })
 
-    it('output schema rejects invalid slotKey', () => {
-        expect(
-            tbAutofillOutputSchema.safeParse({
-                ...validOutput,
-                suggestedPicks: [
-                    {
-                        slotKey: 'BENCH',
-                        externalPlayerId: 1,
-                        playerName: 'x',
-                        reasoning: 'y',
-                    },
-                ],
-            }).success,
-        ).toBe(false)
+    it('keeps two hand-picked players on their slots and fills the rest', async () => {
+        const feature = new TeamBuilderAutofillFeature(openai(), projectionsFor(roster))
+
+        const { output } = await feature.invoke('u1', {
+            ...input,
+            filledSlots: [
+                { slotId: 'OF:0', externalPlayerId: 10 },
+                { slotId: 'SS:0', externalPlayerId: 6 },
+            ],
+        })
+
+        const slots = output.suggestedPicks.map((pick) => pick.slotId)
+        expect(slots).not.toContain('OF:0')
+        expect(slots).not.toContain('SS:0')
+        expect(output.suggestedPicks).toHaveLength(7)
+        expect(output.suggestedPicks.map((pick) => pick.externalPlayerId)).not.toContain(10)
     })
 
-    it('uses cheap tier and the right schema name', async () => {
-        const openai = buildOpenAI(validOutput)
-        const feature = new TeamBuilderAutofillFeature(openai, buildSportsProvider())
-        await feature.invoke('u1', { mlbTeamIds: [147], salaryCap: 60000 })
-        const opts = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    it('reports a slot nobody can fill and still returns the rest', async () => {
+        const feature = new TeamBuilderAutofillFeature(openai(), projectionsFor(roster.filter(([, , pos]) => pos !== 'SS')))
+
+        const { output } = await feature.invoke('u1', input)
+
+        expect(output.unfilled).toMatchObject([{ slotId: 'SS:0', code: 'NO_ELIGIBLE_PLAYER' }])
+        expect(output.suggestedPicks).toHaveLength(8)
+    })
+
+    it('uses the cheap tier and only asks the model for an explanation', async () => {
+        const provider = openai()
+        await new TeamBuilderAutofillFeature(provider, projectionsFor(roster)).invoke('u1', input)
+
+        const opts = (provider.complete as ReturnType<typeof vi.fn>).mock.calls[0][0]
         expect(opts.tier).toBe('cheap')
         expect(opts.schemaName).toBe('TBAutofillOutput')
-        expect(opts.maxOutputTokens).toBeGreaterThanOrEqual(6000)
     })
 
-    it('passes filled slots and remaining cap to the prompt', async () => {
-        const openai = buildOpenAI(validOutput)
-        const feature = new TeamBuilderAutofillFeature(openai, buildSportsProvider())
-        await feature.invoke('u1', {
-            mlbTeamIds: [147],
-            salaryCap: 60000,
-            filledSlots: [{ slotKey: 'C', externalPlayerId: 200 }],
-        })
-        const opts = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0]
-        expect(opts.input).toContain('"slotKey": "C"')
-        expect(opts.input).toContain('"emptySlotKeys"')
-    })
-
-    it('prompt maps normalized position codes to slots (SP/RP→P, OF→LF/CF/RF)', async () => {
-        const openai = buildOpenAI(validOutput)
-        const feature = new TeamBuilderAutofillFeature(openai, buildSportsProvider())
-        await feature.invoke('u1', { mlbTeamIds: [147], salaryCap: 60000 })
-        const opts = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0]
-        // Pitcher slot must accept the codes the provider actually emits,
-        // otherwise the model never fills P (and OF slots stay empty too).
-        expect(opts.instructions).toContain('"SP" or "RP"')
-        expect(opts.instructions).toContain('"OF"')
-        // The provider's pitcher (primaryPosition 'SP') is in the serialized pool.
-        expect(opts.input).toContain('"primaryPosition": "SP"')
-    })
-
-    it('happy path returns structured picks', async () => {
-        const openai = buildOpenAI(validOutput)
-        const feature = new TeamBuilderAutofillFeature(openai, buildSportsProvider())
-        const result = await feature.invoke('u1', {
-            mlbTeamIds: [147],
-            salaryCap: 60000,
-        })
-        expect(result.output.suggestedPicks[0].slotKey).toBe('P')
-        expect(result.output.suggestedPicks[0].externalPlayerId).toBe(100)
-    })
-
-    describe('completeAutofill (deterministic completion)', () => {
-        it('fills every empty slot when the pool has eligible players in budget', () => {
-            const { suggestedPicks } = completeAutofill({
-                modelPicks: [],
-                emptySlotKeys: [...ALL_SLOTS],
-                pool: fullPool(),
-                salaryBudget: 60000,
-            })
-            expect(suggestedPicks).toHaveLength(9)
-            expect(new Set(suggestedPicks.map((p) => p.slotKey))).toEqual(
-                new Set(ALL_SLOTS),
-            )
-            // No player reused across slots.
-            expect(new Set(suggestedPicks.map((p) => p.externalPlayerId)).size).toBe(9)
-        })
-
-        it('assigns three distinct outfielders to LF/CF/RF', () => {
-            const { suggestedPicks } = completeAutofill({
-                modelPicks: [],
-                emptySlotKeys: ['LF', 'CF', 'RF'],
-                pool: fullPool(),
-                salaryBudget: 60000,
-            })
-            const of = suggestedPicks.filter((p) => ['LF', 'CF', 'RF'].includes(p.slotKey))
-            expect(of).toHaveLength(3)
-            expect(new Set(of.map((p) => p.externalPlayerId)).size).toBe(3)
-        })
-
-        it('recovers from the model labelling two outfielders with the same slotKey', () => {
-            const { suggestedPicks } = completeAutofill({
-                // Model collides on CF and never mentions LF/RF.
-                modelPicks: [
-                    { slotKey: 'CF', externalPlayerId: 8 },
-                    { slotKey: 'CF', externalPlayerId: 9 },
-                ],
-                emptySlotKeys: ['LF', 'CF', 'RF'],
-                pool: fullPool(),
-                salaryBudget: 60000,
-            })
-            expect(new Set(suggestedPicks.map((p) => p.slotKey))).toEqual(
-                new Set(['LF', 'CF', 'RF']),
-            )
-        })
-
-        it('never selects an unavailable player and never exceeds the budget', () => {
-            const pool = fullPool()
-            pool[0] = { ...pool[0], available: false }
-            const { suggestedPicks, salaryUsed } = completeAutofill({
-                modelPicks: [{ slotKey: 'P', externalPlayerId: 1 }],
-                emptySlotKeys: [...ALL_SLOTS],
-                pool,
-                salaryBudget: 20000, // only enough for ~6 players at 3000 each
-            })
-            const ids = suggestedPicks.map((p) => p.externalPlayerId)
-            expect(ids).not.toContain(1)
-            expect(salaryUsed).toBeLessThanOrEqual(20000)
-        })
-
-        it('honors a valid model pick over the cheapest backfill', () => {
-            const pool = fullPool()
-            // Make a pricier preferred catcher; model should still win since budget allows.
-            pool.push({ externalPlayerId: 99, fullName: 'Star C', primaryPosition: 'C', teamName: 'T', salary: 9000, projectedPoints: 30, available: true })
-            const { suggestedPicks } = completeAutofill({
-                modelPicks: [{ slotKey: 'C', externalPlayerId: 99 }],
-                emptySlotKeys: ['C'],
-                pool,
-                salaryBudget: 60000,
-            })
-            expect(suggestedPicks).toEqual([
-                { slotKey: 'C', externalPlayerId: 99, playerName: 'Star C' },
-            ])
-        })
-
-        it('does not let an expensive model preference strand a later slot', () => {
-            const pool: TBAutofillPromptPlayer[] = [
-                { externalPlayerId: 21, fullName: 'AI Catcher', primaryPosition: 'C', teamName: 'T', salary: 6000, projectedPoints: 20, available: true },
-                { externalPlayerId: 22, fullName: 'Value Catcher', primaryPosition: 'C', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-                { externalPlayerId: 23, fullName: 'Only First Baseman', primaryPosition: '1B', teamName: 'T', salary: 3000, projectedPoints: 8, available: true },
-            ]
-
-            const { suggestedPicks, salaryUsed } = completeAutofill({
-                modelPicks: [{ slotKey: 'C', externalPlayerId: 21 }],
-                emptySlotKeys: ['C', '1B'],
-                pool,
-                salaryBudget: 8000,
-            })
-
-            expect(new Set(suggestedPicks.map((pick) => pick.slotKey))).toEqual(
-                new Set(['C', '1B']),
-            )
-            expect(salaryUsed).toBeLessThanOrEqual(8000)
-        })
-
-        it('uses the same DH-to-outfield eligibility as manual team building', () => {
-            const dh = fullPool().find((player) => player.primaryPosition === 'DH')!
-            const { suggestedPicks } = completeAutofill({
-                modelPicks: [],
-                emptySlotKeys: ['LF'],
-                pool: [dh],
-                salaryBudget: 60000,
-            })
-
-            expect(suggestedPicks).toEqual([
-                { slotKey: 'LF', externalPlayerId: dh.externalPlayerId, playerName: dh.fullName },
-            ])
-        })
-
-        it('leaves only an unfillable position empty and keeps the rest valid', () => {
-            const poolWithoutCatcher = fullPool().filter(
-                (player) => player.primaryPosition !== 'C',
-            )
-            const { suggestedPicks, salaryUsed } = completeAutofill({
-                modelPicks: [],
-                emptySlotKeys: [...ALL_SLOTS],
-                pool: poolWithoutCatcher,
-                salaryBudget: 60000,
-            })
-
-            expect(suggestedPicks).toHaveLength(8)
-            expect(suggestedPicks.some((pick) => pick.slotKey === 'C')).toBe(false)
-            expect(new Set(suggestedPicks.map((pick) => pick.externalPlayerId)).size).toBe(8)
-            expect(salaryUsed).toBeLessThanOrEqual(60000)
-        })
-    })
-
-    it('invoke returns a fully completed lineup even when the model returns nothing', async () => {
-        const sports = {
-            ...buildSportsProvider(),
-            getPlayersByTeam: vi.fn().mockResolvedValue(
-                fullPool().map((p) => ({
-                    id: p.externalPlayerId,
-                    fullName: p.fullName,
-                    firstName: 'x',
-                    lastName: 'y',
-                    primaryPosition: p.primaryPosition,
-                    teamId: 147,
-                    teamName: 'NYY',
-                    teamAbbreviation: 'NYY',
-                    birthDate: null,
-                    age: null,
-                    bats: null,
-                    throws: null,
-                    jerseyNumber: null,
-                    photoUrl: null,
-                    active: true,
-                })),
-            ),
-        }
-        const openai = buildOpenAI({ suggestedPicks: [], strategy: 's', salaryUsed: 0 })
-        const feature = new TeamBuilderAutofillFeature(openai, sports as ISportsProvider)
-        const result = await feature.invoke('u1', { mlbTeamIds: [147], salaryCap: 60000 })
-        expect(result.output.suggestedPicks).toHaveLength(9)
-    })
-
-    it('fetches every selected team and merges rosters into one pool', async () => {
-        const sports = {
-            ...buildSportsProvider(),
-            getTeamById: vi.fn().mockImplementation((id: number) =>
-                Promise.resolve({
-                    id,
-                    name: id === 147 ? 'New York Yankees' : 'Boston Red Sox',
-                    abbreviation: id === 147 ? 'NYY' : 'BOS',
-                    locationName: null,
-                    teamName: null,
-                }),
-            ),
-            getPlayersByTeam: vi.fn().mockImplementation((id: number) =>
-                Promise.resolve([
-                    {
-                        id: id === 147 ? 100 : 200,
-                        fullName: id === 147 ? 'Yankee Bat' : 'Sox Bat',
-                        firstName: 'x',
-                        lastName: 'y',
-                        primaryPosition: 'SS',
-                        teamId: id,
-                        teamName: id === 147 ? 'NYY' : 'BOS',
-                        teamAbbreviation: id === 147 ? 'NYY' : 'BOS',
-                        birthDate: null,
-                        age: null,
-                        bats: null,
-                        throws: null,
-                        jerseyNumber: null,
-                        photoUrl: null,
-                        active: true,
-                    },
-                ]),
-            ),
-        }
-        const openai = buildOpenAI(validOutput)
-        const feature = new TeamBuilderAutofillFeature(openai, sports as ISportsProvider)
-        await feature.invoke('u1', {
-            mlbTeamIds: [147, 111, 147],
-            salaryCap: 60000,
-        })
-        // Deduped: 147 only fetched once
-        expect(sports.getPlayersByTeam).toHaveBeenCalledTimes(2)
-        const opts = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0]
-        // Both team names made it into the prompt input payload.
-        expect(opts.input).toContain('New York Yankees')
-        expect(opts.input).toContain('Boston Red Sox')
-        // Both players appear in the merged pool with their teamName tag.
-        expect(opts.input).toContain('Yankee Bat')
-        expect(opts.input).toContain('Sox Bat')
+    it('input schema needs a team, a supported format and valid slot ids', () => {
+        expect(tbAutofillInputSchema.safeParse({ ...input, mlbTeamIds: [] }).success).toBe(false)
+        expect(tbAutofillInputSchema.safeParse({ ...input, format: 'ROTO' }).success).toBe(false)
+        expect(tbAutofillInputSchema.safeParse({ ...input, filledSlots: [{ slotId: 'LF', externalPlayerId: 1 }] }).success).toBe(false)
+        expect(tbAutofillInputSchema.safeParse(input).success).toBe(true)
     })
 })

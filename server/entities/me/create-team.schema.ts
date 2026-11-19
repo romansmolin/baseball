@@ -1,19 +1,27 @@
 import { z } from 'zod'
 
-import { FANTASY_PLATFORMS, SCORING_PRESETS } from '@/shared/team-builder'
+import { FANTASY_PLATFORMS } from '@/shared/team-builder'
 
 import { baseballLeagueEnum } from '../baseball-league.schema'
+import {
+    fantasyFormatSchema,
+    forecastPeriodSchema,
+    lineupChangesSchema,
+    salaryCapSchema,
+    scoringRulesSchema,
+    slotConfigSchema,
+    slotIdSchema,
+} from './team-settings.schema'
 
-const slotKeyEnum = z.enum(['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'])
 const poolPositionEnum = z.enum(['P', 'C', '1B', '2B', '3B', 'SS', 'OF'])
 
 const rosterSlotPayloadSchema = z.object({
     externalPlayerId: z.number().int().positive(),
-    slotKey: slotKeyEnum,
+    slotKey: slotIdSchema,
     position: poolPositionEnum,
     name: z.string().min(1),
     teamName: z.string().min(1),
-    salaryAtLock: z.number().int().positive(),
+    salaryAtLock: z.number().int().positive().nullable(),
 })
 
 export const createTeamSchema = z.object({
@@ -21,9 +29,14 @@ export const createTeamSchema = z.object({
     // Only provider-backed leagues can hold a fantasy team.
     leagueSlug: baseballLeagueEnum,
     platform: z.enum(FANTASY_PLATFORMS).default('OTHER'),
-    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
+    format: fantasyFormatSchema.default('H2H_POINTS'),
+    forecastPeriod: forecastPeriodSchema.default('WEEK'),
+    lineupChanges: lineupChangesSchema.default('DAILY'),
+    scoringRules: scoringRulesSchema.optional(),
+    slotConfig: slotConfigSchema.optional(),
+    salaryCap: salaryCapSchema.default(null),
     captainExternalPlayerId: z.number().int().positive().optional(),
-    players: z.array(rosterSlotPayloadSchema).min(1).max(9),
+    players: z.array(rosterSlotPayloadSchema).max(30),
 })
 
 export type CreateTeamBody = z.infer<typeof createTeamSchema>

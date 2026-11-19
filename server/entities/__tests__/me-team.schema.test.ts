@@ -5,7 +5,7 @@ import { updateLineupSchema } from '../me/update-lineup.schema'
 
 const player = {
     externalPlayerId: 660271,
-    slotKey: 'SS',
+    slotKey: 'SS:0',
     position: 'SS',
     name: 'Test Player',
     teamName: 'Test Team',
@@ -15,40 +15,34 @@ const player = {
 const baseTeam = { name: 'My team', leagueSlug: 'mlb', players: [player] }
 
 describe('createTeamSchema', () => {
-    it('defaults the platform to OTHER and the scoring preset to POINTS', () => {
+    it('defaults the platform to OTHER and the format to H2H Points with no cap', () => {
         const parsed = createTeamSchema.parse(baseTeam)
 
         expect(parsed.platform).toBe('OTHER')
-        expect(parsed.scoringPreset).toBe('POINTS')
+        expect(parsed.format).toBe('H2H_POINTS')
+        expect(parsed.forecastPeriod).toBe('WEEK')
+        expect(parsed.salaryCap).toBeNull()
     })
 
-    it('accepts a chosen platform and preset', () => {
-        const parsed = createTeamSchema.parse({ ...baseTeam, platform: 'YAHOO', scoringPreset: 'CATEGORIES_5X5' })
-
-        expect(parsed.platform).toBe('YAHOO')
-        expect(parsed.scoringPreset).toBe('CATEGORIES_5X5')
+    it('accepts a draft with no players', () => {
+        expect(createTeamSchema.safeParse({ ...baseTeam, players: [] }).success).toBe(true)
     })
 
-    it('rejects an unknown platform', () => {
+    it('rejects an unknown platform and a malformed slot id', () => {
         expect(createTeamSchema.safeParse({ ...baseTeam, platform: 'FANDUEL' }).success).toBe(false)
-    })
-
-    it('rejects an unknown scoring preset', () => {
-        expect(createTeamSchema.safeParse({ ...baseTeam, scoringPreset: 'ROTO' }).success).toBe(false)
+        expect(
+            createTeamSchema.safeParse({ ...baseTeam, players: [{ ...player, slotKey: 'LF' }] }).success,
+        ).toBe(false)
     })
 })
 
 describe('updateLineupSchema', () => {
-    it('leaves platform and preset undefined when they are not sent, so a save never resets them', () => {
+    it('leaves settings undefined when they are not sent, so a save never resets them', () => {
         const parsed = updateLineupSchema.parse({ players: [player] })
 
         expect(parsed.platform).toBeUndefined()
-        expect(parsed.scoringPreset).toBeUndefined()
-    })
-
-    it('accepts a new platform and preset', () => {
-        const parsed = updateLineupSchema.parse({ players: [player], platform: 'ESPN', scoringPreset: 'POINTS' })
-
-        expect(parsed.platform).toBe('ESPN')
+        expect(parsed.format).toBeUndefined()
+        expect(parsed.scoringRules).toBeUndefined()
+        expect(parsed.slotConfig).toBeUndefined()
     })
 })

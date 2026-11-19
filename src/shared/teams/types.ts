@@ -1,4 +1,4 @@
-import type { FantasyPlatform, ScoringPreset } from '@/shared/team-builder'
+import type { FantasyPlatform, TeamSettings } from '@/shared/team-builder'
 
 export type Region = 'north-america' | 'japan-korea' | 'latin-america'
 
@@ -27,14 +27,15 @@ export interface TeamRosterSlot {
     playerTeamName: string
     playerPhotoUrl: string | null
     slotPosition: string
-    salaryAtLock: number
+    salaryAtLock: number | null
     isCaptain: boolean
 }
 
-export interface Team {
+export interface Team extends TeamSettings {
     id: string
     platform: FantasyPlatform
-    scoringPreset: ScoringPreset
+    // Every slot of the lineup holds a player; false means a saved draft.
+    isComplete: boolean
     name: string
     leagueSlug: string
     players: number

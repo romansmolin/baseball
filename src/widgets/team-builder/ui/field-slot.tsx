@@ -15,6 +15,7 @@ interface FieldSlotProps {
     player: PoolPlayer | null
     isCaptain: boolean
     isSelected: boolean
+    isPreview?: boolean
     onFocus: () => void
     onRemove: () => void
     onToggleCaptain: () => void
@@ -25,6 +26,7 @@ export const FieldSlot = ({
     player,
     isCaptain,
     isSelected,
+    isPreview = false,
     onFocus,
     onRemove,
     onToggleCaptain,
@@ -52,7 +54,7 @@ export const FieldSlot = ({
         )
     }
 
-    const displayPts = player.proj * (isCaptain ? CAPTAIN_MULTIPLIER : 1)
+    const displayPts = player.proj === null ? null : player.proj * (isCaptain ? CAPTAIN_MULTIPLIER : 1)
 
     return (
         <div
@@ -62,7 +64,8 @@ export const FieldSlot = ({
             <div
                 className={cn(
                     'relative flex w-[96px] flex-col items-center rounded-xl border bg-card/95 px-1.5 py-1.5 shadow-md backdrop-blur',
-                    isCaptain || isSelected ? 'border-primary' : 'border-white/70',
+                    isCaptain || isSelected || isPreview ? 'border-primary' : 'border-white/70',
+                    isPreview && 'ring-2 ring-primary/60',
                 )}
             >
                 <button
@@ -108,7 +111,7 @@ export const FieldSlot = ({
                     </span>
                     <span className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
                         <span className="rounded bg-muted px-1 font-semibold">{slot.label}</span>
-                        <span className="font-anton text-primary">{displayPts.toFixed(1)}</span>
+                        <span className="font-anton text-primary">{displayPts === null ? '—' : displayPts.toFixed(1)}</span>
                     </span>
                 </button>
             </div>

@@ -369,7 +369,7 @@ const RosterList = ({ slots }: { slots: TeamRosterSlot[] }) => {
             </div>
         )
     }
-    const totalSalary = slots.reduce((sum, slot) => sum + slot.salaryAtLock, 0)
+    const totalSalary = slots.reduce((sum, slot) => sum + (slot.salaryAtLock ?? 0), 0)
     return (
         <div className="mt-2 flex flex-col gap-1.5">
             <ul className="flex flex-col gap-1 rounded-xl border border-foreground/10 p-2">
@@ -379,7 +379,7 @@ const RosterList = ({ slots }: { slots: TeamRosterSlot[] }) => {
                         className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40"
                     >
                         <span className="w-7 shrink-0 rounded bg-muted px-1.5 py-0.5 text-center text-[10px] font-semibold tracking-wide text-muted-foreground">
-                            {slot.slotPosition}
+                            {slot.slotPosition.split(':')[0]}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-sm font-medium">
                             {slot.playerName}
@@ -392,7 +392,7 @@ const RosterList = ({ slots }: { slots: TeamRosterSlot[] }) => {
                             />
                         )}
                         <span className="shrink-0 text-xs text-muted-foreground">
-                            {money(slot.salaryAtLock)}
+                            {slot.salaryAtLock === null ? '' : money(slot.salaryAtLock)}
                         </span>
                     </li>
                 ))}

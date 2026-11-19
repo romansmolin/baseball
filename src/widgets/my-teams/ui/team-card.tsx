@@ -3,7 +3,7 @@
 import { Clock01Icon, StarIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
-import { FANTASY_PLATFORM_LABEL, SCORING_PRESET_LABEL } from '@/shared/team-builder'
+import { FANTASY_PLATFORM_LABEL, FORMAT_LABEL } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
 import type { League, Team, ViewMode } from '../model/team.type'
@@ -68,8 +68,13 @@ export const TeamCard = ({ team, league, isFav, view, onSelect, onToggleFav }: T
     const pills = (
         <div className="flex flex-wrap items-center gap-1.5">
             <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
-                {FANTASY_PLATFORM_LABEL[team.platform]} · {SCORING_PRESET_LABEL[team.scoringPreset]}
+                {FANTASY_PLATFORM_LABEL[team.platform]} · {FORMAT_LABEL[team.format]}
             </span>
+            {!team.isComplete && (
+                <span className="rounded-full border border-primary/40 px-2 py-0.5 text-xs font-medium text-primary">
+                    Draft
+                </span>
+            )}
             {team.captain && (
                 <span className="rounded-full border border-board/30 px-2 py-0.5 text-xs font-medium text-board">
                     Captain ×1.5

@@ -49,3 +49,12 @@ export const BATTER_LOW_PLATE_APPEARANCES = 100
 export const BATTER_HIGH_PLATE_APPEARANCES = 300
 export const PITCHER_LOW_INNINGS = 30
 export const PITCHER_HIGH_INNINGS = 100
+
+// ---- Points projections ----
+// Fewer plate appearances / innings than this and the projection is flagged low confidence.
+export const PROJECTION_LOW_PLATE_APPEARANCES = 50
+export const PROJECTION_LOW_INNINGS = 20
+// A starter takes the mound about every fifth game when no start is announced.
+export const ROTATION_GAMES_PER_START = 5
+// A pitcher counts as a starter when at least this share of his games were starts.
+export const STARTER_MIN_START_SHARE = 0.5

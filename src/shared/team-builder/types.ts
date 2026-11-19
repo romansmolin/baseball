@@ -1,10 +1,15 @@
+import type { ForecastPeriod, FantasyFormat, LineupChanges } from './format.type'
+import type { ScoringRules } from './scoring-rules.const'
+import type { SlotConfig, SlotId } from './slots'
+
 export type PoolPosition = 'P' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'OF'
 export type PoolPositionFilter = 'all' | PoolPosition
-export type SlotKey = 'P' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'LF' | 'CF' | 'RF'
+// A slot id like 'OF:2' (see slots.ts). The name stays for the many call sites.
+export type SlotKey = SlotId
 
 export interface FieldSlot {
     key: SlotKey
-    label: SlotKey
+    label: string
     accept: PoolPosition
     x: number
     y: number
@@ -17,27 +22,38 @@ export interface PoolPlayer {
     team: string
     leagueSlug: string
     leagueColor: string
-    salary: number
-    proj: number
+    // null when no real value exists (no cap in Points; no forecast yet).
+    salary: number | null
+    proj: number | null
     photoUrl: string | null
 }
 
 export type Roster = Record<SlotKey, number | null>
 
+export interface TeamSettings {
+    format: FantasyFormat
+    forecastPeriod: ForecastPeriod
+    lineupChanges: LineupChanges
+    scoringRules: ScoringRules
+    slotConfig: SlotConfig
+    salaryCap: number | null
+}
+
 export const SALARY_CAP_DEFAULT = 80000
 export const ROSTER_SIZE = 9
 export const CAPTAIN_MULTIPLIER = 1.5
 
+// Diamond layout for the default 9-slot lineup. OF:0/1/2 read as LF/CF/RF.
 export const FIELD_SLOTS: FieldSlot[] = [
-    { key: 'CF', label: 'CF', accept: 'OF', x: 50, y: 13 },
-    { key: 'LF', label: 'LF', accept: 'OF', x: 21, y: 24 },
-    { key: 'RF', label: 'RF', accept: 'OF', x: 79, y: 24 },
-    { key: 'SS', label: 'SS', accept: 'SS', x: 37, y: 46 },
-    { key: '2B', label: '2B', accept: '2B', x: 63, y: 46 },
-    { key: '3B', label: '3B', accept: '3B', x: 20, y: 61 },
-    { key: '1B', label: '1B', accept: '1B', x: 80, y: 61 },
-    { key: 'P', label: 'P', accept: 'P', x: 50, y: 65 },
-    { key: 'C', label: 'C', accept: 'C', x: 50, y: 86 },
+    { key: 'OF:1', label: 'CF', accept: 'OF', x: 50, y: 13 },
+    { key: 'OF:0', label: 'LF', accept: 'OF', x: 21, y: 24 },
+    { key: 'OF:2', label: 'RF', accept: 'OF', x: 79, y: 24 },
+    { key: 'SS:0', label: 'SS', accept: 'SS', x: 37, y: 46 },
+    { key: '2B:0', label: '2B', accept: '2B', x: 63, y: 46 },
+    { key: '3B:0', label: '3B', accept: '3B', x: 20, y: 61 },
+    { key: '1B:0', label: '1B', accept: '1B', x: 80, y: 61 },
+    { key: 'P:0', label: 'P', accept: 'P', x: 50, y: 65 },
+    { key: 'C:0', label: 'C', accept: 'C', x: 50, y: 86 },
 ]
 
 export interface BuilderLeague {
@@ -61,7 +77,7 @@ export interface BuilderTeam {
 }
 
 export interface BuilderBudget {
-    salaryCap: number
+    salaryCap: number | null
 }
 
 export interface BuilderRosterSlotPayload {
@@ -70,15 +86,14 @@ export interface BuilderRosterSlotPayload {
     position: PoolPosition
     name: string
     teamName: string
-    salaryAtLock: number
+    salaryAtLock: number | null
     photoUrl?: string | null
 }
 
-export interface CreateTeamPayload {
+export interface CreateTeamPayload extends Partial<TeamSettings> {
     name: string
     leagueSlug: string
     platform?: FantasyPlatform
-    scoringPreset?: ScoringPreset
     captainExternalPlayerId?: number
     players: BuilderRosterSlotPayload[]
 }
@@ -89,10 +104,9 @@ export interface CreateTeamResult {
     leagueSlug: string
 }
 
-export interface UpdateLineupPayload {
+export interface UpdateLineupPayload extends Partial<TeamSettings> {
     players: BuilderRosterSlotPayload[]
     platform?: FantasyPlatform
-    scoringPreset?: ScoringPreset
     captainExternalPlayerId?: number
 }
 

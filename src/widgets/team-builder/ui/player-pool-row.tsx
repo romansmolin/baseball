@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import type { PlayerProjection } from '@/entities/projections'
 import type { PoolPlayer } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
@@ -10,6 +11,7 @@ import type { PlayerPlacement } from '../model/team-builder-roster'
 interface PlayerPoolRowProps {
     player: PoolPlayer
     placement: PlayerPlacement
+    projection?: PlayerProjection
     onAdd: () => void
 }
 
@@ -20,6 +22,13 @@ const initials = (name: string) =>
         .slice(0, 2)
         .join('')
         .toUpperCase()
+
+const noForecastReason = (projection: PlayerProjection | undefined) => {
+    if (projection?.reason === 'INACTIVE') return 'Not on the active roster'
+    if (projection?.reason === 'NO_GAMES') return 'No games in this period'
+    if (projection?.reason === 'NO_STATS') return 'No stats this season to project from'
+    return undefined
+}
 
 const money = (n: number) => `$${(n / 1000).toFixed(1)}k`
 
@@ -70,6 +79,7 @@ export { PlayerAvatar }
 export const PlayerPoolRow = ({
     player,
     placement,
+    projection,
     onAdd,
 }: PlayerPoolRowProps) => {
     let label = 'Add'
@@ -113,15 +123,27 @@ export const PlayerPoolRow = ({
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{player.team}</span>
-                    <span className="opacity-40">·</span>
-                    <span className="font-mono">{money(player.salary)}</span>
+                    {player.salary !== null && (
+                        <>
+                            <span className="opacity-40">·</span>
+                            <span className="font-mono">{money(player.salary)}</span>
+                        </>
+                    )}
+                    {projection?.confidence === 'low' && (
+                        <>
+                            <span className="opacity-40">·</span>
+                            <span title="Few games or innings so far, so this forecast is rough">small sample</span>
+                        </>
+                    )}
                 </div>
             </div>
             <div className="text-right">
                 <div className="font-anton text-base leading-none text-primary">
-                    {player.proj.toFixed(1)}
+                    {player.proj === null ? '—' : player.proj.toFixed(1)}
                 </div>
-                <div className="text-[10px] text-muted-foreground">proj</div>
+                <div className="text-[10px] text-muted-foreground" title={noForecastReason(projection)}>
+                    {player.proj === null ? 'no forecast' : 'proj'}
+                </div>
             </div>
             <button
                 type="button"

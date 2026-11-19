@@ -1,14 +1,14 @@
 import {
-    FIELD_SLOTS,
+    parseSlotId,
     slotAcceptsPoolPosition,
-    type FieldSlot,
     type PoolPlayer,
     type Roster,
+    type RosterSlotDef,
     type SlotKey,
 } from '@/shared/team-builder'
 
 export interface AutofillRosterPick {
-    slotKey: SlotKey
+    slotId: SlotKey
     externalPlayerId: number
 }
 
@@ -16,6 +16,7 @@ interface MergeAutofillPicksInput {
     roster: Roster
     picks: AutofillRosterPick[]
     playersById: ReadonlyMap<number, PoolPlayer>
+    slots: RosterSlotDef[]
 }
 
 export interface MergeAutofillPicksResult {
@@ -26,7 +27,7 @@ export interface MergeAutofillPicksResult {
 export type PlayerPlacement =
     | {
           allowed: true
-          slot: FieldSlot
+          slot: RosterSlotDef
           replacedPlayerId: number | null
           nextSalary: number
       }
@@ -35,11 +36,19 @@ export type PlayerPlacement =
           reason: 'duplicate' | 'no-slot' | 'over-budget'
       }
 
+export const createEmptyRoster = (slots: RosterSlotDef[]): Roster =>
+    Object.fromEntries(slots.map((slot) => [slot.id, null])) as Roster
+
+// An exact position match is tried before UTIL, and UTIL before BENCH.
+const FILL_ORDER: Record<string, number> = { UTIL: 1, BENCH: 2 }
+const fillRank = (slot: RosterSlotDef) => FILL_ORDER[slot.type] ?? 0
+
 /** Applies only resolved, eligible, unique AI picks to genuinely empty slots. */
 export function mergeAutofillPicks({
     roster,
     picks,
     playersById,
+    slots,
 }: MergeAutofillPicksInput): MergeAutofillPicksResult {
     const next: Roster = { ...roster }
     const assignedPicks: AutofillRosterPick[] = []
@@ -51,24 +60,18 @@ export function mergeAutofillPicks({
         const player = playersById.get(pick.externalPlayerId)
         if (!player || rosteredIds.has(player.id)) continue
 
-        let targetKey: SlotKey | null =
-            next[pick.slotKey] == null &&
-            slotAcceptsPoolPosition(pick.slotKey, player.pos)
-                ? pick.slotKey
-                : null
-        if (targetKey == null) {
-            targetKey =
-                FIELD_SLOTS.find(
-                    (slot) =>
-                        next[slot.key] == null &&
-                        slotAcceptsPoolPosition(slot.key, player.pos),
-                )?.key ?? null
-        }
+        const requestedOpen =
+            pick.slotId in next &&
+            next[pick.slotId] == null &&
+            slotAcceptsPoolPosition(pick.slotId, player.pos)
+        const targetKey: SlotKey | null = requestedOpen
+            ? pick.slotId
+            : (findRosterSlotForPlayer(next, player, null, slots)?.id ?? null)
         if (targetKey == null) continue
 
         next[targetKey] = player.id
         rosteredIds.add(player.id)
-        assignedPicks.push({ ...pick, slotKey: targetKey })
+        assignedPicks.push({ ...pick, slotId: targetKey })
     }
 
     return { roster: next, assignedPicks }
@@ -77,34 +80,40 @@ export function mergeAutofillPicks({
 export function findRosterSlotForPlayer(
     roster: Roster,
     player: PoolPlayer,
-    targetSlotKey: SlotKey | null = null,
-): FieldSlot | undefined {
+    targetSlotKey: SlotKey | null,
+    slots: RosterSlotDef[],
+): RosterSlotDef | undefined {
     if (targetSlotKey != null) {
-        const target = FIELD_SLOTS.find((slot) => slot.key === targetSlotKey)
-        return target && slotAcceptsPoolPosition(target.key, player.pos)
+        const target = slots.find((slot) => slot.id === targetSlotKey)
+        return target && slotAcceptsPoolPosition(target.id, player.pos)
             ? target
             : undefined
     }
 
-    return FIELD_SLOTS.find(
-        (slot) =>
-            roster[slot.key] === null &&
-            slotAcceptsPoolPosition(slot.key, player.pos),
-    )
+    return slots
+        .filter(
+            (slot) =>
+                roster[slot.id] === null &&
+                slotAcceptsPoolPosition(slot.id, player.pos),
+        )
+        .sort((a, b) => fillRank(a) - fillRank(b))[0]
 }
 
 interface EvaluatePlayerPlacementInput {
     roster: Roster
+    slots: RosterSlotDef[]
     player: PoolPlayer
     targetSlotKey: SlotKey | null
     salaryUsed: number
-    salaryCap: number
+    // null when the format has no cap.
+    salaryCap: number | null
     playerById: (id: number) => PoolPlayer | undefined
 }
 
 /** One validation result powers both the player-row disabled state and add/replace. */
 export function evaluatePlayerPlacement({
     roster,
+    slots,
     player,
     targetSlotKey,
     salaryUsed,
@@ -115,16 +124,31 @@ export function evaluatePlayerPlacement({
         return { allowed: false, reason: 'duplicate' }
     }
 
-    const slot = findRosterSlotForPlayer(roster, player, targetSlotKey)
+    const slot = findRosterSlotForPlayer(roster, player, targetSlotKey, slots)
     if (!slot) return { allowed: false, reason: 'no-slot' }
 
-    const replacedPlayerId = roster[slot.key]
+    const replacedPlayerId = roster[slot.id]
     const replacedSalary =
         replacedPlayerId == null ? 0 : (playerById(replacedPlayerId)?.salary ?? 0)
-    const nextSalary = salaryUsed - replacedSalary + player.salary
-    if (nextSalary > salaryCap) {
+    const nextSalary = salaryUsed - replacedSalary + (player.salary ?? 0)
+    if (salaryCap !== null && nextSalary > salaryCap) {
         return { allowed: false, reason: 'over-budget' }
     }
 
     return { allowed: true, slot, replacedPlayerId, nextSalary }
+}
+
+/** Drops players whose slot no longer exists after the slot config changed. */
+export function remapRoster(
+    roster: Roster,
+    nextSlots: RosterSlotDef[],
+): { roster: Roster; droppedPlayerIds: number[] } {
+    const next = createEmptyRoster(nextSlots)
+    const droppedPlayerIds: number[] = []
+    for (const [slotId, playerId] of Object.entries(roster)) {
+        if (playerId == null) continue
+        if (slotId in next && parseSlotId(slotId)) next[slotId] = playerId
+        else droppedPlayerIds.push(playerId)
+    }
+    return { roster: next, droppedPlayerIds }
 }

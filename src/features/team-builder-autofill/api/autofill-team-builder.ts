@@ -1,26 +1,54 @@
 import type { SupportedBaseballLeague } from '@/shared/baseball'
 import { httpClient } from '@/shared/api/http-client'
 import { withErrorHandling } from '@/shared/api/with-error-handling'
-import type { SlotKey } from '@/shared/team-builder'
+import type {
+    FantasyFormat,
+    ForecastPeriod,
+    PoolPosition,
+    ScoringRules,
+    SlotConfig,
+    SlotId,
+} from '@/shared/team-builder'
 
 export interface AutofillRequest {
     league: SupportedBaseballLeague
     mlbTeamIds: number[]
-    salaryCap: number
-    riskProfile?: 'safe' | 'balanced' | 'high_ceiling'
-    filledSlots: Array<{ slotKey: SlotKey; externalPlayerId: number }>
+    format: FantasyFormat
+    period: ForecastPeriod
+    rules: ScoringRules
+    slotConfig: SlotConfig
+    salaryCap: number | null
+    filledSlots: Array<{ slotId: SlotId; externalPlayerId: number }>
 }
 
 export interface AutofillSuggestion {
-    slotKey: SlotKey
+    slotId: SlotId
     externalPlayerId: number
     playerName: string
+    projectedPoints: number
+    position: PoolPosition
+    teamName: string
+    photoUrl: string | null
+}
+
+export type AutofillUnfilledCode =
+    | 'NO_ELIGIBLE_PLAYER'
+    | 'NO_PROJECTION'
+    | 'CAP_TOO_LOW'
+    | 'POOL_EMPTY'
+
+export interface AutofillUnfilledSlot {
+    slotId: SlotId
+    code: AutofillUnfilledCode
+    message: string
 }
 
 export interface AutofillResponse {
     suggestedPicks: AutofillSuggestion[]
-    strategy: string
-    salaryUsed: number
+    unfilled: AutofillUnfilledSlot[]
+    explanation: string
+    totalPoints: number
+    basis: 'schedule' | 'season-pace'
 }
 
 interface ApiEnvelope {

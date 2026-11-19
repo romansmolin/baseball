@@ -131,7 +131,7 @@ const Header = ({
         <div className="min-w-0">
             <Dialog.Title className="flex items-center gap-2 font-medium">
                 <HugeiconsIcon icon={MagicWand01Icon} className="size-4 text-primary" />
-                Autofill from teams
+                Generate with AI from teams
             </Dialog.Title>
             <Dialog.Description className="mt-1 text-xs text-muted-foreground">
                 Pick the {leagueName ?? ''} teams the AI should draw from. Costs
@@ -284,7 +284,7 @@ const Footer = ({
                 ? 'Asking AI…'
                 : selectedCount === 0
                   ? 'Pick at least 1 team'
-                  : `Autofill from ${selectedCount} team${selectedCount === 1 ? '' : 's'}`}
+                  : `Generate from ${selectedCount} team${selectedCount === 1 ? '' : 's'}`}
         </button>
     </div>
 )

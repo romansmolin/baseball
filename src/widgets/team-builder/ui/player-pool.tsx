@@ -3,6 +3,7 @@
 import { Search01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
+import type { PlayerProjection } from '@/entities/projections'
 import type {
     PoolPlayer,
     PoolPositionFilter,
@@ -35,6 +36,7 @@ interface PlayerPoolProps {
     onPositionChange: (pos: PoolPositionFilter) => void
     onAdd: (id: number) => void
     placementFor: (player: PoolPlayer) => PlayerPlacement
+    projectionFor: (id: number) => PlayerProjection | undefined
 }
 
 const SKELETON_ROWS = 7
@@ -51,6 +53,7 @@ export const PlayerPool = ({
     onPositionChange,
     onAdd,
     placementFor,
+    projectionFor,
 }: PlayerPoolProps) => {
     const showNoTeam = selectedTeamId == null
     const showError = !showNoTeam && !!error
@@ -160,6 +163,7 @@ export const PlayerPool = ({
                                   key={player.id}
                                   player={player}
                                   placement={placement}
+                                  projection={projectionFor(player.id)}
                                   onAdd={() => onAdd(player.id)}
                               />
                           )

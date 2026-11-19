@@ -43,6 +43,24 @@ enum ScoringPreset {
   CATEGORIES_5X5
 }
 
+enum FantasyFormat {
+  H2H_POINTS
+  H2H_CATEGORIES
+  ROTO
+  DFS
+}
+
+enum ForecastPeriod {
+  DAY
+  WEEK
+  SEASON
+}
+
+enum LineupChanges {
+  DAILY
+  WEEKLY
+}
+
 model FantasyTeam {
   id     String @id @default(cuid())
   userId String
@@ -52,7 +70,16 @@ model FantasyTeam {
   name                    String
   leagueSlug              String
   platform                FantasyPlatform @default(OTHER)
+  // Deprecated: superseded by `format`; no longer read or written.
   scoringPreset           ScoringPreset   @default(POINTS)
+  format                  FantasyFormat   @default(H2H_POINTS)
+  forecastPeriod          ForecastPeriod  @default(WEEK)
+  lineupChanges           LineupChanges   @default(DAILY)
+  // `{}` / `[]` mean "use the defaults" (scoring preset / 9-slot lineup).
+  scoringRules            Json            @default("{}")
+  slotConfig              Json            @default("[]")
+  // null = no salary cap (Points formats have none).
+  salaryCap               Int?
   captainExternalPlayerId Int?
 
   createdAt  DateTime @default(now())
@@ -77,8 +104,10 @@ model RosterSlot {
   playerPhotoUrl String?
 
   slotPosition      RosterSlotPosition
-  // frozen at lock time
-  salaryAtLock      Int
+  // Which slot of that type (0-based): a lineup can hold several OF or BENCH.
+  slotIndex         Int                @default(0)
+  // frozen at save time; null when the format has no salaries
+  salaryAtLock      Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

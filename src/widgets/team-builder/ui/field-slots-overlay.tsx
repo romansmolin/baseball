@@ -9,6 +9,7 @@ import type { FieldSlot as FieldSlotType, PoolPlayer, Roster, SlotKey } from '..
 interface FieldSlotsOverlayProps {
     slots: FieldSlotType[]
     roster: Roster
+    previewSlotIds?: SlotKey[]
     captainId: number | null
     targetSlotKey: SlotKey | null
     playerById: (id: number) => PoolPlayer | undefined
@@ -20,6 +21,7 @@ interface FieldSlotsOverlayProps {
 export const FieldSlotsOverlay = ({
     slots,
     roster,
+    previewSlotIds = [],
     captainId,
     targetSlotKey,
     playerById,
@@ -38,6 +40,7 @@ export const FieldSlotsOverlay = ({
                     player={player}
                     isCaptain={playerId !== null && playerId === captainId}
                     isSelected={targetSlotKey === slot.key}
+                    isPreview={previewSlotIds.includes(slot.key)}
                     onFocus={() => onFocusSlot(slot.key)}
                     onRemove={() => onRemove(slot.key)}
                     onToggleCaptain={() => playerId !== null && onToggleCaptain(playerId)}

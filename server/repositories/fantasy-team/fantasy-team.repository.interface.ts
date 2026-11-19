@@ -1,4 +1,12 @@
-import type { FantasyPlatform, PlayerPosition, RosterSlotPosition, ScoringPreset } from '../../../src/generated/prisma/enums'
+import type {
+    FantasyFormat,
+    FantasyPlatform,
+    ForecastPeriod,
+    LineupChanges,
+    PlayerPosition,
+    RosterSlotPosition,
+} from '../../../src/generated/prisma/enums'
+import type { ScoringRules, SlotConfig } from '@/shared/team-builder'
 import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-team.model'
 
 export interface CreateRosterSlotInput {
@@ -7,7 +15,17 @@ export interface CreateRosterSlotInput {
     playerPosition: PlayerPosition
     playerTeamName: string
     slotPosition: RosterSlotPosition
-    salaryAtLock: number
+    slotIndex: number
+    salaryAtLock: number | null
+}
+
+export interface FantasyTeamSettingsInput {
+    format: FantasyFormat
+    forecastPeriod: ForecastPeriod
+    lineupChanges: LineupChanges
+    scoringRules: ScoringRules
+    slotConfig: SlotConfig
+    salaryCap: number | null
 }
 
 export interface CreateFantasyTeamInput {
@@ -15,7 +33,7 @@ export interface CreateFantasyTeamInput {
     name: string
     leagueSlug: string
     platform?: FantasyPlatform
-    scoringPreset?: ScoringPreset
+    settings: FantasyTeamSettingsInput
     captainExternalPlayerId?: number
     rosterSlots: CreateRosterSlotInput[]
 }
@@ -24,7 +42,7 @@ export interface ReplaceRosterInput {
     teamId: string
     // Left as saved when omitted.
     platform?: FantasyPlatform
-    scoringPreset?: ScoringPreset
+    settings?: Partial<FantasyTeamSettingsInput>
     captainExternalPlayerId: number | null
     rosterSlots: CreateRosterSlotInput[]
 }

@@ -1,74 +1,30 @@
-// Prompt for the team-builder Autofill helper. The AI's job is to pick the
-// best players from a chosen set of MLB teams' rosters to fill any empty
-// slots in the user's lineup, respecting the salary cap and any slots
-// they've already filled. Output mirrors the 9-slot field shape.
-
-import type { Position } from '@/shared/sports'
-
-export interface TBAutofillPromptPlayer {
-    externalPlayerId: number
-    fullName: string
-    primaryPosition: Position
-    teamName: string
-    salary: number
-    projectedPoints: number
-    available: boolean
-}
+// Prompt for the team-builder "Generate with AI" helper. The lineup is already
+// chosen by the optimizer; the model only explains the key choices.
 
 export interface TBAutofillPromptContext {
     nowIso: string
-    mlbTeamNames: string[]
-    salaryCap: number
-    salaryRemaining: number
-    riskProfile: 'safe' | 'balanced' | 'high_ceiling'
-    emptySlotKeys: string[]
-    filledSlots: Array<{ slotKey: string; externalPlayerId: number; salary: number }>
-    pool: TBAutofillPromptPlayer[]
+    period: string
+    basis: 'schedule' | 'season-pace'
+    rules: unknown
+    pinned: Array<{ slotLabel: string; playerName: string; projectedPoints: number | null }>
+    picks: Array<{ slotLabel: string; playerName: string; position: string; teamName: string; projectedPoints: number }>
+    unfilled: Array<{ slotLabel: string; message: string }>
+    // Best players who did not make the lineup, for "why not X" context.
+    notPicked: Array<{ playerName: string; position: string; projectedPoints: number }>
 }
 
-export function buildTBAutofillPrompt(
-    ctx: TBAutofillPromptContext,
-): { instructions: string; input: string } {
+export function buildTBAutofillPrompt(ctx: TBAutofillPromptContext): { instructions: string; input: string } {
     const instructions = [
-        'You are an autofill helper for a fantasy baseball lineup builder.',
+        'You explain a fantasy baseball lineup that has already been chosen. You do not choose players.',
         `Today is ${ctx.nowIso}.`,
-        `The candidate pool is drawn from these MLB teams: ${ctx.mlbTeamNames.join(', ')}. Each player in the pool has a "teamName" field showing which team they come from — you may mix players from any of these teams.`,
-        'Use ONLY players from the supplied `pool` where `available: true`. Never invent players or repeat IDs.',
-        'Fill EVERY slot listed in `emptySlotKeys` — return exactly one pick per empty slot key. Do not change `filledSlots`.',
-        'Each slot accepts players by their `primaryPosition` value (note these are normalized codes, NOT raw baseball positions): slot "P" accepts primaryPosition "SP" or "RP" (any pitcher); slot "C" accepts "C"; slots "1B"/"2B"/"3B"/"SS" each accept the exact matching value; slots "LF"/"CF"/"RF" each accept primaryPosition "OF" or "DH". OF/DH players are eligible for any of the three outfield slots.',
-        'LF, CF and RF are THREE SEPARATE slots — assign a DIFFERENT outfielder to each. Never reuse a slotKey across two picks, and never assign the same player to two slots.',
-        'Stay within salaryRemaining. Leaving a slot empty is a LAST RESORT — only omit a slot if no eligible, available player can fit. To fit everyone, prefer cheaper eligible players at each slot rather than dropping a slot.',
-        'Respect riskProfile: "safe" prefers steady veterans, "high_ceiling" prefers high-projection upside, "balanced" sits in between.',
-        'Respond ONLY with a single JSON object. No prose, no markdown fences, no comments.',
-        'The JSON MUST have EXACTLY these top-level keys: "suggestedPicks", "strategy", "salaryUsed".',
-        'Each element of "suggestedPicks" MUST have EXACTLY these keys: "slotKey", "externalPlayerId", "playerName". Do not rename, abbreviate, or add fields.',
-        'The "slotKey" value MUST be one of these exact short codes (case-sensitive): "P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF". Never use long names like "Pitcher" or "First Base".',
-        'Example of a valid response (use as a structural template, not as data):',
-        JSON.stringify({
-            suggestedPicks: [
-                {
-                    slotKey: '1B',
-                    externalPlayerId: 660271,
-                    playerName: 'Example Player',
-                },
-            ],
-            strategy: 'One-sentence summary of the overall approach.',
-            salaryUsed: 3000,
-        }),
+        'Write 2 to 4 plain sentences naming the key picks: who fills which slot, why they rank high for the scoring period and rules given, and how the hand-picked players fit.',
+        'Use ONLY the names and numbers in the input. Never invent stats, injuries, matchups or other facts.',
+        ctx.basis === 'season-pace'
+            ? 'The projections are season-pace estimates because there are no scheduled games in the period. Say so in one short clause.'
+            : 'The projections use the real schedule for the period.',
+        'If some slots are listed under unfilled, mention in one sentence that they stayed open and why.',
+        'Respond ONLY with a single JSON object with exactly one key: "explanation" (a string). No markdown, no extra keys.',
     ].join(' ')
 
-    const input = JSON.stringify(
-        {
-            teams: ctx.mlbTeamNames,
-            cap: { total: ctx.salaryCap, remaining: ctx.salaryRemaining },
-            riskProfile: ctx.riskProfile,
-            emptySlotKeys: ctx.emptySlotKeys,
-            filledSlots: ctx.filledSlots,
-            pool: ctx.pool,
-        },
-        null,
-        2,
-    )
-
-    return { instructions, input }
+    return { instructions, input: JSON.stringify(ctx, null, 2) }
 }

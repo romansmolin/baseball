@@ -3,16 +3,21 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { FIELD_SLOTS } from '@/shared/team-builder'
 import {
     AutofillModal,
-    BudgetMeter,
+    AutofillPreviewBar,
     FieldDiamond,
     FieldHint,
     FieldSlotsOverlay,
+    FormatPicker,
     LeagueTeamSelector,
+    LineupSlotList,
     PlayerPool,
+    ProjectionMeter,
     SaveBar,
     TeamBuilderLayout,
+    TeamSettingsPanel,
     useTeamBuilderState,
 } from '@/widgets/team-builder'
 
@@ -32,6 +37,10 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
         return <EditModeNotFound />
     }
 
+    if (!state.formatChosen) {
+        return <FormatPicker onChoose={state.chooseFormat} />
+    }
+
     const initialAutofillTeamIds = state.selectedTeamId ? [state.selectedTeamId] : []
 
     return (
@@ -43,8 +52,6 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     onTeamNameChange={state.setTeamName}
                     platform={state.platform}
                     onPlatformChange={state.setPlatform}
-                    scoringPreset={state.scoringPreset}
-                    onScoringPresetChange={state.setScoringPreset}
                     canSave={state.canSave}
                     isSaving={state.isSaving}
                     isAutofilling={state.isAutofilling}
@@ -53,15 +60,19 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     onAutofill={() => setAutofillOpen(true)}
                     onClear={state.clearLineup}
                     editMode={state.isEditMode}
+                    isDraft={!state.isComplete}
                 />
             }
             meterBar={
-                <BudgetMeter
-                    budget={state.budget}
-                    salaryUsed={state.salaryUsed}
-                    isLoading={state.budgetLoading}
-                    error={state.budgetError}
-                    onRetry={state.retryBudget}
+                <ProjectionMeter
+                    filledCount={state.filledCount}
+                    rosterSize={state.rosterSize}
+                    projTotal={state.projTotal}
+                    period={state.forecastPeriod}
+                    basis={state.projectionBasis}
+                    isLoading={state.projectionsLoading}
+                    error={state.projectionsError}
+                    onRetry={state.retryProjections}
                 />
             }
             field={
@@ -80,19 +91,52 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                         onLeaguesRetry={state.retryLeagues}
                         onTeamsRetry={state.retryTeams}
                     />
-                    <FieldDiamond>
-                        <FieldSlotsOverlay
+                    <TeamSettingsPanel
+                        format={state.format}
+                        forecastPeriod={state.forecastPeriod}
+                        onForecastPeriodChange={state.setForecastPeriod}
+                        lineupChanges={state.lineupChanges}
+                        onLineupChangesChange={state.setLineupChanges}
+                        slotConfig={state.slotConfig}
+                        onSlotConfigChange={state.setSlotConfig}
+                        scoringRules={state.scoringRules}
+                        onScoringRulesChange={state.setScoringRules}
+                        onResetScoringRules={state.resetScoringRules}
+                    />
+                    {state.autofillPreview && (
+                        <AutofillPreviewBar
+                            preview={state.autofillPreview}
                             slots={state.slots}
-                            roster={state.roster}
-                            captainId={state.captainId}
+                            onAccept={state.acceptAutofill}
+                            onDiscard={state.discardAutofill}
+                        />
+                    )}
+                    {state.isDefaultLayout ? (
+                        <FieldDiamond>
+                            <FieldSlotsOverlay
+                                slots={FIELD_SLOTS}
+                                roster={state.previewRoster}
+                                previewSlotIds={state.previewSlotIds}
+                                captainId={state.captainId}
+                                targetSlotKey={state.targetSlotKey}
+                                playerById={state.playerById}
+                                onFocusSlot={state.focusSlot}
+                                onRemove={state.removeSlot}
+                                onToggleCaptain={state.toggleCaptain}
+                            />
+                        </FieldDiamond>
+                    ) : (
+                        <LineupSlotList
+                            slots={state.slots}
+                            roster={state.previewRoster}
+                            previewSlotIds={state.previewSlotIds}
                             targetSlotKey={state.targetSlotKey}
                             playerById={state.playerById}
                             onFocusSlot={state.focusSlot}
                             onRemove={state.removeSlot}
-                            onToggleCaptain={state.toggleCaptain}
                         />
-                    </FieldDiamond>
-                    <FieldHint />
+                    )}
+                    {state.isDefaultLayout && <FieldHint />}
                 </div>
             }
             pool={
@@ -108,6 +152,7 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                     onPositionChange={state.setPoolPosition}
                     onAdd={state.addPlayer}
                     placementFor={state.placementFor}
+                    projectionFor={state.projectionFor}
                 />
             }
         />

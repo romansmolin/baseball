@@ -1,19 +1,17 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { FIELD_SLOTS, type PoolPlayer, type Roster } from '@/shared/team-builder'
+import { DEFAULT_SLOT_CONFIG, buildSlots, type PoolPlayer } from '@/shared/team-builder'
 
 import {
+    createEmptyRoster,
     evaluatePlayerPlacement,
     mergeAutofillPicks,
 } from '../../model/team-builder-roster'
 import { PlayerPoolRow } from '../player-pool-row'
 
-const emptyRoster = (): Roster =>
-    FIELD_SLOTS.reduce<Roster>((roster, slot) => {
-        roster[slot.key] = null
-        return roster
-    }, {} as Roster)
+const slots = buildSlots(DEFAULT_SLOT_CONFIG)
+const emptyRoster = () => createEmptyRoster(slots)
 
 const player = (id: number, pos: PoolPlayer['pos']): PoolPlayer => ({
     id,
@@ -34,16 +32,18 @@ describe('team-builder manual UI after AI generation', () => {
         const result = mergeAutofillPicks({
             roster: emptyRoster(),
             picks: [
-                { slotKey: 'C', externalPlayerId: catcher.id },
-                { slotKey: 'P', externalPlayerId: 999 },
+                { slotId: 'C:0', externalPlayerId: catcher.id },
+                { slotId: 'P:0', externalPlayerId: 999 },
             ],
             playersById: new Map([[catcher.id, catcher]]),
+            slots,
         })
         const placement = evaluatePlayerPlacement({
             roster: result.roster,
+            slots,
             player: pitcher,
-            targetSlotKey: 'P',
-            salaryUsed: catcher.salary,
+            targetSlotKey: 'P:0',
+            salaryUsed: catcher.salary ?? 0,
             salaryCap: 80000,
             playerById: (id) => (id === catcher.id ? catcher : undefined),
         })
@@ -61,14 +61,16 @@ describe('team-builder manual UI after AI generation', () => {
         const replacement = player(702, 'SS')
         const result = mergeAutofillPicks({
             roster: emptyRoster(),
-            picks: [{ slotKey: 'SS', externalPlayerId: aiShortstop.id }],
+            picks: [{ slotId: 'SS:0', externalPlayerId: aiShortstop.id }],
             playersById: new Map([[aiShortstop.id, aiShortstop]]),
+            slots,
         })
         const placement = evaluatePlayerPlacement({
             roster: result.roster,
+            slots,
             player: replacement,
-            targetSlotKey: 'SS',
-            salaryUsed: aiShortstop.salary,
+            targetSlotKey: 'SS:0',
+            salaryUsed: aiShortstop.salary ?? 0,
             salaryCap: 80000,
             playerById: (id) =>
                 id === aiShortstop.id ? aiShortstop : undefined,

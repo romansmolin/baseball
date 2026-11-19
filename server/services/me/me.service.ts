@@ -4,6 +4,7 @@ import { SPORT_LEAGUES } from '../../shared/sport-leagues.const'
 import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-team.model'
 import type {
     CreateRosterSlotInput,
+    FantasyTeamSettingsInput,
     IFantasyTeamRepository,
 } from '../../repositories/fantasy-team/fantasy-team.repository.interface'
 import {
@@ -11,9 +12,12 @@ import {
     RosterSlotPosition,
 } from '../../../src/generated/prisma/enums'
 import {
-    ROSTER_SIZE,
-    SALARY_CAP_DEFAULT,
+    DEFAULT_SCORING_RULES,
+    DEFAULT_SLOT_CONFIG,
+    buildSlots,
+    parseSlotId,
     slotAcceptsPoolPosition,
+    toSlotId,
 } from '@/shared/team-builder'
 import type {
     BuilderBudget,
@@ -21,23 +25,30 @@ import type {
     CreateTeamPayload,
     CreateTeamResult,
     PoolPosition,
-    SlotKey,
+    ScoringRules,
+    SlotConfig,
+    SlotType,
+    TeamSettings,
     UpdateLineupPayload,
 } from '@/shared/team-builder'
 import type { MyTeamsPayload, Team } from '@/shared/teams'
 import type { IMeService } from './me.service.interface'
 
-const SLOT_KEY_TO_ROSTER_POSITION: Record<SlotKey, RosterSlotPosition> = {
+const SLOT_TYPE_TO_ROSTER_POSITION: Record<SlotType, RosterSlotPosition> = {
     P: RosterSlotPosition.P,
     C: RosterSlotPosition.C,
     '1B': RosterSlotPosition.FIRST_BASE,
     '2B': RosterSlotPosition.SECOND_BASE,
     '3B': RosterSlotPosition.THIRD_BASE,
     SS: RosterSlotPosition.SS,
-    LF: RosterSlotPosition.OF,
-    CF: RosterSlotPosition.OF,
-    RF: RosterSlotPosition.OF,
+    OF: RosterSlotPosition.OF,
+    UTIL: RosterSlotPosition.UTIL,
+    BENCH: RosterSlotPosition.BENCH,
 }
+
+const ROSTER_POSITION_TO_SLOT_TYPE = Object.fromEntries(
+    Object.entries(SLOT_TYPE_TO_ROSTER_POSITION).map(([type, position]) => [position, type]),
+) as Record<RosterSlotPosition, SlotType>
 
 const POOL_POSITION_TO_PLAYER_POSITION: Record<PoolPosition, PlayerPosition> = {
     P: PlayerPosition.P,
@@ -68,20 +79,6 @@ const PLAYER_POSITION_TO_POOL_POSITION: Partial<
     OF: 'OF',
 }
 
-// Non-OF slot positions map 1:1 back to a SlotKey. OF slots are ambiguous —
-// DB only stores 'OF', but the team builder expects LF/CF/RF. We distribute
-// OF rows across LF→CF→RF in iteration order so all three slots fill in.
-const NON_OF_ROSTER_TO_SLOT_KEY: Partial<Record<RosterSlotPosition, SlotKey>> = {
-    P: 'P',
-    C: 'C',
-    FIRST_BASE: '1B',
-    SECOND_BASE: '2B',
-    THIRD_BASE: '3B',
-    SS: 'SS',
-}
-
-const OF_SLOT_KEYS: SlotKey[] = ['LF', 'CF', 'RF']
-
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 export class MeService implements IMeService {
@@ -99,8 +96,9 @@ export class MeService implements IMeService {
         }
     }
 
+    // Points formats have no salary cap; real caps arrive with DFS slates.
     async getBudget(_userId: string): Promise<BuilderBudget> {
-        return { salaryCap: SALARY_CAP_DEFAULT }
+        return { salaryCap: null }
     }
 
     async renameMyTeam(userId: string, teamId: string, name: string): Promise<Team> {
@@ -120,7 +118,12 @@ export class MeService implements IMeService {
         userId: string,
         payload: CreateTeamPayload,
     ): Promise<CreateTeamResult> {
-        this.validateLineupPayload(payload.players, payload.captainExternalPlayerId)
+        const settings = this.resolveSettings(payload)
+        this.validateLineupPayload(
+            payload.players,
+            payload.captainExternalPlayerId,
+            settings,
+        )
 
         const rosterSlots = payload.players.map((player) =>
             this.toRosterSlotInput(player),
@@ -131,7 +134,7 @@ export class MeService implements IMeService {
             name: payload.name,
             leagueSlug: payload.leagueSlug,
             platform: payload.platform,
-            scoringPreset: payload.scoringPreset,
+            settings,
             captainExternalPlayerId: payload.captainExternalPlayerId,
             rosterSlots,
         })
@@ -164,7 +167,17 @@ export class MeService implements IMeService {
             )
         }
 
-        this.validateLineupPayload(payload.players, payload.captainExternalPlayerId)
+        // Settings that were not sent stay as saved.
+        const { format, forecastPeriod, lineupChanges, scoringRules, slotConfig, salaryCap } = payload
+        const settings: FantasyTeamSettingsInput = {
+            ...this.settingsOf(existing),
+            ...definedOnly({ format, forecastPeriod, lineupChanges, scoringRules, slotConfig, salaryCap }),
+        }
+        this.validateLineupPayload(
+            payload.players,
+            payload.captainExternalPlayerId,
+            settings,
+        )
 
         const rosterSlots = payload.players.map((player) =>
             this.toRosterSlotInput(player),
@@ -174,7 +187,7 @@ export class MeService implements IMeService {
             teamId,
             captainExternalPlayerId: payload.captainExternalPlayerId ?? null,
             platform: payload.platform,
-            scoringPreset: payload.scoringPreset,
+            settings,
             rosterSlots,
         })
 
@@ -184,6 +197,7 @@ export class MeService implements IMeService {
     private validateLineupPayload(
         players: BuilderRosterSlotPayload[],
         captainExternalPlayerId: number | undefined,
+        settings: FantasyTeamSettingsInput,
     ): void {
         const playerIds = new Set(players.map((player) => player.externalPlayerId))
         if (playerIds.size !== players.length) {
@@ -193,6 +207,14 @@ export class MeService implements IMeService {
         const slotKeys = new Set(players.map((player) => player.slotKey))
         if (slotKeys.size !== players.length) {
             throw ApiError.validationError('Each roster position can be used only once')
+        }
+
+        const validSlotIds = new Set(buildSlots(settings.slotConfig).map((slot) => slot.id))
+        const unknownSlot = players.find((player) => !validSlotIds.has(player.slotKey))
+        if (unknownSlot) {
+            throw ApiError.validationError(
+                `${unknownSlot.slotKey} is not a slot in this lineup`,
+            )
         }
 
         const ineligible = players.find(
@@ -205,25 +227,18 @@ export class MeService implements IMeService {
             )
         }
 
-        const salaryUsed = players.reduce(
-            (sum, player) => sum + player.salaryAtLock,
-            0,
-        )
-
-        if (salaryUsed > SALARY_CAP_DEFAULT) {
-            throw new ApiError(
-                400,
-                ErrorCode.BUDGET_EXCEEDED,
-                `Lineup salary (${salaryUsed}) exceeds salary cap (${SALARY_CAP_DEFAULT})`,
+        if (settings.salaryCap !== null) {
+            const salaryUsed = players.reduce(
+                (sum, player) => sum + (player.salaryAtLock ?? 0),
+                0,
             )
-        }
-
-        if (players.length !== ROSTER_SIZE) {
-            throw new ApiError(
-                400,
-                ErrorCode.INCOMPLETE_ROSTER,
-                `Roster must contain exactly ${ROSTER_SIZE} players (got ${players.length})`,
-            )
+            if (salaryUsed > settings.salaryCap) {
+                throw new ApiError(
+                    400,
+                    ErrorCode.BUDGET_EXCEEDED,
+                    `Lineup salary (${salaryUsed}) exceeds salary cap (${settings.salaryCap})`,
+                )
+            }
         }
 
         if (captainExternalPlayerId !== undefined) {
@@ -238,15 +253,47 @@ export class MeService implements IMeService {
         }
     }
 
+    private resolveSettings(
+        payload: Partial<TeamSettings>,
+    ): FantasyTeamSettingsInput {
+        return {
+            format: payload.format ?? 'H2H_POINTS',
+            forecastPeriod: payload.forecastPeriod ?? 'WEEK',
+            lineupChanges: payload.lineupChanges ?? 'DAILY',
+            scoringRules: payload.scoringRules ?? DEFAULT_SCORING_RULES,
+            slotConfig: payload.slotConfig ?? DEFAULT_SLOT_CONFIG,
+            salaryCap: payload.salaryCap ?? null,
+        }
+    }
+
+    // `{}` and `[]` are stored for teams saved before settings existed.
+    private settingsOf(row: FantasyTeamWithRoster): FantasyTeamSettingsInput {
+        const rules = row.scoringRules as unknown as ScoringRules | Record<string, never>
+        const slotConfig = row.slotConfig as unknown as SlotConfig
+        return {
+            format: row.format,
+            forecastPeriod: row.forecastPeriod,
+            lineupChanges: row.lineupChanges,
+            scoringRules: 'hitting' in rules ? (rules as ScoringRules) : DEFAULT_SCORING_RULES,
+            slotConfig: slotConfig.length > 0 ? slotConfig : DEFAULT_SLOT_CONFIG,
+            salaryCap: row.salaryCap,
+        }
+    }
+
     private toRosterSlotInput(
         player: BuilderRosterSlotPayload,
     ): CreateRosterSlotInput {
+        const slot = parseSlotId(player.slotKey)
+        if (!slot) {
+            throw ApiError.validationError(`Invalid slot: ${player.slotKey}`)
+        }
         return {
             externalPlayerId: player.externalPlayerId,
             playerName: player.name,
             playerPosition: POOL_POSITION_TO_PLAYER_POSITION[player.position],
             playerTeamName: player.teamName,
-            slotPosition: SLOT_KEY_TO_ROSTER_POSITION[player.slotKey],
+            slotPosition: SLOT_TYPE_TO_ROSTER_POSITION[slot.type],
+            slotIndex: slot.index,
             salaryAtLock: player.salaryAtLock,
         }
     }
@@ -259,18 +306,21 @@ export class MeService implements IMeService {
 
         const captainId = row.captainExternalPlayerId
 
-        // OF slots in the DB collapse LF/CF/RF down to 'OF', but the team
-        // builder edit page expects distinct slot keys. Distribute OF rows
-        // across LF→CF→RF in iteration order; non-OF slots map 1:1. Without
-        // this, only P/C/SS slots survived the team-builder's isSlotKey
-        // filter and edits showed only 3 players.
-        let ofCursor = 0
-        const rosterSlots = row.rosterSlots.map((slot) => {
-            const slotKey =
-                slot.slotPosition === 'OF'
-                    ? (OF_SLOT_KEYS[ofCursor++] ?? 'OF')
-                    : (NON_OF_ROSTER_TO_SLOT_KEY[slot.slotPosition] ??
-                      String(slot.slotPosition))
+        // Teams saved before slot indexes existed hold several rows with the
+        // same (type, index 0). Give colliding rows the next free index, in
+        // creation order, so LF/CF/RF (OF:0/1/2) come back distinct.
+        const used = new Set<string>()
+        const ordered = [...row.rosterSlots].sort(
+            (a, b) =>
+                a.createdAt.getTime() - b.createdAt.getTime() ||
+                a.id.localeCompare(b.id),
+        )
+        const rosterSlots = ordered.map((slot) => {
+            const type = ROSTER_POSITION_TO_SLOT_TYPE[slot.slotPosition]
+            let index = slot.slotIndex
+            while (used.has(toSlotId(type, index))) index++
+            const slotKey = toSlotId(type, index)
+            used.add(slotKey)
             const playerPos =
                 PLAYER_POSITION_TO_POOL_POSITION[slot.playerPosition] ??
                 String(slot.playerPosition)
@@ -294,7 +344,10 @@ export class MeService implements IMeService {
             name: row.name,
             leagueSlug: row.leagueSlug,
             platform: row.platform,
-            scoringPreset: row.scoringPreset,
+            ...this.settingsOf(row),
+            isComplete:
+                buildSlots(this.settingsOf(row).slotConfig).length ===
+                row.rosterSlots.length,
             players: row.rosterSlots.length,
             proj: 0,
             captain: captainId !== null,
@@ -303,4 +356,10 @@ export class MeService implements IMeService {
             rosterSlots,
         }
     }
+}
+
+function definedOnly<T extends object>(value: T): Partial<T> {
+    return Object.fromEntries(
+        Object.entries(value).filter(([, entry]) => entry !== undefined),
+    ) as Partial<T>
 }

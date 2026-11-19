@@ -1,4 +1,4 @@
-import type { PrismaClient } from '../../../src/generated/prisma/client'
+import type { Prisma, PrismaClient } from '../../../src/generated/prisma/client'
 import { prisma } from '../../lib/prisma'
 import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-team.model'
 import { handleRepositoryError } from '../../shared/db/prisma-error.utils'
@@ -7,9 +7,19 @@ import { ErrorCode } from '../../errors/error-code.enum'
 
 import type {
     CreateFantasyTeamInput,
+    FantasyTeamSettingsInput,
     IFantasyTeamRepository,
     ReplaceRosterInput,
 } from './fantasy-team.repository.interface'
+
+// ScoringRules and SlotConfig are plain JSON; Prisma just cannot see that.
+function settingsData(settings: Partial<FantasyTeamSettingsInput>) {
+    return {
+        ...settings,
+        scoringRules: settings.scoringRules as unknown as Prisma.InputJsonValue | undefined,
+        slotConfig: settings.slotConfig as unknown as Prisma.InputJsonValue | undefined,
+    }
+}
 
 export class FantasyTeamRepository implements IFantasyTeamRepository {
     constructor(private readonly db: PrismaClient = prisma) {}
@@ -57,7 +67,7 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                     name: input.name,
                     leagueSlug: input.leagueSlug,
                     platform: input.platform,
-                    scoringPreset: input.scoringPreset,
+                    ...settingsData(input.settings ?? {}),
                     captainExternalPlayerId: input.captainExternalPlayerId,
                     rosterSlots: {
                         create: input.rosterSlots.map((slot) => ({
@@ -66,6 +76,7 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                             playerPosition: slot.playerPosition,
                             playerTeamName: slot.playerTeamName,
                             slotPosition: slot.slotPosition,
+                            slotIndex: slot.slotIndex,
                             salaryAtLock: slot.salaryAtLock,
                         })),
                     },
@@ -94,6 +105,7 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                         playerPosition: slot.playerPosition,
                         playerTeamName: slot.playerTeamName,
                         slotPosition: slot.slotPosition,
+                        slotIndex: slot.slotIndex,
                         salaryAtLock: slot.salaryAtLock,
                     })),
                 })
@@ -103,7 +115,7 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                     data: {
                         captainExternalPlayerId: input.captainExternalPlayerId,
                         platform: input.platform,
-                        scoringPreset: input.scoringPreset,
+                        ...settingsData(input.settings ?? {}),
                     },
                     include: { rosterSlots: true },
                 })
