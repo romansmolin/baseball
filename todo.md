@@ -16,4 +16,5 @@
 - [ ] **Smoke-test AI picks with a real `OPENAI_API_KEY` once MLB games are scheduled** (spring). The paid success path was not run end to end: there is no key in the test setup and no scheduled games in the off-season.
 - [ ] Remove `SHOWCASE_ENABLED` and any remaining cron settings from the deployment environment; the app no longer reads them.
 - [ ] Decide whether to keep the salary cap, budget meter and captain multiplier in the team builder. They are contest-style mechanics that were left untouched.
-
+- [ ] Before running `prisma db seed` in production, check that no real account has `provider = 'demo'`: the seed deletes those users and their ledger rows along with the old `@seed.local` accounts.
+- [ ] Optional: park factors for the game estimate and player outlook (no free source is wired in yet), and loading both Statcast roles for two-way players.

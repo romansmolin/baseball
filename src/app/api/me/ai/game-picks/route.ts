@@ -54,6 +54,7 @@ export async function POST(request: Request) {
         })
     } catch (error) {
         if (error instanceof ApiError) return error.toResponse()
-        return ApiError.internal(error instanceof Error ? error.message : 'Unexpected AI error').toResponse()
+        console.error('[ai route]', error)
+        return ApiError.internal().toResponse()
     }
 }

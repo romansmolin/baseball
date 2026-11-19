@@ -62,8 +62,8 @@ All keyed by MLB `personId` (= current `externalPlayerId`).
 
 ### Estimates
 
-- **Game outcome estimate (free, deterministic):** log5-style team strength plus adjustments for probable starter quality, recent form, park, weather. Returns `{ homeWinProbability, confidence }`. Pure function, unit-tested.
-- **Player outlook (free, deterministic):** form (last 7/14/30 days vs season), platoon split vs the opposing starter's handedness, expected stats vs actual (regression signal), park and weather. Returns a score and the factors behind it.
+- **Game outcome estimate (free, deterministic):** log5-style team strength plus adjustments for probable starter quality and recent form (last 10 games). Park and weather are not inputs: win probability is not symmetric in either, and no park-factor source is wired in (deferred). Returns `{ homeWinProbability, confidence }`. Pure function, unit-tested.
+- **Player outlook (free, deterministic):** form (last 14 games vs season; analytics also show 7/14/30-game windows), platoon split vs the opposing starter's handedness, expected stats vs actual (regression signal), and weather for hitters. No park factor yet (deferred). Returns a score and the factors behind it.
 - **AI layer (credits):** explains the estimates and recommends players for a specific game. Existing AI features are kept and reworked: `matchup-predictor` becomes "explain the game estimate"; `lineup-optimizer` / `team-builder-autofill` take a game as the target; `player-analysis` and `trade-advisor` stay. AI input includes the deterministic numbers so the model cannot invent them.
 - Scoring-format presets used by analytics and the builder: points (generic) and 5x5 category. My call; fantasy platforms differ and v1 should not model every one.
 

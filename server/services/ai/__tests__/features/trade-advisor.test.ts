@@ -91,9 +91,9 @@ describe('TradeAdvisorFeature', () => {
         ).toBe(false)
     })
 
-    it('input schema defaults scoringPreset to POINTS and rejects unknown presets', () => {
+    it('input schema leaves scoringPreset open and rejects unknown presets', () => {
         const ok = tradeAdvisorInputSchema.parse({ giving: ['1'], receiving: ['2'] })
-        expect(ok.scoringPreset).toBe('POINTS')
+        expect(ok.scoringPreset).toBeUndefined()
         expect(
             tradeAdvisorInputSchema.safeParse({
                 giving: ['1'],
@@ -163,6 +163,24 @@ describe('TradeAdvisorFeature', () => {
         })
         const inputJson = (openai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0].input
         expect(inputJson).toContain('Roster Guy')
+    })
+
+    it('uses the saved team scoring preset when none is sent, and POINTS without a team', async () => {
+        const withTeam = buildOpenAI(validOutput)
+        await new TradeAdvisorFeature(
+            withTeam,
+            buildSportsProvider(),
+            buildFantasyTeamRepo({ ...savedTeam('u1'), scoringPreset: 'CATEGORIES_5X5' }),
+        ).invoke('u1', { teamId: 't1', giving: ['1'], receiving: ['2'] })
+        const noTeam = buildOpenAI(validOutput)
+        await new TradeAdvisorFeature(noTeam, buildSportsProvider(), buildFantasyTeamRepo()).invoke('u1', {
+            giving: ['1'],
+            receiving: ['2'],
+        })
+
+        const sent = (ai: ReturnType<typeof buildOpenAI>) => (ai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0].input
+        expect(sent(withTeam)).toContain('CATEGORIES_5X5')
+        expect(sent(noTeam)).toContain('POINTS')
     })
 
     it('rejects a team owned by another user', async () => {

@@ -5,7 +5,7 @@
 
 import { z } from 'zod'
 
-import { SCORING_PRESETS } from '../../../../src/shared/team-builder'
+import { SCORING_PRESETS, type ScoringPreset } from '../../../../src/shared/team-builder'
 import type { ExpectedStatsRole, ProviderExpectedStats } from '../../../providers/dto/provider-expected-stats.dto'
 import type { ProviderPlayer } from '../../../providers/dto/provider-player.dto'
 import type { ISportsProvider } from '../../../providers/sports-provider.interface'
@@ -27,7 +27,8 @@ export const gamePicksInputSchema = z.object({
     gamePk: z.number().int().positive(),
     // One of the user's saved teams, to tailor the advice to its roster.
     teamId: z.string().min(1).optional(),
-    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
+    // Left open on purpose: a saved team's preset applies unless one is sent, then POINTS.
+    scoringPreset: z.enum(SCORING_PRESETS).optional(),
 })
 export type GamePicksInput = z.input<typeof gamePicksInputSchema>
 
@@ -89,12 +90,12 @@ export class GamePicksFeature implements AIFeatureModule<GamePicksInput, GamePic
             throw ApiError.validationError('Picks are only available for games that have not started')
         }
 
-        const userRoster = await this.loadUserRoster(userId, parsed.teamId)
+        const { roster: userRoster, scoringPreset: teamPreset } = await this.loadUserTeam(userId, parsed.teamId)
         const candidates = await this.buildCandidates(detail)
 
         const { instructions, input: serialized } = buildGamePicksPrompt({
             nowIso: new Date().toISOString(),
-            scoringPreset: parsed.scoringPreset,
+            scoringPreset: parsed.scoringPreset ?? teamPreset ?? 'POINTS',
             game: {
                 gamePk: detail.game.gamePk,
                 home: detail.game.homeTeam.name,
@@ -125,19 +126,25 @@ export class GamePicksFeature implements AIFeatureModule<GamePicksInput, GamePic
         return result
     }
 
-    private async loadUserRoster(userId: string, teamId: string | undefined): Promise<GamePicksPromptContext['userRoster']> {
-        if (!teamId) return []
+    private async loadUserTeam(
+        userId: string,
+        teamId: string | undefined,
+    ): Promise<{ roster: GamePicksPromptContext['userRoster']; scoringPreset: ScoringPreset | null }> {
+        if (!teamId) return { roster: [], scoringPreset: null }
         const team = await this.fantasyTeamRepo.findById(teamId)
         if (!team) throw ApiError.notFound(ErrorCode.TEAM_NOT_FOUND, `Team ${teamId} not found`)
         if (team.userId !== userId) {
             throw new ApiError(403, ErrorCode.TEAM_NOT_OWNED, `Team ${teamId} is not owned by this user`)
         }
-        return team.rosterSlots.map((slot) => ({
-            externalPlayerId: slot.externalPlayerId,
-            playerName: slot.playerName,
-            slotPosition: String(slot.slotPosition),
-            playerPosition: String(slot.playerPosition),
-        }))
+        return {
+            scoringPreset: team.scoringPreset ?? null,
+            roster: team.rosterSlots.map((slot) => ({
+                externalPlayerId: slot.externalPlayerId,
+                playerName: slot.playerName,
+                slotPosition: String(slot.slotPosition),
+                playerPosition: String(slot.playerPosition),
+            })),
+        }
     }
 
     private async buildCandidates(

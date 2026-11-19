@@ -37,6 +37,8 @@ export function useGamePicks(gamePk: number) {
         setConfirming(false)
         try {
             await mutation.trigger({ teamId })
+        } catch {
+            // The failure is shown through `mutation.error`.
         } finally {
             // The balance changed if the call was charged.
             await mutate(['me', 'credits'])

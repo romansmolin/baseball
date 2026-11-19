@@ -22,7 +22,7 @@ import type { TradeAdvisorPromptContext } from '../prompts/trade-advisor.prompt'
 
 export const tradeAdvisorInputSchema = z.object({
     teamId: z.string().min(1).optional(),
-    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
+    scoringPreset: z.enum(SCORING_PRESETS).optional(),
     giving: z.array(z.string().min(1)).min(1),
     receiving: z.array(z.string().min(1)).min(1),
 })
@@ -75,12 +75,14 @@ export class TradeAdvisorFeature
         const parsed = this.inputSchema.parse(input)
 
         let userRoster: TradeAdvisorPromptContext['userRoster'] = []
+        let teamPreset: (typeof SCORING_PRESETS)[number] | null = null
         if (parsed.teamId) {
             const team = await this.fantasyTeamRepo.findById(parsed.teamId)
             if (!team) throw new Error(`Team ${parsed.teamId} not found`)
             if (team.userId !== userId) {
                 throw new Error(`Team ${parsed.teamId} is not owned by this user`)
             }
+            teamPreset = team.scoringPreset ?? null
             userRoster = team.rosterSlots.map((s) => ({
                 externalPlayerId: s.externalPlayerId,
                 playerName: s.playerName,
@@ -94,7 +96,7 @@ export class TradeAdvisorFeature
 
         const { instructions, input: serialized } = buildTradeAdvisorPrompt({
             nowIso: new Date().toISOString(),
-            scoringPreset: parsed.scoringPreset,
+            scoringPreset: parsed.scoringPreset ?? teamPreset ?? 'POINTS',
             userRoster,
             giving: givingPlayers,
             receiving: receivingPlayers,

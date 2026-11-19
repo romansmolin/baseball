@@ -114,9 +114,9 @@ const sentInput = (ai: IOpenAIProvider) =>
     JSON.parse((ai.complete as ReturnType<typeof vi.fn>).mock.calls[0][0].input)
 
 describe('game picks schemas', () => {
-    it('input needs a game and defaults the scoring preset to POINTS', () => {
+    it('input needs a game and leaves the scoring preset open until a team or the default decides it', () => {
         expect(gamePicksInputSchema.safeParse({}).success).toBe(false)
-        expect(gamePicksInputSchema.parse({ gamePk: 99 }).scoringPreset).toBe('POINTS')
+        expect(gamePicksInputSchema.parse({ gamePk: 99 }).scoringPreset).toBeUndefined()
     })
 
     it('output needs at least one pick', () => {
@@ -211,5 +211,31 @@ describe('GamePicksFeature', () => {
         await build({ ai, teams: teamRepo(team) }).invoke('u1', { gamePk: 99, teamId: 't', scoringPreset: 'POINTS' })
 
         expect(JSON.stringify(sentInput(ai).userRoster)).toContain('Roster Guy')
+    })
+
+    it('uses the saved team scoring preset when none is sent', async () => {
+        const ai = openai(validOutput([100]))
+        const team = { id: 't', userId: 'u1', scoringPreset: 'CATEGORIES_5X5', rosterSlots: [] }
+
+        await build({ ai, teams: teamRepo(team) }).invoke('u1', { gamePk: 99, teamId: 't' })
+
+        expect(sentInput(ai).scoringPreset).toBe('CATEGORIES_5X5')
+    })
+
+    it('lets an explicit preset win over the saved team', async () => {
+        const ai = openai(validOutput([100]))
+        const team = { id: 't', userId: 'u1', scoringPreset: 'CATEGORIES_5X5', rosterSlots: [] }
+
+        await build({ ai, teams: teamRepo(team) }).invoke('u1', { gamePk: 99, teamId: 't', scoringPreset: 'POINTS' })
+
+        expect(sentInput(ai).scoringPreset).toBe('POINTS')
+    })
+
+    it('falls back to POINTS with no team and no preset', async () => {
+        const ai = openai(validOutput([100]))
+
+        await build({ ai }).invoke('u1', { gamePk: 99 })
+
+        expect(sentInput(ai).scoringPreset).toBe('POINTS')
     })
 })

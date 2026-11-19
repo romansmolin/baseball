@@ -27,7 +27,7 @@ function buildOrchestrator() {
 
 const requestSchema = z.object({
     teamId: z.string().min(1).optional(),
-    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
+    scoringPreset: z.enum(SCORING_PRESETS).optional(),
     giving: z.array(z.string().min(1)).min(1),
     receiving: z.array(z.string().min(1)).min(1),
 })
@@ -60,8 +60,7 @@ export async function POST(request: Request) {
         })
     } catch (error) {
         if (error instanceof ApiError) return error.toResponse()
-        return ApiError.internal(
-            error instanceof Error ? error.message : 'Unexpected AI error',
-        ).toResponse()
+        console.error('[ai route]', error)
+        return ApiError.internal().toResponse()
     }
 }
