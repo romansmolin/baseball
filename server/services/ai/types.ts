@@ -5,9 +5,8 @@
 import { z } from 'zod'
 
 export const AI_FEATURE_KEYS = {
-    GAME_PICKS: 'game_picks',
-    PLAYER_ANALYSIS: 'player_analysis',
-    TRADE_ADVISOR: 'trade_advisor',
+    GAME_ANALYSIS: 'game_analysis',
+    PERFORMER_ANALYTICS: 'performer_analytics',
     TEAM_BUILDER_AUTOFILL: 'team_builder_autofill',
 } as const
 

@@ -255,8 +255,7 @@ hooks + `use-team-builder-state` + `league-team-selector`, players widget
 - **`getPlayerById`** can't know a player's level, so its team-name enrichment
   uses the MLB team set — a MiLB player's `teamName` still resolves from the raw
   `currentTeam` field, but `teamAbbreviation` may be `null`.
-- **AI features other than Autofill** (player-analysis, lineup-optimizer,
-  matchup-predictor, trade-advisor) still call the provider without a league →
+- **AI features other than Autofill** (game analysis, performer analytics) still call the provider without a league →
   MLB only. Out of scope for this task; the plumbing (optional `league` on every
   provider method) is in place to extend them later.
 - **`/players` sidebar** shows a player count only for the currently selected

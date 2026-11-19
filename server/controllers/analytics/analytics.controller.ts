@@ -29,6 +29,7 @@ export class AnalyticsController implements IAnalyticsController {
             const analytics = await this.analyticsService.getPlayerAnalytics(
                 id.data,
                 query.data.season ?? env.defaultSeason(),
+                query.data.league,
             )
             if (!analytics) {
                 return ApiError.notFound(ErrorCode.PLAYER_NOT_FOUND, `Player not found: ${id.data}`).toResponse()

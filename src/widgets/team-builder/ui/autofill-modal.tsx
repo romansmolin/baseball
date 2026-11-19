@@ -9,7 +9,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { Dialog } from '@base-ui/react/dialog'
 import { useEffect, useMemo, useState } from 'react'
 
-import type { BuilderTeam } from '@/shared/team-builder'
+import { AUTOFILL_COST_CREDITS, type BuilderTeam } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
 interface AutofillModalProps {
@@ -134,8 +134,8 @@ const Header = ({
                 Generate with AI from teams
             </Dialog.Title>
             <Dialog.Description className="mt-1 text-xs text-muted-foreground">
-                Pick the {leagueName ?? ''} teams the AI should draw from. Costs
-                3 credits per run.
+                Pick the {leagueName ?? ''} teams the AI should draw from. Costs{' '}
+                {AUTOFILL_COST_CREDITS} credits per run.
             </Dialog.Description>
         </div>
         <button

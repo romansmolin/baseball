@@ -1,6 +1,6 @@
 // SWR key for one player's analytics; null disables the request.
-export function playerAnalyticsKey(playerId: number | null, season?: number) {
-    return playerId === null ? null : (['analytics', 'player', playerId, season] as const)
+export function playerAnalyticsKey(playerId: number | null, season?: number, league?: string) {
+    return playerId === null ? null : (['analytics', 'player', playerId, season, league] as const)
 }
 
 // SWR key for a compare request; needs at least two players, otherwise null (no request).

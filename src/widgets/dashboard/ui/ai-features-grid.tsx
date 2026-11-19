@@ -1,11 +1,6 @@
 'use client'
 
-import {
-    ChartIncreaseIcon,
-    ChartLineData01Icon,
-    MagicWand01Icon,
-    SparklesIcon,
-} from '@hugeicons/core-free-icons'
+import { ChartLineData01Icon, SparklesIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import { useAIFeaturesData } from '@/entities/dashboard'
@@ -13,9 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { AIFeature } from '@/shared/dashboard'
 
 const iconForKey = {
-    lineup: MagicWand01Icon,
     analysis: ChartLineData01Icon,
-    trade: ChartIncreaseIcon,
     autofill: SparklesIcon,
 }
 

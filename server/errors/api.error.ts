@@ -25,6 +25,10 @@ export class ApiError extends Error {
         return new ApiError(401, ErrorCode.UNAUTHENTICATED, message)
     }
 
+    static forbidden(message = 'Admin access required'): ApiError {
+        return new ApiError(403, ErrorCode.FORBIDDEN, message)
+    }
+
     static notFound(code: ErrorCode, message: string): ApiError {
         return new ApiError(404, code, message)
     }

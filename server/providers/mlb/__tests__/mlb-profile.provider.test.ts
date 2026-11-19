@@ -38,6 +38,23 @@ describe('MlbSportsProvider.getPlayerProfile', () => {
         expect(profile?.pitching).not.toBeNull()
     })
 
+    it('reads stats at the requested level, otherwise the API answers with MLB stats only', async () => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async (url: string) => {
+                fetchedUrls.push(url)
+                return url.includes('/teams?') ? json({ teams: [] }) : json(ohtani)
+            }),
+        )
+
+        await new MlbSportsProvider().getPlayerProfile(660271, 2025, 'single-a')
+        await new MlbSportsProvider().getPlayerProfile(660271, 2025)
+
+        const [withLevel, withoutLevel] = fetchedUrls.filter((u) => u.includes('/people/660271'))
+        expect(withLevel).toContain('sportId=14')
+        expect(withoutLevel).not.toContain('sportId')
+    })
+
     it('returns null when MLB does not know the player', async () => {
         vi.stubGlobal('fetch', vi.fn(async () => notFound()))
 

@@ -8,6 +8,7 @@ import type {
     PitchingLine,
     PlayerAnalytics,
 } from '../../../src/shared/analytics'
+import type { BaseballProviderLeague } from '../../../src/shared/baseball'
 import type {
     ExpectedStatsRole,
     ProviderExpectedStats,
@@ -47,8 +48,8 @@ export class AnalyticsService implements IAnalyticsService {
         this.loadExpected = loadExpected
     }
 
-    async getPlayerAnalytics(id: number, season: number): Promise<PlayerAnalytics | null> {
-        const profile = await this.sportsProvider.getPlayerProfile(id, season)
+    async getPlayerAnalytics(id: number, season: number, league?: BaseballProviderLeague): Promise<PlayerAnalytics | null> {
+        const profile = await this.sportsProvider.getPlayerProfile(id, season, league)
         if (!profile) return null
 
         const expected = await this.loadExpectedFor([profile], season)

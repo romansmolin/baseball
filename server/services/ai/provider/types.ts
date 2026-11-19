@@ -8,7 +8,7 @@ import type { TokenUsage } from '../types'
 // NOT under `response_format` (that's Chat Completions). `strict: false` is
 // intentional — strict mode requires every property to appear in `required`
 // and forbids `.optional()` zod fields, which we use for things like
-// trade_advisor's counterProposal. We still rely on zod to validate the
+// optional response fields. We still rely on zod to validate the
 // model's response on the way back out.
 export interface OpenAITextFormat {
     type: 'json_schema'

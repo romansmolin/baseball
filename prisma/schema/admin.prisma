@@ -1,0 +1,10 @@
+model DemoReportJob {
+  id           String   @id @default(cuid())
+  userId       String
+  status       String
+  fileBase64   String?  @db.Text
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

@@ -31,8 +31,19 @@ describe('AnalyticsController.getPlayerAnalytics', () => {
             new URLSearchParams({ season: '2024' }),
         )
 
-        expect(getPlayerAnalytics).toHaveBeenCalledWith(1, 2024)
+        expect(getPlayerAnalytics).toHaveBeenCalledWith(1, 2024, undefined)
         expect(res.status).toBe(200)
+    })
+
+    it('passes the requested league to the service, so a minor leaguer is read at his own level', async () => {
+        const getPlayerAnalytics = vi.fn().mockResolvedValue({ player: { id: 1 } })
+
+        await new AnalyticsController(service({ getPlayerAnalytics })).getPlayerAnalytics(
+            '1',
+            new URLSearchParams({ season: '2024', league: 'single-a' }),
+        )
+
+        expect(getPlayerAnalytics).toHaveBeenCalledWith(1, 2024, 'single-a')
     })
 
     it('answers 503 when the data provider is down', async () => {

@@ -2,6 +2,12 @@ import type { BaseballProviderLeague, SupportedBaseballLeague } from '../../../s
 import { POSITION_GROUP } from '../../../src/shared/sports'
 import { env } from '../../lib/env'
 import type { ProviderGameContext } from '../dto/provider-game-context.dto'
+import type {
+    GetPerformerLogFilters,
+    GetPerformersFilters,
+    ProviderPerformerLine,
+    ProviderPerformerLog,
+} from '../dto/provider-performer.dto'
 import type { Paginated } from '../dto/provider-pagination.dto'
 import type { ProviderPlayerProfile } from '../dto/provider-player-profile.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from '../dto/provider-player.dto'
@@ -39,6 +45,7 @@ import type { MlbRawBoxScoreResponse } from './types/mlb-boxscore.raw'
 import type { MlbRawPeopleResponse, MlbRawPerson } from './types/mlb-person.raw'
 import type { MlbRawRosterResponse } from './types/mlb-roster.raw'
 import type { MlbRawScheduleResponse } from './types/mlb-schedule.raw'
+import type { MlbRawPlayerStatsResponse, MlbRawStatsResponse } from './types/mlb-stats.raw'
 import type { MlbRawStandingsResponse } from './types/mlb-standings.raw'
 import type { MlbRawTeamsResponse } from './types/mlb-team.raw'
 
@@ -266,10 +273,12 @@ export class MlbSportsProvider implements ISportsProvider {
         return games
     }
 
-    async getPlayerProfile(id: number, season: number): Promise<ProviderPlayerProfile | null> {
+    async getPlayerProfile(id: number, season: number, league?: BaseballProviderLeague): Promise<ProviderPlayerProfile | null> {
+        // Stats are served per level: without a sportId the API answers with MLB stats only.
+        const level = league ? `,sportId=${resolveSportId(league)}` : ''
         const hydrate =
             'currentTeam,rosterEntries,' +
-            `stats(group=[hitting,pitching],type=[season,sabermetrics,statSplits,gameLog],sitCodes=[vl,vr,h,a],season=${season})`
+            `stats(group=[hitting,pitching],type=[season,sabermetrics,statSplits,gameLog],sitCodes=[vl,vr,h,a],season=${season}${level})`
         try {
             const data = await mlbFetch<MlbRawPeopleResponse>(
                 `/people/${id}?hydrate=${hydrate}`,
@@ -277,7 +286,7 @@ export class MlbSportsProvider implements ISportsProvider {
             )
             const raw = data.people[0]
             if (!raw) return null
-            const teamLookup = raw.currentTeam?.id != null ? await this.buildTeamLookup(season) : undefined
+            const teamLookup = raw.currentTeam?.id != null ? await this.buildTeamLookup(season, league) : undefined
             return mapMlbPersonToProfile(raw, teamLookup)
         } catch (error) {
             if (error instanceof ProviderNotFoundError) return null
@@ -342,6 +351,53 @@ export class MlbSportsProvider implements ISportsProvider {
         )
 
         return games.map((game) => mapMlbScheduleGameToContext(game, pitchersById))
+    }
+
+    async getPerformers(filters: GetPerformersFilters): Promise<ProviderPerformerLine[]> {
+        const startStr = toDateOnly(filters.startDateUtc)
+        const endStr = toDateOnly(filters.endDateUtc)
+        const sportId = resolveSportId(filters.league)
+        const season = filters.season ?? env.defaultSeason()
+        const sortStat = filters.group === 'hitting' ? 'totalBases' : 'strikeOuts'
+
+        const data = await mlbFetch<MlbRawStatsResponse>(
+            `/stats?stats=byDateRange&group=${filters.group}&playerPool=ALL&sportIds=${sportId}` +
+                `&season=${season}&startDate=${startStr}&endDate=${endStr}` +
+                `&sortStat=${sortStat}&order=desc&limit=${filters.limit}`,
+            { revalidate: MLB_REVALIDATE.schedule, tags: [mlbTags.schedule(sportId, startStr, endStr, filters.group)] },
+        )
+
+        return (data.stats[0]?.splits ?? []).flatMap((split) =>
+            split.player && split.team
+                ? [{
+                      playerId: split.player.id,
+                      fullName: split.player.fullName,
+                      teamId: split.team.id,
+                      teamName: split.team.name,
+                      position: split.position?.abbreviation ?? null,
+                      stat: split.stat,
+                  }]
+                : [],
+        )
+    }
+
+    async getPerformerLog(filters: GetPerformerLogFilters): Promise<ProviderPerformerLog> {
+        const sportId = resolveSportId(filters.league)
+        const season = filters.season ?? env.defaultSeason()
+
+        const data = await mlbFetch<MlbRawPlayerStatsResponse>(
+            `/people/${filters.playerId}/stats?stats=gameLog,season&group=${filters.group}` +
+                `&season=${season}&sportId=${sportId}`,
+            { revalidate: MLB_REVALIDATE.schedule, tags: [mlbTags.playerStats(filters.playerId, season)] },
+        )
+
+        const splitsOf = (type: string) => data.stats?.find((s) => s.type?.displayName === type)?.splits ?? []
+        return {
+            games: splitsOf('gameLog').flatMap((split) =>
+                split.date ? [{ date: split.date, opponentName: split.opponent?.name ?? 'Unknown', stat: split.stat }] : [],
+            ),
+            season: splitsOf('season')[0]?.stat ?? null,
+        }
     }
 
     async getBoxScore(

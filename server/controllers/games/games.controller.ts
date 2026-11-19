@@ -8,7 +8,9 @@ import { errorResponse } from '../provider-error.response'
 import type { IGamesController } from './games.controller.interface'
 
 const DEFAULT_LIMIT = 6
-const MAX_LIMIT = 30
+const MAX_LIMIT = 250
+const DEFAULT_DAYS = 4
+const MAX_DAYS = 14
 
 export class GamesController implements IGamesController {
     private readonly gamesService: IGamesService
@@ -20,7 +22,8 @@ export class GamesController implements IGamesController {
     async getUpcomingGames(searchParams: URLSearchParams): Promise<Response> {
         try {
             const limit = clampLimit(searchParams.get('limit'))
-            const games = await this.gamesService.getUpcomingGames(limit)
+            const days = clampDays(searchParams.get('days'))
+            const games = await this.gamesService.getUpcomingGames(limit, days)
             return Response.json(games)
         } catch (error) {
             if (error instanceof ApiError) return error.toResponse()
@@ -57,4 +60,10 @@ function clampLimit(raw: string | null): number {
     const parsed = Number.parseInt(raw, 10)
     if (Number.isNaN(parsed) || parsed < 1) return DEFAULT_LIMIT
     return Math.min(MAX_LIMIT, parsed)
+}
+
+function clampDays(raw: string | null): number {
+    const parsed = Number.parseInt(raw ?? '', 10)
+    if (Number.isNaN(parsed) || parsed < 1) return DEFAULT_DAYS
+    return Math.min(MAX_DAYS, parsed)
 }

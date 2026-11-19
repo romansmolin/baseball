@@ -28,7 +28,7 @@ export default function ServicesPage() {
                         'Player comparison: up to four players side by side.',
                         'Upcoming games: probable starting pitchers, weather, lineup status and a statistical estimate of the outcome.',
                         'Saved teams: a roster you build and keep for use on another fantasy platform.',
-                        'AI features, paid with credits: picks for a single game, player analysis, trade advice and team autofill.',
+                        'AI features, paid with credits: game analysis, charts that explain a top performer and team autofill.',
                     ]}
                 />
                 <P>

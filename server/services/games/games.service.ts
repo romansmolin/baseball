@@ -31,9 +31,9 @@ export class GamesService implements IGamesService {
         this.sportsProvider = sportsProvider
     }
 
-    async getUpcomingGames(limit: number): Promise<UpcomingGameRecord[]> {
+    async getUpcomingGames(limit: number, days: number = UPCOMING_WINDOW_DAYS): Promise<UpcomingGameRecord[]> {
         const now = new Date()
-        const end = new Date(now.getTime() + UPCOMING_WINDOW_DAYS * MS_PER_DAY)
+        const end = new Date(now.getTime() + days * MS_PER_DAY)
 
         const games = await this.loadSchedule({ startDateUtc: now, endDateUtc: end })
 

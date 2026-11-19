@@ -30,6 +30,8 @@ export interface PoolPlayer {
     score?: number | null
     categoryChips?: CategoryChip[]
     photoUrl: string | null
+    // false when the player has no plate appearances or innings this season (nothing to compare).
+    hasSeasonStats?: boolean
 }
 
 export type Roster = Record<SlotKey, number | null>

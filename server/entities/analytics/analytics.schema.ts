@@ -1,10 +1,12 @@
 import { z } from 'zod'
 
 import { GAME_LEAGUES } from '../../../src/shared/games'
+import { baseballLeagueEnum } from '../baseball-league.schema'
 
 const season = z.coerce.number().int().min(1900).max(2100).optional()
 
-export const playerAnalyticsQuerySchema = z.object({ season })
+// `league`: the level the player is looked up at (MLB when omitted). Minor-league stats are only served under that level.
+export const playerAnalyticsQuerySchema = z.object({ season, league: baseballLeagueEnum.optional() })
 
 const MIN_COMPARE_PLAYERS = 2
 const MAX_COMPARE_PLAYERS = 4

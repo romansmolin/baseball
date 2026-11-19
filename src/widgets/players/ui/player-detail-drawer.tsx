@@ -4,6 +4,7 @@ import { Cancel01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { useEffect } from 'react'
 
+import { isSupportedBaseballLeague } from '@/shared/baseball'
 import { cn } from '@/shared/utils'
 
 import { AVAILABILITY } from '../model/player.type'
@@ -195,7 +196,7 @@ const DrawerContent = ({
 
             <div className="flex-1 overflow-y-auto px-6 py-5">
                 {drawerTab === 'analytics' ? (
-                    <PlayerAnalyticsTab playerId={player.id} />
+                    <PlayerAnalyticsTab playerId={player.id} league={isSupportedBaseballLeague(player.leagueSlug) ? player.leagueSlug : undefined} />
                 ) : (
                     <PlayerStatsTab player={player} />
                 )}

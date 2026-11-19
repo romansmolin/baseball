@@ -10,6 +10,7 @@ const createPrismaClient = () => {
     return new PrismaClient({ adapter, log: ['error'] })
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+// A regenerated client may add models while Next.js retains the old development singleton.
+export const prisma = globalForPrisma.prisma?.demoReportJob ? globalForPrisma.prisma : createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma

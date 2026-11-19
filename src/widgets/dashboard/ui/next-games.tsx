@@ -1,114 +1,180 @@
 'use client'
 
-import { Calendar01Icon, LiveStreaming01Icon } from '@hugeicons/core-free-icons'
+import { Calendar01Icon, Location01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import Link from 'next/link'
 
-import { useUpcomingGamesData } from '@/entities/games'
-import type { UpcomingGameRecord, UpcomingGameStatus } from '@/shared/games'
+import { GameAnalysisButton } from '@/features/game-analysis'
+import type { UpcomingGameRecord, UpcomingGameStatus, UpcomingGameTeam } from '@/shared/games'
+import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
-import { cn } from '@/shared/utils'
+import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import { TeamLogo } from '@/shared/ui/team-logo'
 
-const LIMIT = 6
+import { type NextGamesTab, useNextGames } from '../model/use-next-games'
 
 export const NextGames = () => {
-    const { data, error, isLoading } = useUpcomingGamesData(LIMIT)
-    const games = data ?? []
+    const { tab, selectTab, games, hasMore, showMore, error, isLoading } = useNextGames()
 
     return (
         <Card className="h-full">
-            <CardHeader className="flex flex-row items-center justify-between gap-2">
-                <CardTitle className="text-base">Next games</CardTitle>
-                <HugeiconsIcon
-                    icon={Calendar01Icon}
-                    className="size-4 text-muted-foreground"
-                />
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                    Next games
+                    <HugeiconsIcon icon={Calendar01Icon} className="size-4 text-muted-foreground" />
+                </CardTitle>
+                <Tabs value={tab} onValueChange={(v) => selectTab(v as NextGamesTab)}>
+                    <TabsList>
+                        <TabsTrigger value="soon">Soon</TabsTrigger>
+                        <TabsTrigger value="this-week">This week</TabsTrigger>
+                        <TabsTrigger value="next-week">Next week</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </CardHeader>
-            <CardContent className="flex flex-col">
+            <CardContent className="flex flex-col gap-4">
                 {error ? (
                     <div className="px-2 py-3 text-sm text-muted-foreground">
                         Couldn&apos;t load the schedule.
                     </div>
                 ) : isLoading ? (
-                    [0, 1, 2, 3, 4, 5].map((i) => <GameRowSkeleton key={i} />)
+                    <div className={GRID}>
+                        {[0, 1, 2, 3, 4, 5].map((i) => (
+                            <GameCardSkeleton key={i} />
+                        ))}
+                    </div>
                 ) : games.length === 0 ? (
                     <div className="px-2 py-3 text-sm text-muted-foreground">
-                        No games on the schedule for the next few days.
+                        No games on the schedule for this period.
                     </div>
                 ) : (
-                    games.map((game) => <GameRow key={game.gamePk} game={game} />)
+                    <div className={GRID}>
+                        {games.map((game) => (
+                            <GameTile key={game.gamePk} game={game} />
+                        ))}
+                    </div>
+                )}
+                {hasMore && (
+                    <Button variant="outline" className="self-center" onClick={showMore}>
+                        Show more
+                    </Button>
                 )}
             </CardContent>
         </Card>
     )
 }
 
-interface GameRowProps {
-    game: UpcomingGameRecord
-}
+const GRID = 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3'
 
-const GameRow = ({ game }: GameRowProps) => {
+const gameHref = (game: UpcomingGameRecord) =>
+    game.leagueSlug && game.leagueSlug !== 'mlb'
+        ? `/games/${game.gamePk}?league=${game.leagueSlug}`
+        : `/games/${game.gamePk}`
+
+const GameTile = ({ game }: { game: UpcomingGameRecord }) => {
     const date = new Date(game.gameDateUtc)
-    const awayLabel = game.awayTeam.teamName ?? game.awayTeam.abbreviation
-    const homeLabel = game.homeTeam.teamName ?? game.homeTeam.abbreviation
+    const started = game.status === 'LIVE'
+
     return (
-        <div className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/40">
-            <div className="flex min-w-0 flex-1 flex-col">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                    <span className="truncate">{awayLabel}</span>
-                    <span className="rounded bg-muted px-1 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-                        @
-                    </span>
-                    <span className="truncate">{homeLabel}</span>
+        <div className="flex flex-col rounded-xl border border-foreground/10 bg-card transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-sm">
+            <Link
+                href={gameHref(game)}
+                className="flex flex-col gap-4 rounded-t-xl p-4 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
+            >
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">{formatRelativeDay(date)}</span>
+                    <div className="flex items-center gap-2">
+                        <StatusBadge status={game.status} />
+                        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium tabular-nums">
+                            {formatClock(date)}
+                        </span>
+                    </div>
                 </div>
-                <div className="truncate text-xs text-muted-foreground">
-                    {game.venueName ??
-                        `${game.awayTeam.abbreviation} at ${game.homeTeam.abbreviation}`}
+
+                <div className="flex flex-col gap-2.5">
+                    <TeamLine
+                        team={game.awayTeam}
+                        pitcher={game.awayProbablePitcher}
+                        score={started ? game.awayScore : null}
+                    />
+                    <TeamLine
+                        team={game.homeTeam}
+                        pitcher={game.homeProbablePitcher}
+                        score={started ? game.homeScore : null}
+                    />
                 </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-1">
-                <span className="text-xs font-medium tabular-nums text-foreground">
-                    {formatRelativeDay(date)}
+            </Link>
+
+            <div className="mt-auto flex items-center justify-between gap-2 border-t border-foreground/10 px-4 py-2.5 text-xs text-muted-foreground">
+                <span className="flex min-w-0 items-center gap-1.5">
+                    <HugeiconsIcon icon={Location01Icon} className="size-3.5 shrink-0" />
+                    <span className="truncate">{game.venueName ?? 'Venue TBD'}</span>
                 </span>
-                <div className="flex items-center gap-1.5">
-                    <StatusBadge status={game.status} />
-                    <span className="text-[10px] text-muted-foreground tabular-nums">
-                        {formatClock(date)}
-                    </span>
-                </div>
+                <GameAnalysisButton game={game} />
             </div>
         </div>
     )
 }
 
+interface TeamLineProps {
+    team: UpcomingGameTeam
+    pitcher: string | null
+    score: number | null
+}
+
+const TeamLine = ({ team, pitcher, score }: TeamLineProps) => (
+    <div className="flex items-center gap-3">
+        <TeamLogo
+            teamId={team.id}
+            label={team.abbreviation}
+            className="size-10 border border-foreground/10"
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-sm leading-tight font-semibold">
+                {team.teamName ?? team.abbreviation}
+            </span>
+            <span className="truncate text-xs text-muted-foreground">
+                {pitcher ?? 'Starter TBD'}
+            </span>
+        </div>
+        {score !== null && <span className="text-lg font-semibold tabular-nums">{score}</span>}
+    </div>
+)
+
 const StatusBadge = ({ status }: { status: UpcomingGameStatus }) => {
     if (status === 'LIVE') {
         return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                <HugeiconsIcon icon={LiveStreaming01Icon} className="size-2.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                <span className="size-1.5 animate-pulse rounded-full bg-primary" />
                 Live
             </span>
         )
     }
     if (status === 'POSTPONED') {
         return (
-            <span className="rounded-full border border-foreground/15 px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                PPD
+            <span className="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
+                Postponed
             </span>
         )
     }
     return null
 }
 
-const GameRowSkeleton = () => (
-    <div className="flex items-center gap-3 px-2 py-2">
-        <div className="flex flex-1 flex-col gap-1">
-            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-            <div className="h-2.5 w-40 animate-pulse rounded bg-muted" />
+const GameCardSkeleton = () => (
+    <div className="flex flex-col gap-4 rounded-xl border border-foreground/10 p-4">
+        <div className="flex justify-between">
+            <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+            <div className="h-5 w-16 animate-pulse rounded bg-muted" />
         </div>
-        <div className="flex flex-col items-end gap-1">
-            <div className="h-3 w-16 animate-pulse rounded bg-muted" />
-            <div className="h-2.5 w-10 animate-pulse rounded bg-muted" />
-        </div>
+        {[0, 1].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+                <div className="size-10 animate-pulse rounded-full bg-muted" />
+                <div className="flex flex-col gap-1.5">
+                    <div className="h-3.5 w-28 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                </div>
+            </div>
+        ))}
+        <div className="h-3 w-36 animate-pulse rounded bg-muted" />
     </div>
 )
 
@@ -140,6 +206,3 @@ const startOfDay = (date: Date): Date => {
     copy.setHours(0, 0, 0, 0)
     return copy
 }
-
-// cn kept available in case future variants of GameRow need conditional classes.
-void cn

@@ -7,9 +7,10 @@ describe('playerAnalyticsKey', () => {
         expect(playerAnalyticsKey(null)).toBeNull()
     })
 
-    it('identifies the player and the season', () => {
-        expect(playerAnalyticsKey(660271)).toEqual(['analytics', 'player', 660271, undefined])
-        expect(playerAnalyticsKey(660271, 2025)).toEqual(['analytics', 'player', 660271, 2025])
+    it('identifies the player, the season and the level he is read at', () => {
+        expect(playerAnalyticsKey(660271)).toEqual(['analytics', 'player', 660271, undefined, undefined])
+        expect(playerAnalyticsKey(660271, 2025)).toEqual(['analytics', 'player', 660271, 2025, undefined])
+        expect(playerAnalyticsKey(660271, undefined, 'single-a')).toEqual(['analytics', 'player', 660271, undefined, 'single-a'])
     })
 })
 

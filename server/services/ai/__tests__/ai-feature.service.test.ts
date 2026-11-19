@@ -7,7 +7,7 @@ import type { IAIFeatureRepository } from '../repositories/ai-feature.repository
 import { AIFeatureService } from '../services/ai-feature.service'
 import type { AIFeatureModule } from '../types'
 
-const record = { id: 'f1', key: 'game_picks', costCredits: 20, modelName: 'm', isActive: true }
+const record = { id: 'f1', key: 'game_analysis', costCredits: 20, modelName: 'm', isActive: true }
 
 const repo = (): IAIFeatureRepository =>
     ({ findByKey: vi.fn().mockResolvedValue(record) }) as unknown as IAIFeatureRepository
@@ -21,7 +21,7 @@ const billing = (overrides: Partial<IAIBillingService> = {}): IAIBillingService 
 })
 
 const feature = (invoke: AIFeatureModule<unknown, unknown>['invoke']): AIFeatureModule<unknown, unknown> => ({
-    key: 'game_picks',
+    key: 'game_analysis',
     inputSchema: z.unknown(),
     outputSchema: z.unknown(),
     invoke,

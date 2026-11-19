@@ -1,6 +1,7 @@
 import { AIFeaturesGrid } from './ai-features-grid'
 import { CreditsSummary } from './credits-summary'
 import { NextGames } from './next-games'
+import { TopPerformers } from './top-performers'
 
 export const DashboardOverview = () => (
     <div className="space-y-6">
@@ -12,6 +13,7 @@ export const DashboardOverview = () => (
                 <CreditsSummary />
             </div>
         </div>
+        <TopPerformers />
         <NextGames />
     </div>
 )

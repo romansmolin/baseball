@@ -9,6 +9,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import {
+    AUTOFILL_COST_CREDITS,
     FANTASY_PLATFORMS,
     FANTASY_PLATFORM_LABEL,
     type FantasyPlatform,
@@ -100,7 +101,7 @@ export const SaveBar = ({
                             disabled={autofillDisabled}
                             title={
                                 canAutofill
-                                    ? 'AI fills the open slots with the best projected players (3 credits)'
+                                    ? `AI fills the open slots with the best projected players (${AUTOFILL_COST_CREDITS} credits)`
                                     : 'Pick a league first'
                             }
                             className={cn(

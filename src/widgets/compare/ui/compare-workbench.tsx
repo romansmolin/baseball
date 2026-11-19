@@ -13,11 +13,13 @@ export const CompareWorkbench = () => {
 
     return (
         <div className="space-y-5">
-            <ComparePicker selected={ids} onPick={add} />
+            <ComparePicker ids={ids} players={players} onPick={add} onRemove={remove} />
 
             {ids.length < 2 && (
                 <p className="rounded-lg border border-dashed border-foreground/15 px-4 py-10 text-center text-sm text-muted-foreground">
-                    Pick at least two players to compare their stats, recent form, splits and expected stats side by side.
+                    {ids.length === 0
+                        ? 'Pick two or more players to compare their stats, recent form, splits and expected stats side by side.'
+                        : 'Add one more player to see the comparison.'}
                 </p>
             )}
             {ids.length >= 2 && isLoading && <p className="text-sm text-muted-foreground">Loading comparison…</p>}

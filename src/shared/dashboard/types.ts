@@ -3,7 +3,7 @@ export interface AIFeature {
     name: string
     description: string
     costPerUse: number
-    iconKey: 'lineup' | 'analysis' | 'trade' | 'autofill'
+    iconKey: 'analysis' | 'autofill'
 }
 
 export interface DashboardUser {

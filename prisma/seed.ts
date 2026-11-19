@@ -31,35 +31,26 @@ async function seedAIFeatures(): Promise<void> {
     console.log('--- AI features ---')
     const features = [
         {
-            key: 'player_analysis',
-            name: 'Player Analysis',
-            costCredits: 10,
-            modelName: process.env.OPENAI_API_MODEL_DEFAULT ?? 'gpt-5.3',
-            description:
-                'Deep dive on form, matchup, and fantasy outlook',
-        },
-        {
-            key: 'trade_advisor',
-            name: 'Trade Advisor',
-            costCredits: 15,
+            key: 'game_analysis',
+            name: 'Game Analysis',
+            costCredits: 300,
             modelName:
                 process.env.OPENAI_API_MODEL_COMPLEX_REASONING ?? 'gpt-5.4',
             description:
-                'Evaluates proposed trades in season-long leagues',
+                'Pre-game briefing: likely result, key factors and which players to take',
         },
         {
-            key: 'game_picks',
-            name: 'Game Picks',
-            costCredits: 20,
-            modelName:
-                process.env.OPENAI_API_MODEL_COMPLEX_REASONING ?? 'gpt-5.4',
+            key: 'performer_analytics',
+            name: 'Performer Analytics',
+            costCredits: 100,
+            modelName: process.env.OPENAI_API_MODEL_CHEAP ?? 'gpt-5.2',
             description:
-                'Which players to start, sit or watch for one upcoming game',
+                'Charts that show why a top performer is hot: game-by-game points, trend, where the points came from and MLB context',
         },
         {
             key: 'team_builder_autofill',
             name: 'Team Builder Autofill',
-            costCredits: 3,
+            costCredits: 500,
             modelName: process.env.OPENAI_API_MODEL_CHEAP ?? 'gpt-5.2',
             description:
                 'AI-suggested picks to fill the team-builder lineup',
@@ -83,7 +74,7 @@ async function seedAIFeatures(): Promise<void> {
 
     // Retired features: usage logs reference the rows, so they are deactivated, not deleted.
     await prisma.aIFeature.updateMany({
-        where: { key: { in: ['lineup_optimizer', 'matchup_predictor'] } },
+        where: { key: { in: ['lineup_optimizer', 'matchup_predictor', 'game_picks', 'player_analysis', 'trade_advisor'] } },
         data: { isActive: false },
     })
 }

@@ -19,14 +19,16 @@ export const EstimateMeter = ({ estimate, awayLabel, homeLabel, showFactors = fa
                 <span className="font-medium">
                     {awayLabel} {formatPercentEstimate(1 - estimate.homeWinProbability)}
                 </span>
-                <span className="text-muted-foreground">
-                    Estimate · {CONFIDENCE_LABEL[estimate.confidence]}
-                </span>
+                <span className="text-muted-foreground">Estimate · {CONFIDENCE_LABEL[estimate.confidence]}</span>
                 <span className="font-medium">
                     {formatPercentEstimate(estimate.homeWinProbability)} {homeLabel}
                 </span>
             </div>
-            <div className="flex h-2 overflow-hidden rounded-full bg-muted" role="img" aria-label={`Win estimate: ${homeLabel} ${widths.home} percent, ${awayLabel} ${widths.away} percent`}>
+            <div
+                className="flex h-2 overflow-hidden rounded-full bg-muted"
+                role="img"
+                aria-label={`Win estimate: ${homeLabel} ${widths.home} percent, ${awayLabel} ${widths.away} percent`}
+            >
                 <div className="bg-foreground/35" style={{ width: `${widths.away}%` }} />
                 <div className="bg-primary" style={{ width: `${widths.home}%` }} />
             </div>

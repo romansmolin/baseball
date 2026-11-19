@@ -3,13 +3,15 @@
 import { ChartLineData01Icon } from '@hugeicons/core-free-icons'
 import Link from 'next/link'
 
+import type { SupportedBaseballLeague } from '@/shared/baseball'
+
 import { usePlayerAnalytics } from '../../model/use-player-analytics'
 
 import { ExpectedSection, HittingSection, OutlookCard, PitchingSection, StatusPill } from './analytics-sections'
 import { TabEmptyState } from './tab-empty-state'
 
-export const PlayerAnalyticsTab = ({ playerId }: { playerId: number }) => {
-    const { analytics, isLoading, error } = usePlayerAnalytics(playerId)
+export const PlayerAnalyticsTab = ({ playerId, league }: { playerId: number; league?: SupportedBaseballLeague }) => {
+    const { analytics, isLoading, error } = usePlayerAnalytics(playerId, league)
 
     if (isLoading) {
         return <div className="py-12 text-center text-sm text-muted-foreground">Loading analytics…</div>

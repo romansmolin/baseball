@@ -21,11 +21,7 @@ const game = (gamePk: number, gameDateUtc: string): UpcomingGameRecord => ({
 describe('groupGamesByDate', () => {
     it('groups games by calendar day in the given time zone, earliest day first', () => {
         const groups = groupGamesByDate(
-            [
-                game(3, '2026-04-02T00:30:00Z'),
-                game(1, '2026-04-01T01:00:00Z'),
-                game(2, '2026-04-01T23:00:00Z'),
-            ],
+            [game(3, '2026-04-02T00:30:00Z'), game(1, '2026-04-01T01:00:00Z'), game(2, '2026-04-01T23:00:00Z')],
             'UTC',
         )
 

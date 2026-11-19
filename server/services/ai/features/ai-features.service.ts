@@ -1,33 +1,27 @@
 import type { AIFeature } from '@/shared/dashboard'
+import { AUTOFILL_COST_CREDITS } from '@/shared/team-builder'
 import type { IAIFeaturesService } from './ai-features.service.interface'
 
 const AI_FEATURES: AIFeature[] = [
     {
-        id: 'game_picks',
-        name: 'Game picks',
-        description: 'Who to start, sit or watch in a game',
-        costPerUse: 20,
-        iconKey: 'lineup',
-    },
-    {
-        id: 'analysis',
-        name: 'Player analysis',
-        description: 'Stats, trends, matchups',
-        costPerUse: 10,
+        id: 'game_analysis',
+        name: 'Game analysis',
+        description: 'Likely result, key factors and players to take',
+        costPerUse: 300,
         iconKey: 'analysis',
     },
     {
-        id: 'trade',
-        name: 'Trade advisor',
-        description: 'Evaluate trade offers',
-        costPerUse: 15,
-        iconKey: 'trade',
+        id: 'performer_analytics',
+        name: 'Performer analytics',
+        description: 'Charts that show why a player is hot',
+        costPerUse: 100,
+        iconKey: 'analysis',
     },
     {
         id: 'autofill',
         name: 'Team autofill',
         description: 'Fill the empty slots of a team',
-        costPerUse: 3,
+        costPerUse: AUTOFILL_COST_CREDITS,
         iconKey: 'autofill',
     },
 ]

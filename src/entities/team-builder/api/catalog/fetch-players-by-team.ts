@@ -28,6 +28,9 @@ interface ProviderPlayerDto {
     jerseyNumber: string | null
     photoUrl: string | null
     active: boolean
+    // Season stats are absent for players with no games this season.
+    battingStats?: { plateAppearances?: number } | null
+    pitchingStats?: { inningsPitched?: string } | null
 }
 
 interface PlayersListResponseDto {
@@ -70,6 +73,8 @@ function mapProviderPlayerToPoolPlayer(
         salary: null,
         proj: null,
         photoUrl: dto.photoUrl,
+        hasSeasonStats:
+            (dto.battingStats?.plateAppearances ?? 0) > 0 || parseFloat(dto.pitchingStats?.inningsPitched ?? '0') > 0,
     }
 }
 

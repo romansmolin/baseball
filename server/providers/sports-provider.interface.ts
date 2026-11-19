@@ -1,6 +1,12 @@
 import type { BaseballProviderLeague } from '../../src/shared/baseball'
 
 import type { Paginated } from './dto/provider-pagination.dto'
+import type {
+    GetPerformerLogFilters,
+    GetPerformersFilters,
+    ProviderPerformerLine,
+    ProviderPerformerLog,
+} from './dto/provider-performer.dto'
 import type { ProviderGameContext } from './dto/provider-game-context.dto'
 import type { ProviderPlayerProfile } from './dto/provider-player-profile.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from './dto/provider-player.dto'
@@ -51,7 +57,8 @@ export interface ISportsProvider {
     getPlayersByTeam(teamId: number, opts?: GetPlayersByTeamOptions): Promise<ProviderPlayer[]>
     getSchedule(filters: GetScheduleFilters): Promise<ProviderScheduledGame[]>
     // Splits, game log, sabermetrics and roster status for one season; null when the player is unknown.
-    getPlayerProfile(id: number, season: number): Promise<ProviderPlayerProfile | null>
+    // `league`: the level whose stats are read (MLB when omitted) — a minor leaguer has no stats under MLB.
+    getPlayerProfile(id: number, season: number, league?: BaseballProviderLeague): Promise<ProviderPlayerProfile | null>
     // Schedule enriched with probable pitchers, weather, venue, records and lineup status.
     getGameContexts(filters: GetScheduleFilters): Promise<ProviderGameContext[]>
     // One game by id, looked up at the level of its league (MLB by default), with the same enrichment; null when the schedule has no such game.
@@ -59,4 +66,8 @@ export interface ISportsProvider {
     // MLB regular-season standings: record and last ten games for every team.
     getTeamStandings(season: number): Promise<ProviderTeamStanding[]>
     getBoxScore(gamePk: number, opts?: GetBoxScoreOptions): Promise<ProviderBoxScore | null>
+    // Players' combined stat lines over a date range, ordered by volume; empty when nothing was played.
+    getPerformers(filters: GetPerformersFilters): Promise<ProviderPerformerLine[]>
+    // One player's games and season totals in one league; empty when they have none there.
+    getPerformerLog(filters: GetPerformerLogFilters): Promise<ProviderPerformerLog>
 }

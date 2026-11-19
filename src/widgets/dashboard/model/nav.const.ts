@@ -1,10 +1,4 @@
-import {
-    Analytics01Icon,
-    GitCompareIcon,
-    BaseballBatIcon,
-    BaseballIcon,
-    HomeIcon,
-} from '@hugeicons/core-free-icons'
+import { Analytics01Icon, GitCompareIcon, BaseballBatIcon, BaseballIcon, HomeIcon } from '@hugeicons/core-free-icons'
 
 export interface NavItem {
     label: string
