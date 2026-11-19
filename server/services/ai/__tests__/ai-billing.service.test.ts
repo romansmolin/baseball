@@ -121,7 +121,7 @@ describe('AIBillingService', () => {
             const result = await svc.commit({
                 userId: 'u1',
                 featureId: 'feat-mp',
-                featureKey: 'matchup_predictor',
+                featureKey: 'game_picks',
                 costCredits: 5,
                 tokenUsage: { inputTokens: 100, outputTokens: 50 },
             })
@@ -155,7 +155,7 @@ describe('AIBillingService', () => {
                 svc.commit({
                     userId: 'u1',
                     featureId: 'feat-mp',
-                    featureKey: 'matchup_predictor',
+                    featureKey: 'game_picks',
                     costCredits: 5,
                     tokenUsage: { inputTokens: 0, outputTokens: 0 },
                 }),
@@ -167,14 +167,14 @@ describe('AIBillingService', () => {
             await svc.commit({
                 userId: 'u1',
                 featureId: 'feat-mp',
-                featureKey: 'matchup_predictor',
+                featureKey: 'game_picks',
                 costCredits: 5,
                 tokenUsage: { inputTokens: 0, outputTokens: 0 },
             })
             await svc.commit({
                 userId: 'u1',
                 featureId: 'feat-mp',
-                featureKey: 'matchup_predictor',
+                featureKey: 'game_picks',
                 costCredits: 10,
                 tokenUsage: { inputTokens: 0, outputTokens: 0 },
             })
@@ -206,7 +206,7 @@ describe('AIBillingService', () => {
             await svc.commit({
                 userId: 'u1',
                 featureId: 'feat-mp',
-                featureKey: 'matchup_predictor',
+                featureKey: 'game_picks',
                 costCredits: 7,
                 tokenUsage: { inputTokens: 0, outputTokens: 0 },
             })

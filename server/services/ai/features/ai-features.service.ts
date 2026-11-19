@@ -3,6 +3,13 @@ import type { IAIFeaturesService } from './ai-features.service.interface'
 
 const AI_FEATURES: AIFeature[] = [
     {
+        id: 'game_picks',
+        name: 'Game picks',
+        description: 'Who to start, sit or watch in a game',
+        costPerUse: 20,
+        iconKey: 'lineup',
+    },
+    {
         id: 'analysis',
         name: 'Player analysis',
         description: 'Stats, trends, matchups',

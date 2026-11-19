@@ -48,11 +48,13 @@ async function seedAIFeatures(): Promise<void> {
                 'Evaluates proposed trades in season-long leagues',
         },
         {
-            key: 'matchup_predictor',
-            name: 'Matchup Predictor',
-            costCredits: 5,
-            modelName: process.env.OPENAI_API_MODEL_CHEAP ?? 'gpt-5.2',
-            description: 'Quick game outcome and key-player prediction',
+            key: 'game_picks',
+            name: 'Game Picks',
+            costCredits: 20,
+            modelName:
+                process.env.OPENAI_API_MODEL_COMPLEX_REASONING ?? 'gpt-5.4',
+            description:
+                'Which players to start, sit or watch for one upcoming game',
         },
         {
             key: 'team_builder_autofill',
@@ -79,9 +81,9 @@ async function seedAIFeatures(): Promise<void> {
     }
     console.log(`  + Upserted ${features.length} AIFeature rows`)
 
-    // Retired feature: usage logs reference the row, so it is deactivated, not deleted.
+    // Retired features: usage logs reference the rows, so they are deactivated, not deleted.
     await prisma.aIFeature.updateMany({
-        where: { key: 'lineup_optimizer' },
+        where: { key: { in: ['lineup_optimizer', 'matchup_predictor'] } },
         data: { isActive: false },
     })
 }

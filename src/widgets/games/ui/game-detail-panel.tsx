@@ -86,7 +86,7 @@ export const GameDetailPanel = ({ gamePk, actions }: GameDetailPanelProps) => {
                 <p className="text-sm text-muted-foreground">An estimate is shown for games that have not started.</p>
             )}
 
-            {actions}
+            {game.status === 'SCHEDULED' && actions}
         </div>
     )
 }
