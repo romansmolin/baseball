@@ -9,6 +9,7 @@ import { cn } from '@/shared/utils'
 import { AVAILABILITY } from '../model/player.type'
 import type { DrawerTab, League, Player } from '../model/player.type'
 import { PlayerAvatar } from './player-avatar'
+import { PlayerAnalyticsTab } from './tabs/player-analytics-tab'
 import { PlayerStatsTab } from './tabs/player-stats-tab'
 
 interface PlayerDetailDrawerProps {
@@ -19,7 +20,10 @@ interface PlayerDetailDrawerProps {
     onTabChange: (tab: DrawerTab) => void
 }
 
-const TABS: { value: DrawerTab; label: string }[] = [{ value: 'stats', label: 'Season stats' }]
+const TABS: { value: DrawerTab; label: string }[] = [
+    { value: 'analytics', label: 'Analytics' },
+    { value: 'stats', label: 'Season stats' },
+]
 
 const hexA = (hex: string, a: number) => {
     const n = parseInt(hex.slice(1), 16)
@@ -190,7 +194,11 @@ const DrawerContent = ({
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5">
-                <PlayerStatsTab player={player} />
+                {drawerTab === 'analytics' ? (
+                    <PlayerAnalyticsTab playerId={player.id} />
+                ) : (
+                    <PlayerStatsTab player={player} />
+                )}
             </div>
         </>
     )

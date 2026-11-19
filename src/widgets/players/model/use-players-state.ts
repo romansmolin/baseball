@@ -84,7 +84,7 @@ export const usePlayersState = (): PlayersState => {
         limit: PLAYERS_PER_PAGE,
     })
     const [selectedPlayerId, setSelectedPlayerIdRaw] = useState<number | null>(null)
-    const [drawerTab, setDrawerTab] = useState<DrawerTab>('stats')
+    const [drawerTab, setDrawerTab] = useState<DrawerTab>('analytics')
     const { data, isLoading, error, mutate } = usePlayersData(query)
 
     const allPlayers = useMemo<Player[]>(
@@ -116,7 +116,7 @@ export const usePlayersState = (): PlayersState => {
     }, [])
     const setSelectedPlayerId = useCallback((id: number | null) => {
         setSelectedPlayerIdRaw(id)
-        setDrawerTab('stats')
+        setDrawerTab('analytics')
     }, [])
     const clearFilters = useCallback(() => {
         updateFilter({ search: '', position: 'all', status: 'all' })

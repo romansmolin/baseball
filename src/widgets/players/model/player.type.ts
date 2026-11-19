@@ -55,7 +55,7 @@ export interface Player {
 export type LeagueFilter = 'all' | string
 export type StatusFilter = 'all' | AvailabilityStatus
 export type PositionFilter = 'all' | PositionGroup
-export type DrawerTab = 'stats'
+export type DrawerTab = 'analytics' | 'stats'
 
 export const isPitcher = (player: Player): boolean =>
     POSITION_GROUP[player.pos] === 'P'
