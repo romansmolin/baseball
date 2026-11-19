@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { SCORING_PRESETS } from '@/shared/team-builder'
+
 import { ApiError } from '../../../../../../server/errors/api.error'
 import { getSportsProvider } from '../../../../../../server/providers/sports-provider.factory'
 import { prisma } from '../../../../../../server/lib/prisma'
@@ -25,7 +27,7 @@ function buildOrchestrator() {
 
 const requestSchema = z.object({
     teamId: z.string().min(1).optional(),
-    scoringPreset: z.enum(['POINTS', 'CATEGORIES_5X5']).default('POINTS'),
+    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
     giving: z.array(z.string().min(1)).min(1),
     receiving: z.array(z.string().min(1)).min(1),
 })

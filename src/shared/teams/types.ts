@@ -1,3 +1,5 @@
+import type { FantasyPlatform, ScoringPreset } from '@/shared/team-builder'
+
 export type Region = 'north-america' | 'japan-korea' | 'latin-america'
 
 export const REGION_LABEL: Record<Region, string> = {
@@ -31,6 +33,8 @@ export interface TeamRosterSlot {
 
 export interface Team {
     id: string
+    platform: FantasyPlatform
+    scoringPreset: ScoringPreset
     name: string
     leagueSlug: string
     players: number

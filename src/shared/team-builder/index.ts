@@ -24,3 +24,10 @@ export {
     slotAcceptsPoolPosition,
     slotAcceptsProviderPosition,
 } from './roster-rules'
+export {
+    FANTASY_PLATFORMS,
+    FANTASY_PLATFORM_LABEL,
+    SCORING_PRESETS,
+    SCORING_PRESET_LABEL,
+} from './types'
+export type { FantasyPlatform, ScoringPreset } from './types'

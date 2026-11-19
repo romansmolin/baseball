@@ -77,6 +77,8 @@ export interface BuilderRosterSlotPayload {
 export interface CreateTeamPayload {
     name: string
     leagueSlug: string
+    platform?: FantasyPlatform
+    scoringPreset?: ScoringPreset
     captainExternalPlayerId?: number
     players: BuilderRosterSlotPayload[]
 }
@@ -89,5 +91,25 @@ export interface CreateTeamResult {
 
 export interface UpdateLineupPayload {
     players: BuilderRosterSlotPayload[]
+    platform?: FantasyPlatform
+    scoringPreset?: ScoringPreset
     captainExternalPlayerId?: number
+}
+
+// Where the user actually plays this team, and how that platform scores it.
+export const FANTASY_PLATFORMS = ['YAHOO', 'ESPN', 'OTHER'] as const
+export type FantasyPlatform = (typeof FANTASY_PLATFORMS)[number]
+
+export const SCORING_PRESETS = ['POINTS', 'CATEGORIES_5X5'] as const
+export type ScoringPreset = (typeof SCORING_PRESETS)[number]
+
+export const FANTASY_PLATFORM_LABEL: Record<FantasyPlatform, string> = {
+    YAHOO: 'Yahoo',
+    ESPN: 'ESPN',
+    OTHER: 'Other platform',
+}
+
+export const SCORING_PRESET_LABEL: Record<ScoringPreset, string> = {
+    POINTS: 'Points',
+    CATEGORIES_5X5: '5x5 categories',
 }

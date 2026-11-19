@@ -1,4 +1,4 @@
-import type { PlayerPosition, RosterSlotPosition } from '../../../src/generated/prisma/enums'
+import type { FantasyPlatform, PlayerPosition, RosterSlotPosition, ScoringPreset } from '../../../src/generated/prisma/enums'
 import type { FantasyTeamWithRoster } from '../../models/fantasy-team/fantasy-team.model'
 
 export interface CreateRosterSlotInput {
@@ -14,13 +14,17 @@ export interface CreateFantasyTeamInput {
     userId: string
     name: string
     leagueSlug: string
-    format?: string
+    platform?: FantasyPlatform
+    scoringPreset?: ScoringPreset
     captainExternalPlayerId?: number
     rosterSlots: CreateRosterSlotInput[]
 }
 
 export interface ReplaceRosterInput {
     teamId: string
+    // Left as saved when omitted.
+    platform?: FantasyPlatform
+    scoringPreset?: ScoringPreset
     captainExternalPlayerId: number | null
     rosterSlots: CreateRosterSlotInput[]
 }

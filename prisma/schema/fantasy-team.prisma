@@ -32,6 +32,17 @@ enum RosterSlotPosition {
   BENCH
 }
 
+enum FantasyPlatform {
+  YAHOO
+  ESPN
+  OTHER
+}
+
+enum ScoringPreset {
+  POINTS
+  CATEGORIES_5X5
+}
+
 model FantasyTeam {
   id     String @id @default(cuid())
   userId String
@@ -40,7 +51,8 @@ model FantasyTeam {
   // Display fields surfaced by the team-builder UI
   name                    String
   leagueSlug              String
-  format                  String?
+  platform                FantasyPlatform @default(OTHER)
+  scoringPreset           ScoringPreset   @default(POINTS)
   captainExternalPlayerId Int?
 
   createdAt  DateTime @default(now())

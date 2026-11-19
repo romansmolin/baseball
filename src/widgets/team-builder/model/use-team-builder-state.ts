@@ -28,11 +28,13 @@ import {
     type BuilderRosterSlotPayload,
     type BuilderTeam,
     type CreateTeamPayload,
+    type FantasyPlatform,
     type FieldSlot,
     type PoolPlayer,
     type PoolPosition,
     type PoolPositionFilter,
     type Roster,
+    type ScoringPreset,
     type SlotKey,
     type UpdateLineupPayload,
 } from '@/shared/team-builder'
@@ -63,6 +65,8 @@ export interface TeamBuilderState {
     roster: Roster
     captainId: number | null
     teamName: string
+    platform: FantasyPlatform
+    scoringPreset: ScoringPreset
     poolSearch: string
     poolPosition: PoolPositionFilter
     selectedLeagueSlug: string | null
@@ -99,6 +103,8 @@ export interface TeamBuilderState {
     autofill: (mlbTeamIds: number[]) => Promise<void>
     saveLineup: () => Promise<void>
     setTeamName: (name: string) => void
+    setPlatform: (platform: FantasyPlatform) => void
+    setScoringPreset: (preset: ScoringPreset) => void
     setPoolSearch: (q: string) => void
     setPoolPosition: (pos: PoolPositionFilter) => void
     setSelectedLeagueSlug: (slug: string | null) => void
@@ -176,6 +182,8 @@ export const useTeamBuilderState = (
     const [roster, setRoster] = useState<Roster>(emptyRoster)
     const [captainId, setCaptainId] = useState<number | null>(null)
     const [teamName, setTeamName] = useState('Untitled lineup')
+    const [platform, setPlatform] = useState<FantasyPlatform>('OTHER')
+    const [scoringPreset, setScoringPreset] = useState<ScoringPreset>('POINTS')
     const [poolSearch, setPoolSearch] = useState('')
     const [poolPosition, setPoolPosition] = useState<PoolPositionFilter>('all')
     const [isSaving, setIsSaving] = useState(false)
@@ -226,6 +234,8 @@ export const useTeamBuilderState = (
         prefilledTeamIdRef.current = existingTeam.id
 
         setTeamName(existingTeam.name)
+        setPlatform(existingTeam.platform)
+        setScoringPreset(existingTeam.scoringPreset)
         setSelectedLeagueSlug(existingTeam.leagueSlug)
 
         const nextRoster: Roster = FIELD_SLOTS.reduce<Roster>((acc, slot) => {
@@ -541,6 +551,8 @@ export const useTeamBuilderState = (
                 const lineupPayload: UpdateLineupPayload = {
                     players: playersPayload,
                     captainExternalPlayerId: captainId ?? undefined,
+                    platform,
+                    scoringPreset,
                 }
                 const result = await updateTeamLineup(existingTeamId, lineupPayload)
                 toast.success(
@@ -554,6 +566,8 @@ export const useTeamBuilderState = (
             const payload: CreateTeamPayload = {
                 name: teamName.trim() || 'Untitled lineup',
                 leagueSlug: selectedLeagueSlug,
+                platform,
+                scoringPreset,
                 captainExternalPlayerId: captainId ?? undefined,
                 players: playersPayload,
             }
@@ -588,6 +602,8 @@ export const useTeamBuilderState = (
         selectedLeagueSlug,
         roster,
         teamName,
+        platform,
+        scoringPreset,
         captainId,
         projTotal,
         globalMutate,
@@ -616,6 +632,8 @@ export const useTeamBuilderState = (
         roster,
         captainId,
         teamName,
+        platform,
+        scoringPreset,
         poolSearch,
         poolPosition,
         selectedLeagueSlug,
@@ -652,6 +670,8 @@ export const useTeamBuilderState = (
         autofill,
         saveLineup,
         setTeamName,
+        setPlatform,
+        setScoringPreset,
         setPoolSearch,
         setPoolPosition,
         setSelectedLeagueSlug: handleLeagueChange,

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { FANTASY_PLATFORMS, SCORING_PRESETS } from '@/shared/team-builder'
+
 // Mirrors the roster payload shape used by `createTeamSchema` — the team-
 // builder send the same per-slot object for both create and edit flows.
 // Kept structurally identical so a single client-side mapper feeds both.
@@ -16,8 +18,10 @@ const rosterSlotPayloadSchema = z.object({
 })
 
 // Lineup-update payload — name and leagueSlug never change here. Captain is
-// optional (omit to clear).
+// optional (omit to clear). Platform and preset stay as saved unless sent.
 export const updateLineupSchema = z.object({
+    platform: z.enum(FANTASY_PLATFORMS).optional(),
+    scoringPreset: z.enum(SCORING_PRESETS).optional(),
     captainExternalPlayerId: z.number().int().positive().optional(),
     players: z.array(rosterSlotPayloadSchema).min(1).max(9),
 })

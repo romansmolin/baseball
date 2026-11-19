@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { FANTASY_PLATFORMS, SCORING_PRESETS } from '@/shared/team-builder'
+
 import { baseballLeagueEnum } from '../baseball-league.schema'
 
 const slotKeyEnum = z.enum(['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'])
@@ -18,6 +20,8 @@ export const createTeamSchema = z.object({
     name: z.string().trim().min(1).max(60),
     // Only provider-backed leagues can hold a fantasy team.
     leagueSlug: baseballLeagueEnum,
+    platform: z.enum(FANTASY_PLATFORMS).default('OTHER'),
+    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
     captainExternalPlayerId: z.number().int().positive().optional(),
     players: z.array(rosterSlotPayloadSchema).min(1).max(9),
 })

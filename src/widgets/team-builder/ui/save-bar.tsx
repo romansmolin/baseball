@@ -8,11 +8,23 @@ import {
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
+import {
+    FANTASY_PLATFORMS,
+    FANTASY_PLATFORM_LABEL,
+    SCORING_PRESETS,
+    SCORING_PRESET_LABEL,
+    type FantasyPlatform,
+    type ScoringPreset,
+} from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
 interface SaveBarProps {
     teamName: string
     onTeamNameChange: (name: string) => void
+    platform: FantasyPlatform
+    onPlatformChange: (platform: FantasyPlatform) => void
+    scoringPreset: ScoringPreset
+    onScoringPresetChange: (preset: ScoringPreset) => void
     canSave: boolean
     isSaving: boolean
     isAutofilling?: boolean
@@ -29,6 +41,10 @@ interface SaveBarProps {
 export const SaveBar = ({
     teamName,
     onTeamNameChange,
+    platform,
+    onPlatformChange,
+    scoringPreset,
+    onScoringPresetChange,
     canSave,
     isSaving,
     isAutofilling = false,
@@ -65,6 +81,33 @@ export const SaveBar = ({
                         className="w-56 bg-transparent font-anton text-xl tracking-wide outline-none"
                     />
                 </label>
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <label className="flex items-center gap-1.5">
+                        Platform
+                        <select
+                            value={platform}
+                            onChange={(e) => onPlatformChange(e.target.value as FantasyPlatform)}
+                            className="rounded-md border border-foreground/15 bg-card px-2 py-1 text-sm text-foreground"
+                        >
+                            {FANTASY_PLATFORMS.map((value) => (
+                                <option key={value} value={value}>{FANTASY_PLATFORM_LABEL[value]}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                        Scoring
+                        <select
+                            value={scoringPreset}
+                            onChange={(e) => onScoringPresetChange(e.target.value as ScoringPreset)}
+                            className="rounded-md border border-foreground/15 bg-card px-2 py-1 text-sm text-foreground"
+                        >
+                            {SCORING_PRESETS.map((value) => (
+                                <option key={value} value={value}>{SCORING_PRESET_LABEL[value]}</option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
 
                 <div className="ml-auto flex items-center gap-2">
                     {onAutofill && (

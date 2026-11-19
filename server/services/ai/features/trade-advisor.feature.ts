@@ -9,6 +9,8 @@
 
 import { z } from 'zod'
 
+import { SCORING_PRESETS } from '../../../../src/shared/team-builder'
+
 import type { ISportsProvider } from '../../../providers/sports-provider.interface'
 import type { IFantasyTeamRepository } from '../../../repositories/fantasy-team/fantasy-team.repository.interface'
 
@@ -20,7 +22,7 @@ import type { TradeAdvisorPromptContext } from '../prompts/trade-advisor.prompt'
 
 export const tradeAdvisorInputSchema = z.object({
     teamId: z.string().min(1).optional(),
-    scoringPreset: z.enum(['POINTS', 'CATEGORIES_5X5']).default('POINTS'),
+    scoringPreset: z.enum(SCORING_PRESETS).default('POINTS'),
     giving: z.array(z.string().min(1)).min(1),
     receiving: z.array(z.string().min(1)).min(1),
 })

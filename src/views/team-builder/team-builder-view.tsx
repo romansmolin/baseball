@@ -41,6 +41,10 @@ export const TeamBuilderView = ({ existingTeamId }: TeamBuilderViewProps = {}) =
                 <SaveBar
                     teamName={state.teamName}
                     onTeamNameChange={state.setTeamName}
+                    platform={state.platform}
+                    onPlatformChange={state.setPlatform}
+                    scoringPreset={state.scoringPreset}
+                    onScoringPresetChange={state.setScoringPreset}
                     canSave={state.canSave}
                     isSaving={state.isSaving}
                     isAutofilling={state.isAutofilling}

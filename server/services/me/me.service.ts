@@ -130,6 +130,8 @@ export class MeService implements IMeService {
             userId,
             name: payload.name,
             leagueSlug: payload.leagueSlug,
+            platform: payload.platform,
+            scoringPreset: payload.scoringPreset,
             captainExternalPlayerId: payload.captainExternalPlayerId,
             rosterSlots,
         })
@@ -171,6 +173,8 @@ export class MeService implements IMeService {
         const updated = await this.fantasyTeamRepository.replaceRoster({
             teamId,
             captainExternalPlayerId: payload.captainExternalPlayerId ?? null,
+            platform: payload.platform,
+            scoringPreset: payload.scoringPreset,
             rosterSlots,
         })
 
@@ -289,6 +293,8 @@ export class MeService implements IMeService {
             id: row.id,
             name: row.name,
             leagueSlug: row.leagueSlug,
+            platform: row.platform,
+            scoringPreset: row.scoringPreset,
             players: row.rosterSlots.length,
             proj: 0,
             captain: captainId !== null,

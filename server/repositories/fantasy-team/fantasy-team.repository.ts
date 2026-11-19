@@ -56,7 +56,8 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                     userId: input.userId,
                     name: input.name,
                     leagueSlug: input.leagueSlug,
-                    format: input.format,
+                    platform: input.platform,
+                    scoringPreset: input.scoringPreset,
                     captainExternalPlayerId: input.captainExternalPlayerId,
                     rosterSlots: {
                         create: input.rosterSlots.map((slot) => ({
@@ -101,6 +102,8 @@ export class FantasyTeamRepository implements IFantasyTeamRepository {
                     where: { id: input.teamId },
                     data: {
                         captainExternalPlayerId: input.captainExternalPlayerId,
+                        platform: input.platform,
+                        scoringPreset: input.scoringPreset,
                     },
                     include: { rosterSlots: true },
                 })
