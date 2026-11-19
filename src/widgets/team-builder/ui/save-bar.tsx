@@ -15,6 +15,8 @@ import {
 } from '@/shared/team-builder'
 import { cn } from '@/shared/utils'
 
+import { OptionSelect } from './option-select'
+
 interface SaveBarProps {
     teamName: string
     onTeamNameChange: (name: string) => void
@@ -81,18 +83,13 @@ export const SaveBar = ({
                 </label>
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <label className="flex items-center gap-1.5">
-                        Platform
-                        <select
-                            value={platform}
-                            onChange={(e) => onPlatformChange(e.target.value as FantasyPlatform)}
-                            className="rounded-md border border-foreground/15 bg-card px-2 py-1 text-sm text-foreground"
-                        >
-                            {FANTASY_PLATFORMS.map((value) => (
-                                <option key={value} value={value}>{FANTASY_PLATFORM_LABEL[value]}</option>
-                            ))}
-                        </select>
-                    </label>
+                    <span>Platform</span>
+                    <OptionSelect
+                        value={platform}
+                        ariaLabel="Platform"
+                        onChange={onPlatformChange}
+                        options={FANTASY_PLATFORMS.map((value) => ({ value, label: FANTASY_PLATFORM_LABEL[value] }))}
+                    />
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">

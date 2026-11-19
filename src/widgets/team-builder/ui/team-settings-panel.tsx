@@ -17,6 +17,7 @@ import {
 } from '@/shared/team-builder'
 
 import { CategorySelector } from './category-selector'
+import { OptionSelect } from './option-select'
 import { ScoringRulesEditor } from './scoring-rules-editor'
 import { SlotConfigEditor } from './slot-config-editor'
 
@@ -35,8 +36,6 @@ interface TeamSettingsPanelProps {
     onScoringRulesChange: (rules: ScoringRules) => void
     onResetScoringRules: () => void
 }
-
-const selectClass = 'rounded-md border border-foreground/15 bg-card px-2 py-1 text-sm text-foreground'
 
 export const TeamSettingsPanel = ({
     format,
@@ -59,47 +58,39 @@ export const TeamSettingsPanel = ({
         </summary>
         <div className="space-y-4 border-t border-foreground/10 p-4">
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                <label className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5">
                     Format
-                    <select
+                    <OptionSelect
                         value={format}
-                        onChange={(e) => onFormatChange(e.target.value as FantasyFormat)}
-                        className={selectClass}
-                    >
-                        {FANTASY_FORMATS.map((value) => (
-                            <option key={value} value={value} disabled={!SUPPORTED_FORMATS.includes(value)}>
-                                {FORMAT_LABEL[value]}
-                                {SUPPORTED_FORMATS.includes(value) ? '' : ' (soon)'}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <label className="flex items-center gap-1.5">
+                        ariaLabel="Format"
+                        onChange={onFormatChange}
+                        options={FANTASY_FORMATS.map((value) => ({
+                            value,
+                            label: SUPPORTED_FORMATS.includes(value) ? FORMAT_LABEL[value] : `${FORMAT_LABEL[value]} (soon)`,
+                            disabled: !SUPPORTED_FORMATS.includes(value),
+                        }))}
+                    />
+                </span>
+                <span className="flex items-center gap-1.5">
                     Forecast period
-                    <select
+                    <OptionSelect
                         value={forecastPeriod}
+                        ariaLabel="Forecast period"
                         disabled={format === 'ROTO'}
                         title={format === 'ROTO' ? 'Roto is scored over the whole season' : undefined}
-                        onChange={(e) => onForecastPeriodChange(e.target.value as ForecastPeriod)}
-                        className={selectClass}
-                    >
-                        {FORECAST_PERIODS.map((value) => (
-                            <option key={value} value={value}>{FORECAST_PERIOD_LABEL[value]}</option>
-                        ))}
-                    </select>
-                </label>
-                <label className="flex items-center gap-1.5">
+                        onChange={onForecastPeriodChange}
+                        options={FORECAST_PERIODS.map((value) => ({ value, label: FORECAST_PERIOD_LABEL[value] }))}
+                    />
+                </span>
+                <span className="flex items-center gap-1.5">
                     Lineup changes
-                    <select
+                    <OptionSelect
                         value={lineupChanges}
-                        onChange={(e) => onLineupChangesChange(e.target.value as LineupChanges)}
-                        className={selectClass}
-                    >
-                        {LINEUP_CHANGES.map((value) => (
-                            <option key={value} value={value}>{LINEUP_CHANGES_LABEL[value]}</option>
-                        ))}
-                    </select>
-                </label>
+                        ariaLabel="Lineup changes"
+                        onChange={onLineupChangesChange}
+                        options={LINEUP_CHANGES.map((value) => ({ value, label: LINEUP_CHANGES_LABEL[value] }))}
+                    />
+                </span>
             </div>
             <SlotConfigEditor config={slotConfig} onChange={onSlotConfigChange} />
             {format === 'H2H_POINTS' ? (
