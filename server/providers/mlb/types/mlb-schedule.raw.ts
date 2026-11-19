@@ -13,6 +13,8 @@ export interface MlbRawScheduleTeamSide {
     team: { id: number }
     // Present once a game is LIVE or FINAL.
     score?: number
+    leagueRecord?: { wins: number; losses: number }
+    probablePitcher?: { id: number; fullName?: string }
 }
 
 export interface MlbRawScheduleGame {
@@ -24,6 +26,9 @@ export interface MlbRawScheduleGame {
         away: MlbRawScheduleTeamSide
     }
     doubleHeader?: 'N' | 'Y' | 'S'
+    venue?: { id: number; name: string }
+    weather?: { condition?: string; temp?: string; wind?: string }
+    lineups?: { homePlayers?: unknown[]; awayPlayers?: unknown[] }
 }
 
 export interface MlbRawScheduleDate {

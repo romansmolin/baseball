@@ -1,0 +1,1658 @@
+{
+ "people": [
+  {
+   "id": 660271,
+   "fullName": "Shohei Ohtani",
+   "firstName": "Shohei",
+   "lastName": "Ohtani",
+   "birthDate": "1994-07-05",
+   "currentAge": 32,
+   "primaryNumber": "17",
+   "primaryPosition": {
+    "code": "Y",
+    "name": "Two-Way Player",
+    "type": "Two-Way Player",
+    "abbreviation": "TWP"
+   },
+   "batSide": {
+    "code": "L",
+    "description": "Left"
+   },
+   "pitchHand": {
+    "code": "R",
+    "description": "Right"
+   },
+   "currentTeam": {
+    "id": 119,
+    "name": "Los Angeles Dodgers",
+    "link": "/api/v1/teams/119"
+   },
+   "active": true,
+   "stats": [
+    {
+     "type": {
+      "displayName": "season"
+     },
+     "group": {
+      "displayName": "pitching"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "age": 30,
+        "gamesPlayed": 14,
+        "gamesStarted": 14,
+        "groundOuts": 40,
+        "airOuts": 37,
+        "runs": 15,
+        "doubles": 6,
+        "triples": 0,
+        "homeRuns": 3,
+        "strikeOuts": 62,
+        "baseOnBalls": 9,
+        "intentionalWalks": 0,
+        "hits": 40,
+        "hitByPitch": 0,
+        "avg": ".227",
+        "atBats": 176,
+        "obp": ".261",
+        "slg": ".313",
+        "ops": ".574",
+        "caughtStealing": 0,
+        "stolenBases": 1,
+        "stolenBasePercentage": "1.000",
+        "caughtStealingPercentage": ".000",
+        "groundIntoDoublePlay": 3,
+        "numberOfPitches": 753,
+        "era": "2.87",
+        "inningsPitched": "47.0",
+        "wins": 1,
+        "losses": 1,
+        "saves": 0,
+        "saveOpportunities": 0,
+        "holds": 0,
+        "blownSaves": 0,
+        "earnedRuns": 15,
+        "whip": "1.04",
+        "battersFaced": 188,
+        "outs": 141,
+        "gamesPitched": 14,
+        "completeGames": 0,
+        "shutouts": 0,
+        "strikes": 495,
+        "strikePercentage": ".660",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 10,
+        "pickoffs": 0,
+        "totalBases": 55,
+        "groundOutsToAirouts": "1.08",
+        "winPercentage": ".500",
+        "pitchesPerInning": "16.02",
+        "gamesFinished": 0,
+        "strikeoutWalkRatio": "6.89",
+        "strikeoutsPer9Inn": "11.87",
+        "walksPer9Inn": "1.72",
+        "hitsPer9Inn": "7.66",
+        "runsScoredPer9": "2.87",
+        "homeRunsPer9": "0.57",
+        "inheritedRunners": 0,
+        "inheritedRunnersScored": 0,
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 3
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R"
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "season"
+     },
+     "group": {
+      "displayName": "hitting"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "age": 30,
+        "gamesPlayed": 158,
+        "groundOuts": 120,
+        "airOuts": 134,
+        "runs": 146,
+        "doubles": 25,
+        "triples": 9,
+        "homeRuns": 55,
+        "strikeOuts": 187,
+        "baseOnBalls": 109,
+        "intentionalWalks": 20,
+        "hits": 172,
+        "hitByPitch": 3,
+        "avg": ".282",
+        "atBats": 611,
+        "obp": ".392",
+        "slg": ".622",
+        "ops": "1.014",
+        "caughtStealing": 6,
+        "stolenBases": 20,
+        "stolenBasePercentage": ".769",
+        "caughtStealingPercentage": ".231",
+        "groundIntoDoublePlay": 9,
+        "numberOfPitches": 2865,
+        "plateAppearances": 727,
+        "totalBases": 380,
+        "rbi": 102,
+        "leftOnBase": 188,
+        "sacBunts": 0,
+        "sacFlies": 2,
+        "babip": ".315",
+        "groundOutsToAirouts": "0.90",
+        "catchersInterference": 2,
+        "atBatsPerHomeRun": "11.11"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R"
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "sabermetrics"
+     },
+     "group": {
+      "displayName": "pitching"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "fip": 1.90109,
+        "xfip": 2.44903,
+        "fipMinus": 46.0987,
+        "ra9War": 1.53229,
+        "rar": 17.4565,
+        "war": 1.91503,
+        "sd": 0.0,
+        "md": 0.0,
+        "pli": 0.934519,
+        "inli": 0.935825,
+        "gmli": 0.867229,
+        "exli": 1.12927,
+        "eraMinus": 68.4352
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R"
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "sabermetrics"
+     },
+     "group": {
+      "displayName": "hitting"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "woba": 0.417822,
+        "wRaa": 61.839,
+        "wRc": 147.74,
+        "wRcPlus": 172.069,
+        "rar": 72.8271,
+        "war": 7.45112,
+        "batting": 62.0982,
+        "fielding": 0.0,
+        "baseRunning": 3.63297,
+        "positional": -17.0679,
+        "wLeague": 2.02232,
+        "replacement": 22.1415,
+        "spd": 7.13303,
+        "ubr": 0.0,
+        "wGdp": 0.0,
+        "wSb": 0.387603
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R"
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "statSplits"
+     },
+     "group": {
+      "displayName": "pitching"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 7,
+        "gamesStarted": 7,
+        "groundOuts": 17,
+        "airOuts": 16,
+        "runs": 4,
+        "doubles": 0,
+        "triples": 0,
+        "homeRuns": 2,
+        "strikeOuts": 30,
+        "baseOnBalls": 4,
+        "intentionalWalks": 0,
+        "hits": 11,
+        "hitByPitch": 0,
+        "avg": ".151",
+        "atBats": 73,
+        "obp": ".192",
+        "slg": ".233",
+        "ops": ".425",
+        "caughtStealing": 0,
+        "stolenBases": 1,
+        "stolenBasePercentage": "1.000",
+        "caughtStealingPercentage": ".000",
+        "groundIntoDoublePlay": 1,
+        "numberOfPitches": 332,
+        "era": "1.71",
+        "inningsPitched": "21.0",
+        "outsPitched": 63,
+        "wins": 1,
+        "losses": 0,
+        "saves": 0,
+        "saveOpportunities": 0,
+        "holds": 0,
+        "blownSaves": 0,
+        "earnedRuns": 4,
+        "whip": "0.71",
+        "battersFaced": 78,
+        "outs": 63,
+        "gamesPitched": 7,
+        "completeGames": 0,
+        "shutouts": 0,
+        "balls": 121,
+        "strikes": 211,
+        "strikePercentage": ".640",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 4,
+        "totalBases": 17,
+        "groundOutsToAirouts": "1.06",
+        "rbi": 4,
+        "winPercentage": "1.000",
+        "pitchesPerInning": "15.81",
+        "gamesFinished": 0,
+        "strikeoutWalkRatio": "7.50",
+        "strikeoutsPer9Inn": "12.86",
+        "walksPer9Inn": "1.71",
+        "hitsPer9Inn": "4.71",
+        "runsScoredPer9": "1.71",
+        "homeRunsPer9": "0.86",
+        "inheritedRunners": 0,
+        "inheritedRunnersScored": 0,
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 1
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "h",
+        "description": "Home Games",
+        "sortOrder": 1
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 7,
+        "gamesStarted": 7,
+        "groundOuts": 23,
+        "airOuts": 21,
+        "runs": 11,
+        "doubles": 6,
+        "triples": 0,
+        "homeRuns": 1,
+        "strikeOuts": 32,
+        "baseOnBalls": 5,
+        "intentionalWalks": 0,
+        "hits": 29,
+        "hitByPitch": 0,
+        "avg": ".282",
+        "atBats": 103,
+        "obp": ".309",
+        "slg": ".369",
+        "ops": ".678",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 2,
+        "numberOfPitches": 421,
+        "era": "3.81",
+        "inningsPitched": "26.0",
+        "outsPitched": 78,
+        "wins": 0,
+        "losses": 1,
+        "saves": 0,
+        "saveOpportunities": 0,
+        "holds": 0,
+        "blownSaves": 0,
+        "earnedRuns": 11,
+        "whip": "1.31",
+        "battersFaced": 110,
+        "outs": 78,
+        "gamesPitched": 7,
+        "completeGames": 0,
+        "shutouts": 0,
+        "balls": 137,
+        "strikes": 284,
+        "strikePercentage": ".670",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 6,
+        "totalBases": 38,
+        "groundOutsToAirouts": "1.10",
+        "rbi": 9,
+        "winPercentage": ".000",
+        "pitchesPerInning": "16.19",
+        "gamesFinished": 0,
+        "strikeoutWalkRatio": "6.40",
+        "strikeoutsPer9Inn": "11.08",
+        "walksPer9Inn": "1.73",
+        "hitsPer9Inn": "10.04",
+        "runsScoredPer9": "3.81",
+        "homeRunsPer9": "0.35",
+        "inheritedRunners": 0,
+        "inheritedRunnersScored": 0,
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 2
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "a",
+        "description": "Away Games",
+        "sortOrder": 2
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 14,
+        "groundOuts": 19,
+        "airOuts": 14,
+        "doubles": 2,
+        "triples": 0,
+        "homeRuns": 0,
+        "strikeOuts": 32,
+        "baseOnBalls": 4,
+        "intentionalWalks": 0,
+        "hits": 14,
+        "hitByPitch": 0,
+        "avg": ".179",
+        "atBats": 78,
+        "obp": ".217",
+        "slg": ".205",
+        "ops": ".422",
+        "groundIntoDoublePlay": 1,
+        "numberOfPitches": 357,
+        "inningsPitched": "21.1",
+        "outsPitched": 64,
+        "whip": "0.84",
+        "battersFaced": 83,
+        "outs": 64,
+        "gamesPitched": 14,
+        "balls": 126,
+        "strikes": 231,
+        "strikePercentage": ".650",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 5,
+        "totalBases": 16,
+        "groundOutsToAirouts": "1.36",
+        "rbi": 3,
+        "pitchesPerInning": "16.73",
+        "strikeoutWalkRatio": "8.00",
+        "strikeoutsPer9Inn": "13.50",
+        "walksPer9Inn": "1.69",
+        "hitsPer9Inn": "5.91",
+        "homeRunsPer9": "0.00",
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 1
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "vl",
+        "description": "vs Left",
+        "sortOrder": 73
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 13,
+        "groundOuts": 21,
+        "airOuts": 23,
+        "doubles": 4,
+        "triples": 0,
+        "homeRuns": 3,
+        "strikeOuts": 30,
+        "baseOnBalls": 5,
+        "intentionalWalks": 0,
+        "hits": 26,
+        "hitByPitch": 0,
+        "avg": ".265",
+        "atBats": 98,
+        "obp": ".295",
+        "slg": ".398",
+        "ops": ".693",
+        "groundIntoDoublePlay": 2,
+        "numberOfPitches": 398,
+        "inningsPitched": "25.2",
+        "outsPitched": 77,
+        "whip": "1.21",
+        "battersFaced": 105,
+        "outs": 77,
+        "gamesPitched": 13,
+        "balls": 134,
+        "strikes": 264,
+        "strikePercentage": ".660",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 5,
+        "totalBases": 39,
+        "groundOutsToAirouts": "0.91",
+        "rbi": 10,
+        "pitchesPerInning": "15.51",
+        "strikeoutWalkRatio": "6.00",
+        "strikeoutsPer9Inn": "10.52",
+        "walksPer9Inn": "1.75",
+        "hitsPer9Inn": "9.12",
+        "homeRunsPer9": "1.05",
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 2
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "vr",
+        "description": "vs Right",
+        "sortOrder": 74
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "statSplits"
+     },
+     "group": {
+      "displayName": "hitting"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 81,
+        "groundOuts": 66,
+        "airOuts": 64,
+        "runs": 79,
+        "doubles": 11,
+        "triples": 3,
+        "homeRuns": 29,
+        "strikeOuts": 94,
+        "baseOnBalls": 50,
+        "intentionalWalks": 10,
+        "hits": 90,
+        "hitByPitch": 2,
+        "avg": ".288",
+        "atBats": 312,
+        "obp": ".388",
+        "slg": ".622",
+        "ops": "1.010",
+        "caughtStealing": 2,
+        "stolenBases": 15,
+        "stolenBasePercentage": ".882",
+        "caughtStealingPercentage": ".118",
+        "groundIntoDoublePlay": 5,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 1419,
+        "plateAppearances": 367,
+        "totalBases": 194,
+        "rbi": 57,
+        "leftOnBase": 95,
+        "sacBunts": 0,
+        "sacFlies": 2,
+        "babip": ".319",
+        "groundOutsToAirouts": "1.03",
+        "catchersInterference": 1,
+        "atBatsPerHomeRun": "10.76"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "h",
+        "description": "Home Games",
+        "sortOrder": 1
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 77,
+        "groundOuts": 54,
+        "airOuts": 70,
+        "runs": 67,
+        "doubles": 14,
+        "triples": 6,
+        "homeRuns": 26,
+        "strikeOuts": 93,
+        "baseOnBalls": 59,
+        "intentionalWalks": 10,
+        "hits": 82,
+        "hitByPitch": 1,
+        "avg": ".274",
+        "atBats": 299,
+        "obp": ".396",
+        "slg": ".622",
+        "ops": "1.018",
+        "caughtStealing": 4,
+        "stolenBases": 5,
+        "stolenBasePercentage": ".556",
+        "caughtStealingPercentage": ".444",
+        "groundIntoDoublePlay": 4,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 1446,
+        "plateAppearances": 360,
+        "totalBases": 186,
+        "rbi": 45,
+        "leftOnBase": 93,
+        "sacBunts": 0,
+        "sacFlies": 0,
+        "babip": ".311",
+        "groundOutsToAirouts": "0.77",
+        "catchersInterference": 1,
+        "atBatsPerHomeRun": "11.50"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "a",
+        "description": "Away Games",
+        "sortOrder": 2
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 113,
+        "groundOuts": 42,
+        "airOuts": 51,
+        "doubles": 8,
+        "triples": 4,
+        "homeRuns": 15,
+        "strikeOuts": 67,
+        "baseOnBalls": 22,
+        "intentionalWalks": 1,
+        "hits": 62,
+        "hitByPitch": 0,
+        "avg": ".279",
+        "atBats": 222,
+        "obp": ".344",
+        "slg": ".554",
+        "ops": ".898",
+        "groundIntoDoublePlay": 5,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 913,
+        "plateAppearances": 244,
+        "totalBases": 123,
+        "rbi": 33,
+        "leftOnBase": 78,
+        "sacBunts": 0,
+        "sacFlies": 0,
+        "babip": ".336",
+        "groundOutsToAirouts": "0.82",
+        "catchersInterference": 0,
+        "atBatsPerHomeRun": "14.80"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "vl",
+        "description": "vs Left",
+        "sortOrder": 73
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "gamesPlayed": 140,
+        "groundOuts": 78,
+        "airOuts": 83,
+        "doubles": 17,
+        "triples": 5,
+        "homeRuns": 40,
+        "strikeOuts": 120,
+        "baseOnBalls": 87,
+        "intentionalWalks": 19,
+        "hits": 110,
+        "hitByPitch": 3,
+        "avg": ".283",
+        "atBats": 389,
+        "obp": ".416",
+        "slg": ".661",
+        "ops": "1.077",
+        "groundIntoDoublePlay": 4,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 1952,
+        "plateAppearances": 483,
+        "totalBases": 257,
+        "rbi": 69,
+        "leftOnBase": 110,
+        "sacBunts": 0,
+        "sacFlies": 2,
+        "babip": ".303",
+        "groundOutsToAirouts": "0.94",
+        "catchersInterference": 2,
+        "atBatsPerHomeRun": "9.72"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "firstName": "Shohei",
+        "lastName": "Ohtani",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "name": "Major League Baseball",
+        "abbreviation": "MLB"
+       },
+       "gameType": "R",
+       "split": {
+        "code": "vr",
+        "description": "vs Right",
+        "sortOrder": 74
+       },
+       "position": {
+        "code": "Y",
+        "name": "Two-Way Player",
+        "type": "Two-Way Player",
+        "abbreviation": "TWP"
+       }
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "gameLog"
+     },
+     "group": {
+      "displayName": "pitching"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "summary": "1.0 IP, ER, 0 K, 0 BB",
+        "gamesPlayed": 1,
+        "gamesStarted": 1,
+        "flyOuts": 0,
+        "groundOuts": 2,
+        "airOuts": 1,
+        "runs": 1,
+        "doubles": 0,
+        "triples": 0,
+        "homeRuns": 0,
+        "strikeOuts": 0,
+        "baseOnBalls": 0,
+        "intentionalWalks": 0,
+        "hits": 2,
+        "hitByPitch": 0,
+        "avg": ".500",
+        "atBats": 4,
+        "obp": ".400",
+        "slg": ".500",
+        "ops": ".900",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 0,
+        "numberOfPitches": 28,
+        "era": "9.00",
+        "inningsPitched": "1.0",
+        "wins": 0,
+        "losses": 0,
+        "saves": 0,
+        "saveOpportunities": 0,
+        "holds": 0,
+        "blownSaves": 0,
+        "earnedRuns": 1,
+        "whip": "2.00",
+        "battersFaced": 5,
+        "outs": 3,
+        "gamesPitched": 1,
+        "completeGames": 0,
+        "shutouts": 0,
+        "strikes": 16,
+        "strikePercentage": ".570",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 1,
+        "pickoffs": 0,
+        "totalBases": 2,
+        "groundOutsToAirouts": "2.00",
+        "winPercentage": ".---",
+        "pitchesPerInning": "28.00",
+        "gamesFinished": 0,
+        "strikeoutWalkRatio": "-.--",
+        "strikeoutsPer9Inn": "0.00",
+        "walksPer9Inn": "0.00",
+        "hitsPer9Inn": "18.00",
+        "runsScoredPer9": "9.00",
+        "homeRunsPer9": "0.00",
+        "inheritedRunners": 0,
+        "inheritedRunnersScored": 0,
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 1
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "opponent": {
+        "id": 135,
+        "name": "San Diego Padres",
+        "link": "/api/v1/teams/135"
+       },
+       "date": "2025-06-16",
+       "gameType": "R",
+       "isHome": true,
+       "isWin": true,
+       "game": {
+        "gamePk": 777490,
+        "link": "/api/v1.1/game/777490/feed/live",
+        "content": {
+         "link": "/api/v1/game/777490/content"
+        },
+        "gameNumber": 1,
+        "dayNight": "day"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "summary": "1.0 IP, 0 ER, 2 K, 0 BB",
+        "gamesPlayed": 1,
+        "gamesStarted": 1,
+        "flyOuts": 0,
+        "groundOuts": 1,
+        "airOuts": 1,
+        "runs": 0,
+        "doubles": 0,
+        "triples": 0,
+        "homeRuns": 0,
+        "strikeOuts": 2,
+        "baseOnBalls": 0,
+        "intentionalWalks": 0,
+        "hits": 0,
+        "hitByPitch": 0,
+        "avg": ".250",
+        "atBats": 4,
+        "obp": ".000",
+        "slg": ".000",
+        "ops": ".000",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 0,
+        "numberOfPitches": 18,
+        "era": "4.50",
+        "inningsPitched": "1.0",
+        "wins": 0,
+        "losses": 0,
+        "saves": 0,
+        "saveOpportunities": 0,
+        "holds": 0,
+        "blownSaves": 0,
+        "earnedRuns": 0,
+        "whip": "1.00",
+        "battersFaced": 4,
+        "outs": 3,
+        "gamesPitched": 1,
+        "completeGames": 0,
+        "shutouts": 0,
+        "strikes": 12,
+        "strikePercentage": ".670",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 1,
+        "pickoffs": 0,
+        "totalBases": 0,
+        "groundOutsToAirouts": "1.50",
+        "winPercentage": ".---",
+        "pitchesPerInning": "18.00",
+        "gamesFinished": 0,
+        "strikeoutWalkRatio": "-.--",
+        "strikeoutsPer9Inn": "18.00",
+        "walksPer9Inn": "0.00",
+        "hitsPer9Inn": "0.00",
+        "runsScoredPer9": "0.00",
+        "homeRunsPer9": "0.00",
+        "inheritedRunners": 0,
+        "inheritedRunnersScored": 0,
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 0
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "opponent": {
+        "id": 120,
+        "name": "Washington Nationals",
+        "link": "/api/v1/teams/120"
+       },
+       "date": "2025-06-22",
+       "gameType": "R",
+       "isHome": true,
+       "isWin": true,
+       "game": {
+        "gamePk": 777398,
+        "link": "/api/v1.1/game/777398/feed/live",
+        "content": {
+         "link": "/api/v1/game/777398/content"
+        },
+        "gameNumber": 1,
+        "dayNight": "day"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "summary": "2.0 IP, 0 ER, K, BB",
+        "gamesPlayed": 1,
+        "gamesStarted": 1,
+        "flyOuts": 1,
+        "groundOuts": 1,
+        "airOuts": 3,
+        "runs": 0,
+        "doubles": 0,
+        "triples": 0,
+        "homeRuns": 0,
+        "strikeOuts": 1,
+        "baseOnBalls": 1,
+        "intentionalWalks": 0,
+        "hits": 1,
+        "hitByPitch": 0,
+        "avg": ".214",
+        "atBats": 6,
+        "obp": ".286",
+        "slg": ".167",
+        "ops": ".453",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 1,
+        "numberOfPitches": 27,
+        "era": "2.25",
+        "inningsPitched": "2.0",
+        "wins": 0,
+        "losses": 0,
+        "saves": 0,
+        "saveOpportunities": 0,
+        "holds": 0,
+        "blownSaves": 0,
+        "earnedRuns": 0,
+        "whip": "1.00",
+        "battersFaced": 7,
+        "outs": 6,
+        "gamesPitched": 1,
+        "completeGames": 0,
+        "shutouts": 0,
+        "strikes": 20,
+        "strikePercentage": ".740",
+        "hitBatsmen": 0,
+        "balks": 0,
+        "wildPitches": 0,
+        "pickoffs": 0,
+        "totalBases": 1,
+        "groundOutsToAirouts": "0.80",
+        "winPercentage": ".---",
+        "pitchesPerInning": "13.50",
+        "gamesFinished": 0,
+        "strikeoutWalkRatio": "1.00",
+        "strikeoutsPer9Inn": "4.50",
+        "walksPer9Inn": "4.50",
+        "hitsPer9Inn": "4.50",
+        "runsScoredPer9": "0.00",
+        "homeRunsPer9": "0.00",
+        "inheritedRunners": 0,
+        "inheritedRunnersScored": 0,
+        "catchersInterference": 0,
+        "sacBunts": 0,
+        "sacFlies": 0
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "opponent": {
+        "id": 118,
+        "name": "Kansas City Royals",
+        "link": "/api/v1/teams/118"
+       },
+       "date": "2025-06-28",
+       "gameType": "R",
+       "isHome": false,
+       "isWin": false,
+       "game": {
+        "gamePk": 777319,
+        "link": "/api/v1.1/game/777319/feed/live",
+        "content": {
+         "link": "/api/v1/game/777319/content"
+        },
+        "gameNumber": 1,
+        "dayNight": "day"
+       }
+      }
+     ]
+    },
+    {
+     "type": {
+      "displayName": "gameLog"
+     },
+     "group": {
+      "displayName": "hitting"
+     },
+     "exemptions": [],
+     "splits": [
+      {
+       "season": "2025",
+       "stat": {
+        "summary": "2-5 | 2B, K, 2 R",
+        "gamesPlayed": 1,
+        "flyOuts": 0,
+        "groundOuts": 1,
+        "airOuts": 1,
+        "runs": 2,
+        "doubles": 1,
+        "triples": 0,
+        "homeRuns": 0,
+        "strikeOuts": 1,
+        "baseOnBalls": 0,
+        "intentionalWalks": 0,
+        "hits": 2,
+        "hitByPitch": 0,
+        "avg": ".400",
+        "atBats": 5,
+        "obp": ".400",
+        "slg": ".600",
+        "ops": "1.000",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 0,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 20,
+        "plateAppearances": 5,
+        "totalBases": 3,
+        "rbi": 0,
+        "leftOnBase": 2,
+        "sacBunts": 0,
+        "sacFlies": 0,
+        "babip": ".500",
+        "groundOutsToAirouts": "1.00",
+        "catchersInterference": 0,
+        "atBatsPerHomeRun": "-.--"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "opponent": {
+        "id": 112,
+        "name": "Chicago Cubs",
+        "link": "/api/v1/teams/112"
+       },
+       "date": "2025-03-18",
+       "gameType": "R",
+       "isHome": false,
+       "isWin": true,
+       "positionsPlayed": [
+        {
+         "code": "10",
+         "name": "Designated Hitter",
+         "type": "Hitter",
+         "abbreviation": "DH"
+        }
+       ],
+       "game": {
+        "gamePk": 778563,
+        "link": "/api/v1.1/game/778563/feed/live",
+        "content": {
+         "link": "/api/v1/game/778563/content"
+        },
+        "gameNumber": 1,
+        "dayNight": "day"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "summary": "1-3 | HR, 2 BB, RBI",
+        "gamesPlayed": 1,
+        "flyOuts": 1,
+        "groundOuts": 1,
+        "airOuts": 1,
+        "runs": 1,
+        "doubles": 0,
+        "triples": 0,
+        "homeRuns": 1,
+        "strikeOuts": 0,
+        "baseOnBalls": 2,
+        "intentionalWalks": 1,
+        "hits": 1,
+        "hitByPitch": 0,
+        "avg": ".375",
+        "atBats": 3,
+        "obp": ".500",
+        "slg": ".875",
+        "ops": "1.375",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 0,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 14,
+        "plateAppearances": 5,
+        "totalBases": 4,
+        "rbi": 1,
+        "leftOnBase": 0,
+        "sacBunts": 0,
+        "sacFlies": 0,
+        "babip": ".000",
+        "groundOutsToAirouts": "1.00",
+        "catchersInterference": 0,
+        "atBatsPerHomeRun": "3.00"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "opponent": {
+        "id": 112,
+        "name": "Chicago Cubs",
+        "link": "/api/v1/teams/112"
+       },
+       "date": "2025-03-19",
+       "gameType": "R",
+       "isHome": false,
+       "isWin": true,
+       "positionsPlayed": [
+        {
+         "code": "10",
+         "name": "Designated Hitter",
+         "type": "Hitter",
+         "abbreviation": "DH"
+        }
+       ],
+       "game": {
+        "gamePk": 778564,
+        "link": "/api/v1.1/game/778564/feed/live",
+        "content": {
+         "link": "/api/v1/game/778564/content"
+        },
+        "gameNumber": 1,
+        "dayNight": "day"
+       }
+      },
+      {
+       "season": "2025",
+       "stat": {
+        "summary": "2-4 | HR, RBI, 2 R",
+        "gamesPlayed": 1,
+        "flyOuts": 0,
+        "groundOuts": 2,
+        "airOuts": 0,
+        "runs": 2,
+        "doubles": 0,
+        "triples": 0,
+        "homeRuns": 1,
+        "strikeOuts": 0,
+        "baseOnBalls": 0,
+        "intentionalWalks": 0,
+        "hits": 2,
+        "hitByPitch": 0,
+        "avg": ".417",
+        "atBats": 4,
+        "obp": ".500",
+        "slg": "1.000",
+        "ops": "1.500",
+        "caughtStealing": 0,
+        "stolenBases": 0,
+        "stolenBasePercentage": ".---",
+        "caughtStealingPercentage": ".---",
+        "groundIntoDoublePlay": 0,
+        "groundIntoTriplePlay": 0,
+        "numberOfPitches": 17,
+        "plateAppearances": 4,
+        "totalBases": 5,
+        "rbi": 1,
+        "leftOnBase": 1,
+        "sacBunts": 0,
+        "sacFlies": 0,
+        "babip": ".333",
+        "groundOutsToAirouts": "2.00",
+        "catchersInterference": 0,
+        "atBatsPerHomeRun": "4.00"
+       },
+       "team": {
+        "id": 119,
+        "name": "Los Angeles Dodgers",
+        "link": "/api/v1/teams/119"
+       },
+       "player": {
+        "id": 660271,
+        "fullName": "Shohei Ohtani",
+        "link": "/api/v1/people/660271",
+        "nameSlug": "shohei-ohtani-660271"
+       },
+       "league": {
+        "id": 104,
+        "name": "National League",
+        "link": "/api/v1/league/104"
+       },
+       "sport": {
+        "id": 1,
+        "link": "/api/v1/sports/1",
+        "abbreviation": "MLB"
+       },
+       "opponent": {
+        "id": 116,
+        "name": "Detroit Tigers",
+        "link": "/api/v1/teams/116"
+       },
+       "date": "2025-03-27",
+       "gameType": "R",
+       "isHome": true,
+       "isWin": true,
+       "positionsPlayed": [
+        {
+         "code": "10",
+         "name": "Designated Hitter",
+         "type": "Hitter",
+         "abbreviation": "DH"
+        }
+       ],
+       "game": {
+        "gamePk": 778546,
+        "link": "/api/v1.1/game/778546/feed/live",
+        "content": {
+         "link": "/api/v1/game/778546/content"
+        },
+        "gameNumber": 1,
+        "dayNight": "day"
+       }
+      }
+     ]
+    }
+   ],
+   "rosterEntries": [
+    {
+     "jerseyNumber": "17",
+     "position": {
+      "code": "Y",
+      "name": "Two-Way Player",
+      "type": "Two-Way Player",
+      "abbreviation": "TWP"
+     },
+     "status": {
+      "code": "A",
+      "description": "Active"
+     },
+     "team": {
+      "id": 119,
+      "name": "Los Angeles Dodgers",
+      "link": "/api/v1/teams/119",
+      "abbreviation": "LAD",
+      "teamName": "Dodgers",
+      "locationName": "Los Angeles"
+     },
+     "isActive": true,
+     "startDate": "2023-12-11",
+     "statusDate": "2026-09-23",
+     "isActiveFortyMan": true
+    },
+    {
+     "jerseyNumber": "17",
+     "position": {
+      "code": "Y",
+      "name": "Two-Way Player",
+      "type": "Two-Way Player",
+      "abbreviation": "TWP"
+     },
+     "status": {
+      "code": "FA",
+      "description": "Free Agent"
+     },
+     "team": {
+      "id": 108,
+      "name": "Los Angeles Angels",
+      "link": "/api/v1/teams/108",
+      "abbreviation": "LAA",
+      "teamName": "Angels",
+      "locationName": "Anaheim"
+     },
+     "isActive": false,
+     "startDate": "2018-03-28",
+     "endDate": "2023-11-02",
+     "statusDate": "2023-11-02",
+     "isActiveFortyMan": false
+    }
+   ]
+  }
+ ]
+}

@@ -19,11 +19,27 @@ export interface MlbRawPerson {
     currentTeam?: { id?: number; name?: string }
     active?: boolean
     stats?: MlbRawPersonStats[]
+    rosterEntries?: MlbRawRosterEntryStatus[]
+}
+
+export interface MlbRawRosterEntryStatus {
+    status?: { code?: string; description?: string }
+    statusDate?: string
+}
+
+export interface MlbRawStatSplit {
+    stat?: Record<string, string | number>
+    // Present on `statSplits` rows: h / a / vl / vr.
+    split?: { code?: string }
+    // Present on `gameLog` rows.
+    date?: string
+    opponent?: { id?: number }
 }
 
 export interface MlbRawPersonStats {
+    type?: { displayName?: string }
     group?: { displayName?: string }
-    splits?: Array<{ stat?: Record<string, string | number> }>
+    splits?: MlbRawStatSplit[]
 }
 
 export interface MlbRawPeopleResponse {

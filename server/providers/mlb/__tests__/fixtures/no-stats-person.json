@@ -1,0 +1,33 @@
+{
+ "people": [
+  {
+   "id": 999999,
+   "fullName": "Call Up",
+   "firstName": "Call",
+   "lastName": "Up",
+   "birthDate": "1994-07-05",
+   "currentAge": 32,
+   "primaryNumber": "17",
+   "primaryPosition": {
+    "code": "Y",
+    "name": "Two-Way Player",
+    "type": "Two-Way Player",
+    "abbreviation": "TWP"
+   },
+   "batSide": {
+    "code": "L",
+    "description": "Left"
+   },
+   "pitchHand": {
+    "code": "R",
+    "description": "Right"
+   },
+   "currentTeam": {
+    "id": 119,
+    "name": "Los Angeles Dodgers",
+    "link": "/api/v1/teams/119"
+   },
+   "active": true
+  }
+ ]
+}

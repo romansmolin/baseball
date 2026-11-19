@@ -1,7 +1,9 @@
 import type { SupportedBaseballLeague } from '../../../src/shared/baseball'
 import { POSITION_GROUP } from '../../../src/shared/sports'
 import { env } from '../../lib/env'
+import type { ProviderGameContext } from '../dto/provider-game-context.dto'
 import type { Paginated } from '../dto/provider-pagination.dto'
+import type { ProviderPlayerProfile } from '../dto/provider-player-profile.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from '../dto/provider-player.dto'
 import type {
     GetScheduleFilters,
@@ -23,7 +25,9 @@ import { mlbFetch } from './mlb.client'
 import { MLB_PEOPLE_HYDRATE_CHUNK, MLB_REVALIDATE, mlbTags } from './mlb.constants'
 import { resolveSportId } from './mlb-leagues.config'
 import { mapMlbBoxScoreToProvider } from './mappers/mlb-boxscore.mapper'
+import { mapMlbScheduleGameToContext } from './mappers/mlb-game-context.mapper'
 import { mapMlbPersonToProviderPlayer } from './mappers/mlb-person.mapper'
+import { mapMlbPersonToProfile } from './mappers/mlb-profile.mapper'
 import {
     mapMlbDetailedStateToStatus,
     mapMlbScheduleGameToProvider,
@@ -256,6 +260,55 @@ export class MlbSportsProvider implements ISportsProvider {
             }
         }
         return games
+    }
+
+    async getPlayerProfile(id: number, season: number): Promise<ProviderPlayerProfile | null> {
+        const hydrate =
+            'currentTeam,rosterEntries,' +
+            `stats(group=[hitting,pitching],type=[season,sabermetrics,statSplits,gameLog],sitCodes=[vl,vr,h,a],season=${season})`
+        try {
+            const data = await mlbFetch<MlbRawPeopleResponse>(
+                `/people/${id}?hydrate=${hydrate}`,
+                { revalidate: MLB_REVALIDATE.profile, tags: [mlbTags.profile(id, season)] },
+            )
+            const raw = data.people[0]
+            if (!raw) return null
+            const teamLookup = raw.currentTeam?.id != null ? await this.buildTeamLookup(season) : undefined
+            return mapMlbPersonToProfile(raw, teamLookup)
+        } catch (error) {
+            if (error instanceof ProviderNotFoundError) return null
+            throw error
+        }
+    }
+
+    async getGameContexts(filters: GetScheduleFilters): Promise<ProviderGameContext[]> {
+        const startStr = toDateOnly(filters.startDateUtc)
+        const endStr = toDateOnly(filters.endDateUtc)
+        const sportId = resolveSportId(filters.league)
+        const season = filters.season ?? env.defaultSeason()
+
+        let path =
+            `/schedule?sportId=${sportId}&season=${season}&startDate=${startStr}&endDate=${endStr}` +
+            '&hydrate=probablePitcher,weather,venue,lineups'
+        if (filters.gameTypes) path += `&gameType=${encodeURIComponent(filters.gameTypes)}`
+
+        const data = await mlbFetch<MlbRawScheduleResponse>(path, {
+            revalidate: filters.revalidateSeconds ?? MLB_REVALIDATE.gameContexts,
+            tags: [mlbTags.gameContexts(sportId, startStr, endStr)],
+        })
+
+        const games = data.dates.flatMap((date) => date.games)
+        const pitcherIds = games.flatMap((g) =>
+            [g.teams.home.probablePitcher?.id, g.teams.away.probablePitcher?.id].filter(
+                (id): id is number => id !== undefined,
+            ),
+        )
+        const people = await this.hydratePeople(pitcherIds)
+        const pitchersById = new Map(
+            [...people].map(([id, raw]) => [id, mapMlbPersonToProviderPlayer(raw)]),
+        )
+
+        return games.map((game) => mapMlbScheduleGameToContext(game, pitchersById))
     }
 
     async getBoxScore(

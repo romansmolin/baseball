@@ -7,6 +7,8 @@ export const MLB_REVALIDATE = {
     roster: 3600,
     schedule: 900,
     boxscore: 300,
+    profile: 900,
+    gameContexts: 300,
 } as const
 
 export const MLB_PEOPLE_HYDRATE_CHUNK = 100
@@ -26,4 +28,7 @@ export const mlbTags = {
     schedule: (sportId: number, startISO: string, endISO: string, teamKey?: string) =>
         `mlb:schedule:${sportId}:${startISO}:${endISO}${teamKey ? `:${teamKey}` : ''}`,
     boxscore: (gamePk: number) => `mlb:box:${gamePk}`,
+    profile: (id: number, season: number) => `mlb:profile:${id}:${season}`,
+    gameContexts: (sportId: number, startISO: string, endISO: string) =>
+        `mlb:game-contexts:${sportId}:${startISO}:${endISO}`,
 }

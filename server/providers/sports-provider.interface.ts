@@ -1,6 +1,8 @@
 import type { BaseballProviderLeague } from '../../src/shared/baseball'
 
 import type { Paginated } from './dto/provider-pagination.dto'
+import type { ProviderGameContext } from './dto/provider-game-context.dto'
+import type { ProviderPlayerProfile } from './dto/provider-player-profile.dto'
 import type { ProviderPlayer, ProviderPlayerFilters } from './dto/provider-player.dto'
 import type {
     GetScheduleFilters,
@@ -47,5 +49,9 @@ export interface ISportsProvider {
     getPlayersByIds(ids: number[]): Promise<ProviderPlayer[]>
     getPlayersByTeam(teamId: number, opts?: GetPlayersByTeamOptions): Promise<ProviderPlayer[]>
     getSchedule(filters: GetScheduleFilters): Promise<ProviderScheduledGame[]>
+    // Splits, game log, sabermetrics and roster status for one season; null when the player is unknown.
+    getPlayerProfile(id: number, season: number): Promise<ProviderPlayerProfile | null>
+    // Schedule enriched with probable pitchers, weather, venue, records and lineup status.
+    getGameContexts(filters: GetScheduleFilters): Promise<ProviderGameContext[]>
     getBoxScore(gamePk: number, opts?: GetBoxScoreOptions): Promise<ProviderBoxScore | null>
 }

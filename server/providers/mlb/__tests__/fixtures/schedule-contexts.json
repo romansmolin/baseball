@@ -1,0 +1,136 @@
+{
+ "dates": [
+  {
+   "date": "2025-07-01",
+   "games": [
+    {
+     "gamePk": 777283,
+     "gameDate": "2025-07-01T19:07:00Z",
+     "status": {
+      "abstractGameState": "Final",
+      "codedGameState": "F",
+      "detailedState": "Final",
+      "statusCode": "F",
+      "startTimeTBD": false,
+      "abstractGameCode": "F"
+     },
+     "teams": {
+      "away": {
+       "team": {
+        "id": 147,
+        "name": "New York Yankees",
+        "link": "/api/v1/teams/147"
+       },
+       "score": 5,
+       "leagueRecord": {
+        "wins": 48,
+        "losses": 37,
+        "ties": 0,
+        "pct": ".565"
+       },
+       "probablePitcher": {
+        "id": 608331,
+        "fullName": "Max Fried",
+        "link": "/api/v1/people/608331",
+        "nameSlug": "max-fried-608331"
+       }
+      },
+      "home": {
+       "team": {
+        "id": 141,
+        "name": "Toronto Blue Jays",
+        "link": "/api/v1/teams/141"
+       },
+       "score": 12,
+       "leagueRecord": {
+        "wins": 47,
+        "losses": 38,
+        "ties": 0,
+        "pct": ".553"
+       },
+       "probablePitcher": {
+        "id": 592332,
+        "fullName": "Kevin Gausman",
+        "link": "/api/v1/people/592332",
+        "nameSlug": "kevin-gausman-592332"
+       }
+      }
+     },
+     "venue": {
+      "id": 14,
+      "name": "Rogers Centre",
+      "link": "/api/v1/venues/14",
+      "active": true,
+      "season": "2025"
+     },
+     "weather": {
+      "condition": "Sunny",
+      "temp": "77",
+      "wind": "9 mph, Out To RF"
+     },
+     "lineups": {
+      "homePlayers": [
+       {
+        "id": 1
+       }
+      ],
+      "awayPlayers": [
+       {
+        "id": 2
+       }
+      ]
+     },
+     "doubleHeader": "N"
+    },
+    {
+     "gamePk": 1,
+     "gameDate": "2025-07-01T19:07:00Z",
+     "status": {
+      "abstractGameState": "Preview",
+      "detailedState": "Scheduled",
+      "codedGameState": "S"
+     },
+     "teams": {
+      "away": {
+       "team": {
+        "id": 147,
+        "name": "New York Yankees",
+        "link": "/api/v1/teams/147"
+       },
+       "score": 5,
+       "leagueRecord": {
+        "wins": 48,
+        "losses": 37,
+        "ties": 0,
+        "pct": ".565"
+       }
+      },
+      "home": {
+       "team": {
+        "id": 141,
+        "name": "Toronto Blue Jays",
+        "link": "/api/v1/teams/141"
+       },
+       "score": 12,
+       "leagueRecord": {
+        "wins": 47,
+        "losses": 38,
+        "ties": 0,
+        "pct": ".553"
+       }
+      }
+     },
+     "venue": {
+      "id": 14,
+      "name": "Rogers Centre",
+      "link": "/api/v1/venues/14",
+      "active": true,
+      "season": "2025"
+     },
+     "lineups": {},
+     "doubleHeader": "N"
+    }
+   ]
+  }
+ ]
+}
