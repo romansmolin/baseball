@@ -4,6 +4,8 @@ import {
     MAX_COMPARE_PLAYERS,
     addCompareId,
     bestIndexes,
+    countLeads,
+    gapFromBest,
     parseCompareIds,
     removeCompareId,
 } from './compare-logic'
@@ -63,5 +65,36 @@ describe('bestIndexes', () => {
     it('marks every player tied for best, but nobody when only one has a value', () => {
         expect(bestIndexes([0.8, 0.8, 0.5], 'higher')).toEqual(new Set([0, 1]))
         expect(bestIndexes([0.8], 'higher')).toEqual(new Set())
+    })
+})
+
+describe('countLeads', () => {
+    it('counts the rows each player leads', () => {
+        const rows = [
+            { values: [0.9, 0.5, 0.4], better: 'higher' as const },
+            { values: [3, 2, 5], better: 'lower' as const },
+            { values: [1, 2, 3], better: 'higher' as const },
+        ]
+        expect(countLeads(rows, 3)).toEqual({ leads: [1, 1, 1], contested: 3 })
+    })
+
+    it('skips rows that decide nothing: all tied, or one lone value', () => {
+        const rows = [
+            { values: [5, 5], better: 'higher' as const },
+            { values: [null, 7], better: 'higher' as const },
+        ]
+        expect(countLeads(rows, 2)).toEqual({ leads: [0, 0], contested: 0 })
+    })
+})
+
+describe('gapFromBest', () => {
+    it('is the distance from the best value', () => {
+        expect(gapFromBest(0.25, 0.3)).toBeCloseTo(0.05)
+    })
+
+    it('is null for a missing value or a player level with the best', () => {
+        expect(gapFromBest(null, 0.3)).toBeNull()
+        expect(gapFromBest(0.3, 0.3)).toBeNull()
+        expect(gapFromBest(0.3, null)).toBeNull()
     })
 })

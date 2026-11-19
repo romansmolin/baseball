@@ -1,12 +1,15 @@
 'use client'
 
 import { useCompare } from '../model/use-compare'
+import { useCompareView } from '../model/use-compare-view'
 
-import { CompareTable } from './compare-table'
 import { ComparePicker } from './compare-picker'
+import { CompareSummary } from './compare-summary'
+import { CompareTable } from './compare-table'
 
 export const CompareWorkbench = () => {
     const { ids, add, remove, players, missingIds, isLoading, error } = useCompare()
+    const { view, showAdvanced, toggleAdvanced } = useCompareView(players)
 
     return (
         <div className="space-y-5">
@@ -24,7 +27,27 @@ export const CompareWorkbench = () => {
             {missingIds.length > 0 && (
                 <p className="text-sm text-muted-foreground">No data for player id {missingIds.join(', ')}.</p>
             )}
-            {players.length >= 2 && <CompareTable players={players} onRemove={remove} />}
+            {players.length >= 2 && (
+                <>
+                    <CompareSummary
+                        players={players}
+                        leads={view.leads}
+                        contested={view.contested}
+                        outlookBest={view.outlookBest}
+                        onRemove={remove}
+                    />
+                    <CompareTable names={players.map((p) => p.player)} sections={view.sections} />
+                    {view.hasAdvanced && (
+                        <button
+                            type="button"
+                            onClick={toggleAdvanced}
+                            className="rounded-lg border border-foreground/15 px-3 py-1.5 text-sm hover:bg-muted/50"
+                        >
+                            {showAdvanced ? 'Hide advanced stats' : 'Show advanced stats (wOBA, wRC+, FIP, Statcast…)'}
+                        </button>
+                    )}
+                </>
+            )}
             {ids.length >= 2 && (
                 <p className="text-xs text-muted-foreground">
                     Outlook scores are statistical estimates for fantasy decisions, not predictions or betting advice.

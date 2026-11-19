@@ -26,3 +26,27 @@ export function bestIndexes(values: (number | null)[], better: 'higher' | 'lower
     const target = better === 'higher' ? Math.max(...present.map((p) => p.value)) : Math.min(...present.map((p) => p.value))
     return new Set(present.filter((p) => p.value === target).map((p) => p.index))
 }
+
+// How many rows each player leads. A row where everyone with a value is tied (or only one has a value) decides nothing, so it is skipped.
+export function countLeads(
+    rows: { values: (number | null)[]; better: 'higher' | 'lower' }[],
+    playerCount: number,
+): { leads: number[]; contested: number } {
+    const leads = Array.from({ length: playerCount }, () => 0)
+    let contested = 0
+    for (const { values, better } of rows) {
+        const best = bestIndexes(values, better)
+        const present = values.filter((value) => value !== null).length
+        if (best.size === 0 || best.size === present) continue
+        contested += 1
+        best.forEach((index) => (leads[index] += 1))
+    }
+    return { leads, contested }
+}
+
+// Distance from the best value in the row; null when there is nothing to compare or the player is level with the best.
+export function gapFromBest(value: number | null, bestValue: number | null): number | null {
+    if (value === null || bestValue === null) return null
+    const gap = Math.abs(bestValue - value)
+    return gap > 0 ? gap : null
+}
