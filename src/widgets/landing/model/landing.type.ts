@@ -20,8 +20,8 @@ export type FeatureCard = {
     href: string
 }
 
-export type LeagueShowcase = {
+export type DataPillar = {
     code: string
     name: string
-    region: string
+    source: string
 }

@@ -1,16 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CircleUser, Crown, Gamepad2, Users } from 'lucide-react'
+import { CircleUser, Gamepad2, GitCompare, Users } from 'lucide-react'
 import Link from 'next/link'
 
 import { FEATURE_CARDS } from '../model/landing.const'
 
-const CARD_ICONS = [CircleUser, Users, Gamepad2, Crown]
+const CARD_ICONS = [CircleUser, GitCompare, Gamepad2, Users]
 
 const MotionLink = motion(Link)
 
-export function TournamentInfo() {
+export function HowItWorks() {
     return (
         <section className="relative z-10 min-h-screen pt-40 px-6 max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-20 items-start">
@@ -19,8 +19,8 @@ export function TournamentInfo() {
                         01 / HOW IT WORKS
                     </span>
                     <h2 className="font-anton text-6xl md:text-9xl uppercase leading-[0.9] tracking-tighter mb-12">
-                        EVERY LEAGUE. <br />{' '}
-                        <span className="text-outline">ONE PLATFORM.</span>
+                        EVERY STAT. <br />{' '}
+                        <span className="text-outline">ONE PLACE.</span>
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
                         <div className="border-t border-white/20 pt-8">
@@ -28,17 +28,19 @@ export function TournamentInfo() {
                                 Real-Time Data
                             </h4>
                             <p className="text-sm text-gray-500 uppercase tracking-widest leading-loose">
-                                Live stats, projections, injuries and form pulled from every
-                                active league. Tweak your lineup until first pitch.
+                                Season stats, recent form, splits and Statcast expected stats
+                                for MLB players, with roster status and probable starters
+                                checked right up to first pitch.
                             </p>
                         </div>
                         <div className="border-t border-white/20 pt-8">
                             <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-white">
-                                Skill, Not Stakes
+                                A Helper, Not A Platform
                             </h4>
                             <p className="text-sm text-gray-500 uppercase tracking-widest leading-loose">
-                                Free-entry contests every day. Credits-only economy. No
-                                real-money wagering — pure roster strategy.
+                                No contests, no prizes, no wagering. Stats, comparisons and
+                                estimates are free; AI picks for a game use credits. Not
+                                betting advice.
                             </p>
                         </div>
                     </div>

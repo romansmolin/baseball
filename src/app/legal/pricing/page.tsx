@@ -11,7 +11,7 @@ export default function PricingPolicyPage() {
         <LegalPageShell
             title="Pricing and Payment Policy"
             intro="BaseballFantasy offers the following one-off virtual Credit packages."
-            lastUpdated="October 12, 2026"
+            lastUpdated="November 19, 2026"
         >
             <Section id="packages" title="1. Credit packages">
                 <List

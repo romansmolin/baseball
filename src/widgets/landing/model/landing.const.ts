@@ -1,4 +1,4 @@
-import type { FeatureCard, HeroStat, LeagueShowcase, SequenceStage, TickerItem } from './landing.type'
+import type { DataPillar, FeatureCard, HeroStat, SequenceStage, TickerItem } from './landing.type'
 
 export const SCROLL_FRAMES_BASE = '/assets/landing/baseball-scroll-frames'
 export const SCROLL_FRAMES_COUNT = 192
@@ -7,54 +7,54 @@ export const SCROLL_FRAMES_COUNT = 192
 export const SCROLL_FRAMES_EXT = 'webp'
 
 export const TICKER_ITEMS: TickerItem[] = [
-    { label: 'LIVE: CONTESTS ACROSS NORTH AMERICAN LEAGUES' },
-    { label: 'FREE-ENTRY CONTESTS EVERY DAY · CREDITS-ONLY ECONOMY' },
-    { label: 'AUTOFILL · CAPTAIN ×1.5 · SAVE A LINEUP IN 30 SECONDS' },
+    { label: 'MLB PLAYER ANALYTICS · COMPARE · GAME OUTLOOKS' },
+    { label: 'FREE STATS AND ESTIMATES · AI PICKS USE CREDITS' },
+    { label: 'SAVE YOUR TEAM · USE IT ON YOUR FANTASY PLATFORM' },
 ]
 
 export const SEQUENCE_STAGES: SequenceStage[] = [
     {
         eyebrow: 'Step One',
         headline: 'Scout',
-        body: 'Live stats, injuries, transfers and recent form across every active league.',
+        body: 'Season stats, recent form, splits and Statcast expected stats for every MLB player.',
     },
     {
         eyebrow: 'Step Two',
-        headline: 'Build',
-        body: 'Slot 9 players on the diamond. Captain your star for a 1.5× bonus. Stay under the 50,000-point virtual salary cap.',
+        headline: 'Compare',
+        body: 'Put up to four players side by side and see who is hot, who is due and who is hurt.',
     },
     {
         eyebrow: 'Step Three',
-        headline: 'Compete',
-        body: 'Daily, weekly, head-to-head or tournament — credits-only, free to play, real bragging rights.',
+        headline: 'Decide',
+        body: 'Check the next games, read the estimates and get AI picks for the team you play on another platform.',
     },
 ]
 
 export const HERO_STATS: HeroStat[] = [
-    { label: 'Leagues', value: '6' },
+    { label: 'MLB players', value: '1,600+' },
 ]
 
 export const FEATURE_CARDS: FeatureCard[] = [
     { index: 1, label: 'Players', sub: 'Scout the pool', href: '/players' },
-    { index: 2, label: 'Builder', sub: 'Slot the diamond', href: '/teams/new' },
-    { index: 3, label: 'Contests', sub: 'Daily · Weekend · Weekly', href: '/contests' },
-    { index: 4, label: 'Leagues', sub: 'MLB · Triple-A · Double-A', href: '/leagues' },
+    { index: 2, label: 'Compare', sub: 'Side by side', href: '/compare' },
+    { index: 3, label: 'Games', sub: 'Starters and estimates', href: '/games' },
+    { index: 4, label: 'My teams', sub: 'Save your roster', href: '/teams' },
 ]
 
-export const LEAGUES_SHOWCASE: LeagueShowcase[] = [
+export const DATA_PILLARS: DataPillar[] = [
     {
-        code: 'MLB',
-        name: 'Major League Baseball',
-        region: 'USA / Canada',
+        code: 'Stats',
+        name: 'Season stats, form and splits',
+        source: 'MLB Stats API',
     },
     {
-        code: 'Triple-A',
-        name: 'Triple-A Baseball',
-        region: 'North America',
+        code: 'Statcast',
+        name: 'Expected stats and quality of contact',
+        source: 'Baseball Savant',
     },
     {
-        code: 'Double-A',
-        name: 'Double-A Baseball',
-        region: 'North America',
+        code: 'Games',
+        name: 'Probable starters, weather and estimates',
+        source: 'Updated through the day',
     },
 ]

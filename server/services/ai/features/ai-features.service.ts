@@ -24,11 +24,11 @@ const AI_FEATURES: AIFeature[] = [
         iconKey: 'trade',
     },
     {
-        id: 'waiver',
-        name: 'Waiver wire',
-        description: 'Find hidden value',
-        costPerUse: 10,
-        iconKey: 'waiver',
+        id: 'autofill',
+        name: 'Team autofill',
+        description: 'Fill the empty slots of a team',
+        costPerUse: 3,
+        iconKey: 'autofill',
     },
 ]
 

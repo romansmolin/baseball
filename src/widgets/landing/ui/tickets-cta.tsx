@@ -20,12 +20,12 @@ export function TicketsCta() {
                         className="w-12 h-12 text-red-500 mx-auto mb-10 opacity-50"
                     />
                     <h2 className="font-anton text-7xl md:text-[150px] leading-[0.8] uppercase tracking-tighter mb-12">
-                        BUILD YOUR <br />
-                        <span className="text-outline">FIRST LINEUP</span>
+                        SCOUT YOUR <br />
+                        <span className="text-outline">FIRST PLAYER</span>
                     </h2>
                     <p className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.4em] mb-16 max-w-xl mx-auto leading-relaxed font-bold">
-                        Free to play. Credits-only economy. Build a championship roster in 30
-                        seconds with autofill.
+                        Free stats, comparisons and game estimates. AI picks for a game use
+                        credits.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                         <Link
@@ -50,7 +50,7 @@ export function TicketsCta() {
                             Real-Time Player Data
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em]">
-                            6 Leagues · 400+ Daily Contests
+                            MLB · Statcast · AI Picks
                         </span>
                     </div>
                 </motion.div>

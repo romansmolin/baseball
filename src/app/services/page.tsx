@@ -1,3 +1,4 @@
+import { AIFeaturesService } from '../../../server/services/ai/features/ai-features.service'
 import { COMPANY } from '@/shared/company'
 import { LegalPageShell, List, P, Section, Table } from '@/widgets/legal'
 
@@ -7,32 +8,46 @@ export const metadata = {
 }
 
 export default function ServicesPage() {
+    const aiFeatures = new AIFeaturesService().listFeatures()
+
     return (
         <LegalPageShell
             title="Services and prices"
-            intro="BaseballFantasy is an online game where you build fantasy baseball lineups from real players and score points from real games."
-            lastUpdated="November 4, 2026"
+            intro="BaseballFantasy is a research assistant for fantasy baseball. It helps you read player statistics, compare players, check upcoming MLB games and get AI suggestions for the fantasy team you play on another platform. We do not run contests and we do not pay prizes."
+            lastUpdated="November 19, 2026"
         >
             <Section id="what-you-get" title="1. What the service is">
                 <P>
-                    Each contest has a list of real baseball games. You pick nine players under a salary cap, name a captain
-                    who earns bonus points, and your lineup scores points from the official box scores of those games. The
-                    higher your score, the higher you rank among the other managers.
+                    You look up real MLB players and games, and we show the numbers that matter for a fantasy decision. We
+                    do not host a fantasy league: the team you save here is a draft for your own reference, and you set your
+                    lineup on the platform where you play.
                 </P>
                 <List
                     items={[
-                        'Daily Lineup and Weekend Series: contests for one day or one weekend of real games, with many of them free to enter.',
-                        'Series and league tournaments: longer contests that run over several weeks of a season.',
-                        'Rankings, player statistics, team standings and live scores for MLB, the minor leagues and the winter leagues.',
-                        'Lineup autofill, an optional feature that fills the empty slots of your lineup for a small number of credits.',
+                        'Player analytics: season statistics, recent form, splits against left- and right-handed pitching and expected statistics.',
+                        'Player comparison: up to four players side by side.',
+                        'Upcoming games: probable starting pitchers, weather, lineup status and a statistical estimate of the outcome.',
+                        'Saved teams: a roster you build and keep for use on another fantasy platform.',
+                        'AI features, paid with credits: picks for a single game, player analysis, trade advice and team autofill.',
                     ]}
                 />
+                <P>
+                    Estimates and AI suggestions are statistical tools for fantasy decisions. They are not predictions,
+                    guarantees or betting advice, and the service does not offer betting.
+                </P>
             </Section>
             <Section id="credits" title="2. What credits are and how you use them">
                 <P>
-                    Credits are the virtual currency of the service. You use them to pay the entry fee of contests that have
-                    one and to use optional features such as lineup autofill. Credits are not money: they cannot be
-                    transferred, redeemed or withdrawn. Many contests are free to enter and need no credits at all.
+                    Credits are the virtual currency of the service. You use them only to pay for the AI features listed
+                    below. Credits are not money: they cannot be transferred, redeemed or withdrawn. Player analytics, the
+                    comparison tool, the games schedule and saved teams are free and need no credits.
+                </P>
+                <Table
+                    headers={['AI feature', 'Credits per use']}
+                    rows={aiFeatures.map((feature) => ({ cells: [feature.name, String(feature.costPerUse)] }))}
+                />
+                <P>
+                    You are charged only when an AI feature returns a result. The cost is shown before you confirm.
                 </P>
             </Section>
             <Section id="prices" title="3. Prices">

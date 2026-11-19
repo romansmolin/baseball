@@ -95,7 +95,7 @@ export const LegalPageShell = ({
 
         <footer className="border-t border-foreground/10 py-8">
             <div className="container mx-auto flex max-w-4xl flex-col items-center gap-4 px-6 text-center text-xs text-muted-foreground">
-                © 2026 BaseballFantasy · Daily fantasy baseball, every league
+                © 2026 BaseballFantasy · Fantasy baseball research assistant
                 <FooterBusinessInfo className="flex flex-col gap-1 leading-relaxed not-italic" />
                 <FooterBankingInfo className="h-6 w-auto opacity-70" />
             </div>

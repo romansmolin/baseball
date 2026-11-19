@@ -12,7 +12,7 @@ export default function CookiesPolicyPage() {
         <LegalPageShell
             title="Cookies Policy"
             intro="This Cookies Policy explains what cookies and similar technologies BaseballFantasy uses on our website and applications, why we use them, and how you can manage your preferences."
-            lastUpdated="November 4, 2026"
+            lastUpdated="November 19, 2026"
         >
             <Callout>
                 <strong>In short:</strong> We use a small number of cookies — mostly to
@@ -73,7 +73,7 @@ export default function CookiesPolicyPage() {
                         These cookies allow the Service to remember choices you make and
                         provide enhanced, more personal features — for example, your
                         language, time zone, region, theme (light/dark), and recently
-                        viewed leagues, players, or contests.
+                        viewed players or games.
                     </P>
                 </Sub>
                 <Sub title="4.3 Performance and analytics cookies">
@@ -88,7 +88,7 @@ export default function CookiesPolicyPage() {
                 <Sub title="4.4 Security and fraud-prevention cookies">
                     <P>
                         These cookies help us detect malicious activity, prevent fraud,
-                        protect contests against multi-accounting and collusion, and
+                        protect the Service against multi-accounting and abuse, and
                         protect your account against unauthorized access.
                     </P>
                 </Sub>
@@ -160,8 +160,7 @@ export default function CookiesPolicyPage() {
                     />
                     <P>
                         Please note: if you block strictly necessary cookies, the Service
-                        will not function correctly. You may not be able to sign in, build
-                        lineups, or enter contests.
+                        will not function correctly. You may not be able to sign in, save teams, or use paid features.
                     </P>
                 </Sub>
                 <Sub title="7.2 Mobile devices">

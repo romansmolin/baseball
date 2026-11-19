@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
         <LegalPageShell
             title="Privacy Policy"
             intro="This Privacy Policy explains how CODERUSH SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ, trading as BaseballFantasy (“BaseballFantasy,” “we,” “us,” or “our”), collects, uses, shares and protects personal information when you use the website at https://www.mybaseballfantasy.com/ and its related services."
-            lastUpdated="June 4, 2026"
+            lastUpdated="November 19, 2026"
         >
             <P>
                 <strong className="text-foreground">Data Controller:</strong> CODERUSH
@@ -22,8 +22,7 @@ export default function PrivacyPolicyPage() {
             <Callout>
                 <strong>Plain-English summary:</strong> We collect the account, payment,
                 gameplay, and device information needed to run the Service. We use it to
-                provide and improve BaseballFantasy, comply with the law, and keep contests
-                fair. We do not sell your personal information. You have rights — including
+                provide and improve BaseballFantasy, comply with the law, and keep the Service safe. We do not sell your personal information. You have rights — including
                 the right to access, correct, export, and delete your data — and you can
                 exercise them by emailing{' '}
                 <a className="font-medium text-primary underline" href="mailto:privacy@mybaseballfantasy.com">
@@ -55,11 +54,11 @@ export default function PrivacyPolicyPage() {
                     <List
                         items={[
                             <><strong className="text-foreground">Account information.</strong> When you create an account, we collect your username, email address, password in hashed form, date of birth and country of residence. Your date of birth and country of residence are used to verify age and geographical eligibility.</>,
-                            <><strong className="text-foreground">Profile information.</strong> Display name, avatar, time zone, language preference, favorite leagues and teams, and any biographical information you choose to add.</>,
+                            <><strong className="text-foreground">Profile information.</strong> Display name, avatar, time zone, language preference, favorite teams, and any biographical information you choose to add.</>,
                             <><strong className="text-foreground">Payment information.</strong> When you purchase credits or paid features, our payment processor collects your billing name, billing address, payment method details (e.g., card brand, last four digits, expiration), and transaction history. We do not store full payment card numbers on our servers.</>,
-                            <><strong className="text-foreground">Identity verification.</strong> If required by law (e.g., for jurisdictions that require age or location verification for fantasy contests), we may collect a government-issued ID, a selfie, or other documentation, and share it with a verification provider.</>,
+                            <><strong className="text-foreground">Identity verification.</strong> If required by law (e.g., where the law requires age or location verification), we may collect a government-issued ID, a selfie, or other documentation, and share it with a verification provider.</>,
                             <><strong className="text-foreground">Communications.</strong> When you contact support, post in community features, or respond to surveys, we collect the content of your messages and any attachments.</>,
-                            <><strong className="text-foreground">Contest entries and lineups.</strong> Every team you build, every contest you enter, your scores, and your results.</>,
+                            <><strong className="text-foreground">Saved teams and AI requests.</strong> Every team you save and every AI feature you use, with the players, games and options you chose.</>,
                         ]}
                     />
                 </Sub>
@@ -68,7 +67,7 @@ export default function PrivacyPolicyPage() {
                     <List
                         items={[
                             <><strong className="text-foreground">Device and connection data.</strong> IP address, device type, operating system, browser type and version, screen size, language, mobile network information, and unique device identifiers.</>,
-                            <><strong className="text-foreground">Usage data.</strong> Pages and screens viewed, features used, contests browsed, time spent, clickstream, referring/exit pages, and crash reports.</>,
+                            <><strong className="text-foreground">Usage data.</strong> Pages and screens viewed, features used, players and games viewed, time spent, clickstream, referring/exit pages, and crash reports.</>,
                             <><strong className="text-foreground">Approximate location.</strong> Derived from your IP address; used for service eligibility, fraud prevention, and to honor jurisdictional restrictions. We do not collect precise GPS location unless you explicitly opt in.</>,
                             <><strong className="text-foreground">Cookies and similar technologies.</strong> See our separate <a className="font-medium text-primary underline" href="/legal/cookies">Cookies Policy</a> for full details.</>,
                             <><strong className="text-foreground">Authentication and security events.</strong> Login attempts, password changes, multi-factor challenges, suspicious-activity flags.</>,
@@ -91,14 +90,14 @@ export default function PrivacyPolicyPage() {
                 <P>We use the information we collect to:</P>
                 <List
                     items={[
-                        'Provide, operate, and maintain the Service — including account creation, contest scoring, leaderboards, lineup saving, and credit balance management.',
+                        'Provide, operate, and maintain the Service — including account creation, saved teams, AI features, and credit balance management.',
                         'Authenticate you and protect your account against unauthorized access.',
                         'Process payments, refunds, and credit-balance adjustments.',
                         'Verify your age, identity, and jurisdictional eligibility where required.',
-                        'Detect, investigate, and prevent fraud, multi-accounting, collusion, bot activity, and other behavior that violates our Terms.',
-                        'Communicate with you about your account, transactions, contests you have entered, security alerts, and service-related notices.',
+                        'Detect, investigate, and prevent fraud, multi-accounting, bot activity, and other behavior that violates our Terms.',
+                        'Communicate with you about your account, transactions, security alerts, and service-related notices.',
                         'Send you marketing and promotional messages, subject to your communication preferences and applicable law (you can opt out at any time).',
-                        'Personalize your experience — recommended contests, leagues, players, and homepage layout.',
+                        'Personalize your experience — recommended players, games, and homepage layout.',
                         'Measure, analyze, and improve the Service — A/B testing, feature performance, error monitoring, and aggregate usage analytics.',
                         'Comply with legal obligations, respond to lawful requests from public authorities, and enforce our Terms of Service.',
                     ]}
@@ -114,7 +113,7 @@ export default function PrivacyPolicyPage() {
                 </P>
                 <List
                     items={[
-                        <><strong className="text-foreground">Contract.</strong> Processing necessary to perform our agreement with you — for example, running contests you have entered, processing your credit purchases, and providing your account.</>,
+                        <><strong className="text-foreground">Contract.</strong> Processing necessary to perform our agreement with you — for example, running the AI features you request, processing your credit purchases, and providing your account.</>,
                         <><strong className="text-foreground">Legitimate interests.</strong> Processing necessary for our legitimate interests, balanced against your rights — for example, securing the Service against fraud, improving our product, and direct marketing to existing users.</>,
                         <><strong className="text-foreground">Consent.</strong> Where we ask for your consent (e.g., marketing email opt-in, optional cookies, precise location). You may withdraw consent at any time.</>,
                         <><strong className="text-foreground">Legal obligation.</strong> Processing necessary to comply with applicable law — for example, tax and accounting compliance, sanctions compliance, fraud prevention and responding to lawful requests from authorities.</>,
@@ -132,7 +131,7 @@ export default function PrivacyPolicyPage() {
                 <List
                     items={[
                         <><strong className="text-foreground">Service providers.</strong> We share information with third-party vendors that perform services on our behalf — cloud hosting, payment processing, fraud detection, customer support tooling, analytics, error monitoring, transactional email delivery, and similar functions. These providers act on our instructions and are bound by contract to confidentiality and security obligations.</>,
-                        <><strong className="text-foreground">Other users.</strong> Your username, avatar, public display name, lineups in completed contests, leaderboard rank, and contest history may be visible to other users.</>,
+                        <><strong className="text-foreground">Other users.</strong> We do not show your username, teams or activity to other users.</>,
                         <><strong className="text-foreground">Legal and safety.</strong> We may disclose information if required to comply with law, regulation, subpoena, or other legal process; to enforce our Terms; to protect our rights, property, or safety, or that of our users or third parties; or to investigate suspected fraud or wrongdoing.</>,
                         <><strong className="text-foreground">Business transfers.</strong> If we are involved in a merger, acquisition, reorganization, financing, or sale of assets, your information may be transferred as part of that transaction. We will notify you (e.g., by email and/or notice on the Service) before your information becomes subject to a different privacy policy.</>,
                         <><strong className="text-foreground">With your consent or at your direction.</strong> For any purpose disclosed to you at the time of collection, or with your specific consent.</>,
@@ -152,7 +151,7 @@ export default function PrivacyPolicyPage() {
                     items={[
                         'Account information is retained for the lifetime of your account and for a limited period after deletion (typically 30–90 days) to allow for account recovery and fraud investigations.',
                         'Transaction records are retained for the period required by applicable accounting, tax, payment and fraud-prevention laws.',
-                        'Contest history and lineups associated with closed contests are retained for at least 3 years to enable dispute resolution and integrity audits.',
+                        'Records of AI feature use and credit transactions are retained for at least 3 years to enable dispute resolution and accounting.',
                         'Marketing preferences are retained for as long as you have an account or until you opt out.',
                         'Server logs containing IP address and similar diagnostics are typically retained for up to 90 days.',
                     ]}
@@ -257,8 +256,7 @@ export default function PrivacyPolicyPage() {
 
             <Section id="children" title="11. Children's Privacy">
                 <P>
-                    The Service is intended for users who are at least 18 years old (or 21
-                    in jurisdictions that require a higher age for paid fantasy contests).
+                    The Service is intended for users who are at least 18 years old.
                     We do not knowingly collect personal information from children under 13.
                     If we learn that we have collected personal information from a child
                     under 13 without verifiable parental consent, we will promptly delete

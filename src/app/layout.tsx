@@ -21,9 +21,9 @@ const bigShoulders = Big_Shoulders({
 })
 
 export const metadata: Metadata = {
-    title: 'BaseballFantasy — Daily fantasy baseball, every league',
+    title: 'BaseballFantasy — Fantasy baseball research assistant',
     description:
-        'Fantasy baseball contests across MLB and affiliated North American leagues. Build lineups under the salary cap, captain your star, take down the field.',
+        'Player analytics, comparisons, upcoming game outlooks and AI picks to help you manage your fantasy baseball team on any platform.',
 }
 
 // Nonce-based CSP needs per-request rendering; static HTML can't carry a nonce.

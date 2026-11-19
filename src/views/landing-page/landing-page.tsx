@@ -1,8 +1,8 @@
 import {
     LiveTicker,
     HeroSection,
-    TournamentInfo,
-    EliteContenders,
+    HowItWorks,
+    DataSources,
     TicketsCta,
     LandingFooter,
 } from '@/widgets/landing'
@@ -15,8 +15,8 @@ export const LandingPage = () => {
         >
             <LiveTicker />
             <HeroSection />
-            <TournamentInfo />
-            <EliteContenders />
+            <HowItWorks />
+            <DataSources />
             <TicketsCta />
             <LandingFooter />
         </div>

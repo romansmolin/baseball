@@ -37,20 +37,21 @@ export function HeroSection() {
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse" />
                             <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-white/60">
-                                Daily Fantasy Baseball · Eligible Leagues
+                                Fantasy Baseball · Research Assistant
                             </span>
                         </div>
 
                         <h1 className="font-anton text-[64px] md:text-[150px] leading-[0.8] tracking-tighter mb-8 uppercase text-white">
-                            BUILD THE <span className="text-outline-red">DIAMOND</span>
+                            SCOUT THE <span className="text-outline-red">PLAYERS</span>
                             <br />
-                            TAKE THE POOL
+                            SET YOUR TEAM
                         </h1>
 
                         <div className="flex flex-col md:flex-row items-center gap-8 max-w-4xl">
                             <p className="text-xs md:text-sm text-gray-500 uppercase tracking-[0.2em] leading-relaxed max-w-sm text-center md:text-left">
-                                Fantasy baseball contests across MLB, Triple-A and Double-A. Build
-                                lineups under the salary cap. Captain your star. Win on skill.
+                                Stats, form and game outlooks for MLB players. Compare players,
+                                check the next games and get AI picks for the fantasy team you
+                                play on another platform.
                             </p>
                             <div className="hidden md:block h-px flex-1 bg-white/20" />
                             <div className="flex flex-col sm:flex-row gap-4">

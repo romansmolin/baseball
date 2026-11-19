@@ -4,22 +4,21 @@ import { Callout, LegalPageShell, List, P, Section, Sub } from '@/widgets/legal'
 export const metadata = {
     title: 'Refund & Return Policy · BaseballFantasy',
     description:
-        'When and how refunds and returns are available for BaseballFantasy credit purchases, paid features, and contest entries.',
+        'When and how refunds and returns are available for BaseballFantasy credit purchases, and paid features.',
 }
 
 export default function RefundPolicyPage() {
     return (
         <LegalPageShell
             title="Refund & Return Policy"
-            intro="This Refund & Return Policy explains when and how refunds and returns are available for credit purchases, paid features, and contest entries on BaseballFantasy. It supplements, and should be read together with, our Terms of Service."
-            lastUpdated="November 4, 2026"
+            intro="This Refund & Return Policy explains when and how refunds and returns are available for credit purchases and paid features on BaseballFantasy. It supplements, and should be read together with, our Terms of Service."
+            lastUpdated="November 19, 2026"
         >
             <Callout>
                 <strong>Quick summary:</strong> Because BaseballFantasy sells virtual
                 credits that are usable immediately upon purchase, most credit purchases
                 are <strong>non-refundable</strong> once credits have been used. We do
-                provide refunds for duplicate or erroneous charges, technical errors
-                preventing use, qualifying cancelled contests, and where required by your
+                provide refunds for duplicate or erroneous charges, technical errors preventing use, AI features that were charged but returned no result, and where required by your
                 statutory consumer rights. Refund requests are reviewed individually and
                 processed back to the original payment method.
             </Callout>
@@ -30,7 +29,8 @@ export default function RefundPolicyPage() {
                     items={[
                         'Purchases of virtual credits ("Credits") through the Service;',
                         'Optional one-time paid features, where offered;',
-                        'Credit entry requirements paid with Credits;',
+                        'AI features and other optional features paid with Credits;',
+
                         'Any other paid transaction processed through BaseballFantasy.',
                     ]}
                 />
@@ -76,14 +76,11 @@ export default function RefundPolicyPage() {
                         re-deliver the Credits or refund the affected amount.
                     </P>
                 </Sub>
-                <Sub title="3.3 Cancelled contests with no replacement scoring window">
+                <Sub title="3.3 AI features that failed">
                     <P>
-                        If you entered a credit-entry contest that we then cancel without offering
-                        an equivalent replacement (for example, because all underlying
-                        real-world games are cancelled), we will refund the credit entry requirement in
-                        Credits to your account balance, in line with the specific contest
-                        rules. We may, in our discretion, offer a cash refund instead of
-                        Credits where the cancellation is attributable solely to us.
+                        AI features charge credits only when a result is returned. If you
+                        were charged but no result was shown to you, tell us and we will
+                        return the credits to your account balance.
                     </P>
                 </Sub>
                 <Sub title="3.4 Statutory rights">
@@ -101,11 +98,10 @@ export default function RefundPolicyPage() {
                 <P>Except as required by applicable law, we do not offer refunds for:</P>
                 <List
                     items={[
-                        'Credits that have been used, in whole or in part, to enter a contest or unlock a paid feature;',
-                        'Contest losses or unfavorable contest outcomes, regardless of cause (including injury to a player on your lineup, real-world game cancellation that is handled per the contest’s published rules, or weather);',
-                        'Failure to set or lock your lineup before the contest lock time;',
+                        'Credits that have been used, in whole or in part, to run a paid feature that returned a result;',
+                        'Results of decisions you make on third-party fantasy platforms based on our statistics, estimates or AI suggestions, regardless of cause (including player injury, real-world game cancellation, or weather);',
                         'Voluntary closure of your account after Credits have been purchased;',
-                        'Accounts suspended or terminated for violation of our Terms of Service (including multi-accounting, collusion, bot use, fraud, or other prohibited conduct), in which case all Credit balances are forfeited;',
+                        'Accounts suspended or terminated for violation of our Terms of Service (including multi-accounting, bot use, fraud, or other prohibited conduct), in which case all Credit balances are forfeited;',
                         'Promotional, bonus, or referral Credits, which have no cash value and expire per the specific promotion terms;',
                         'Credits transferred or sold in violation of these Terms;',
                         'Purchases more than thirty (30) days old where no other ground for refund under this Policy applies;',
@@ -121,8 +117,7 @@ export default function RefundPolicyPage() {
                     days of the transaction without giving any reason. However, because
                     Credits are digital content delivered immediately upon purchase, you
                     expressly consent to immediate performance and acknowledge that you
-                    lose your right of withdrawal once you begin using the Credits (e.g.,
-                    by entering a credit-entry contest).
+                    lose your right of withdrawal once you begin using the Credits (e.g., by running an AI feature).
                 </P>
                 <P>
                     Before receiving purchased Credits immediately, EU and UK consumers

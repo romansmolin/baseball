@@ -16,7 +16,7 @@ const iconForKey = {
     lineup: MagicWand01Icon,
     analysis: ChartLineData01Icon,
     trade: ChartIncreaseIcon,
-    waiver: SparklesIcon,
+    autofill: SparklesIcon,
 }
 
 export const AIFeaturesGrid = () => {
