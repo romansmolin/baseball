@@ -1,6 +1,6 @@
 import {
     Analytics01Icon,
-    Award01Icon,
+    GitCompareIcon,
     BaseballBatIcon,
     BaseballIcon,
     HomeIcon,
@@ -18,6 +18,6 @@ export const dashboardNav: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { label: 'Players', href: '/players', icon: Analytics01Icon },
     { label: 'Games', href: '/games', icon: BaseballIcon },
-    { label: 'Compare', href: '/compare', icon: Award01Icon },
+    { label: 'Compare', href: '/compare', icon: GitCompareIcon },
     { label: 'My teams', href: '/teams', icon: BaseballBatIcon },
 ]

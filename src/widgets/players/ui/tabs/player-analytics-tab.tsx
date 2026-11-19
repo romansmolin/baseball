@@ -1,6 +1,7 @@
 'use client'
 
 import { ChartLineData01Icon } from '@hugeicons/core-free-icons'
+import Link from 'next/link'
 
 import { usePlayerAnalytics } from '../../model/use-player-analytics'
 
@@ -29,6 +30,12 @@ export const PlayerAnalyticsTab = ({ playerId }: { playerId: number }) => {
             <div className="flex items-center gap-2">
                 <StatusPill status={analytics.status} />
                 <span className="text-xs text-muted-foreground">Roster status</span>
+                <Link
+                    href={`/compare?ids=${playerId}`}
+                    className="ml-auto rounded-md border border-foreground/15 px-2.5 py-1 text-xs font-medium hover:bg-muted"
+                >
+                    Compare with…
+                </Link>
             </div>
             <OutlookCard outlook={analytics.outlook} />
             {noStats && (
