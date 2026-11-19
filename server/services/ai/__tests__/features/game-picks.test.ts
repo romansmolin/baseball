@@ -19,6 +19,7 @@ const AWAY = 2
 const detail = (overrides: Partial<GameDetail['game']> = {}): GameDetail => ({
     game: {
         gamePk: 99,
+        leagueSlug: 'mlb',
         gameDateUtc: '2026-04-01T23:00:00Z',
         status: 'SCHEDULED',
         homeTeam: { id: HOME, name: 'Home Club', teamName: 'Home', abbreviation: 'HOM' },
@@ -191,6 +192,14 @@ describe('GamePicksFeature', () => {
         const live = detail({ status: 'LIVE' })
 
         await expect(build({ ai, games: gamesService(live) }).invoke('u1', { gamePk: 99, scoringPreset: 'POINTS' })).rejects.toThrow(/not started/)
+        expect(ai.complete).not.toHaveBeenCalled()
+    })
+
+    it('does not call the model for a game outside MLB, where player data is thin', async () => {
+        const ai = openai(validOutput([100]))
+        const winter = detail({ leagueSlug: 'winter-leagues' })
+
+        await expect(build({ ai, games: gamesService(winter) }).invoke('u1', { gamePk: 99 })).rejects.toThrow(/only available for MLB/)
         expect(ai.complete).not.toHaveBeenCalled()
     })
 

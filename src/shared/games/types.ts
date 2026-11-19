@@ -28,3 +28,7 @@ export interface UpcomingGameRecord {
     // Only for games that have not started; null when the data to estimate is missing.
     estimate: GameEstimate | null
 }
+
+// Leagues the games hub covers: MLB, and the winter leagues that play while MLB is off-season.
+export const GAME_LEAGUES = ['mlb', 'winter-leagues'] as const
+export type GameLeague = (typeof GAME_LEAGUES)[number]

@@ -1,4 +1,4 @@
-import { gamePkParamSchema } from '../../entities/analytics/analytics.schema'
+import { gameLeagueSchema, gamePkParamSchema } from '../../entities/analytics/analytics.schema'
 import { ApiError } from '../../errors/api.error'
 import { ErrorCode } from '../../errors/error-code.enum'
 import type { IGamesService } from '../../services/games/games.service.interface'
@@ -29,14 +29,19 @@ export class GamesController implements IGamesController {
         }
     }
 
-    async getGameDetail(gamePkParam: string): Promise<Response> {
+    async getGameDetail(gamePkParam: string, leagueParam: string | null): Promise<Response> {
         try {
             const gamePk = gamePkParamSchema.safeParse(gamePkParam)
             if (!gamePk.success) {
                 return ApiError.validationError('gamePk must be a positive integer').toResponse()
             }
 
-            const detail = await this.gamesService.getGameDetail(gamePk.data)
+            const league = gameLeagueSchema.safeParse(leagueParam ?? undefined)
+            if (!league.success) {
+                return ApiError.validationError('league must be mlb or winter-leagues').toResponse()
+            }
+
+            const detail = await this.gamesService.getGameDetail(gamePk.data, league.data)
             if (!detail) {
                 return ApiError.notFound(ErrorCode.GAME_NOT_FOUND, `Game not found: ${gamePk.data}`).toResponse()
             }

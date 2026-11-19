@@ -86,6 +86,9 @@ export class GamePicksFeature implements AIFeatureModule<GamePicksInput, GamePic
         if (!detail) {
             throw ApiError.notFound(ErrorCode.GAME_NOT_FOUND, `Game ${parsed.gamePk} not found`)
         }
+        if (detail.game.leagueSlug !== 'mlb') {
+            throw ApiError.validationError('Picks are only available for MLB games')
+        }
         if (detail.game.status !== 'SCHEDULED') {
             throw ApiError.validationError('Picks are only available for games that have not started')
         }

@@ -90,6 +90,21 @@ describe('MlbSportsProvider.getGameContext', () => {
         expect(context?.game.gamePk).toBe(777283)
     })
 
+    it('looks the game up at the level of its league', async () => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async (url: string) => {
+                fetchedUrls.push(url)
+                return json({ dates: [] })
+            }),
+        )
+
+        await new MlbSportsProvider().getGameContext(851255, 2026, 'winter-leagues')
+
+        expect(fetchedUrls[0]).toContain('sportId=17')
+        expect(fetchedUrls[0]).toContain('gamePks=851255')
+    })
+
     it('returns null when the schedule has no such game', async () => {
         vi.stubGlobal('fetch', vi.fn(async () => json({ dates: [] })))
 

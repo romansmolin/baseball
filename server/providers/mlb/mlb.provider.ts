@@ -1,4 +1,4 @@
-import type { SupportedBaseballLeague } from '../../../src/shared/baseball'
+import type { BaseballProviderLeague, SupportedBaseballLeague } from '../../../src/shared/baseball'
 import { POSITION_GROUP } from '../../../src/shared/sports'
 import { env } from '../../lib/env'
 import type { ProviderGameContext } from '../dto/provider-game-context.dto'
@@ -302,8 +302,12 @@ export class MlbSportsProvider implements ISportsProvider {
         })
     }
 
-    async getGameContext(gamePk: number, season = env.defaultSeason()): Promise<ProviderGameContext | null> {
-        const path = `/schedule?sportId=1&gamePks=${gamePk}&hydrate=${GAME_CONTEXT_HYDRATE}`
+    async getGameContext(
+        gamePk: number,
+        season = env.defaultSeason(),
+        league?: BaseballProviderLeague,
+    ): Promise<ProviderGameContext | null> {
+        const path = `/schedule?sportId=${resolveSportId(league)}&gamePks=${gamePk}&hydrate=${GAME_CONTEXT_HYDRATE}`
         const [context] = await this.loadGameContexts(path, season, {
             revalidate: MLB_REVALIDATE.gameContexts,
             tags: [mlbTags.gameContext(gamePk)],

@@ -54,8 +54,8 @@ export interface ISportsProvider {
     getPlayerProfile(id: number, season: number): Promise<ProviderPlayerProfile | null>
     // Schedule enriched with probable pitchers, weather, venue, records and lineup status.
     getGameContexts(filters: GetScheduleFilters): Promise<ProviderGameContext[]>
-    // One MLB game by id with the same enrichment; null when the schedule has no such game.
-    getGameContext(gamePk: number, season?: number): Promise<ProviderGameContext | null>
+    // One game by id, looked up at the level of its league (MLB by default), with the same enrichment; null when the schedule has no such game.
+    getGameContext(gamePk: number, season?: number, league?: BaseballProviderLeague): Promise<ProviderGameContext | null>
     // MLB regular-season standings: record and last ten games for every team.
     getTeamStandings(season: number): Promise<ProviderTeamStanding[]>
     getBoxScore(gamePk: number, opts?: GetBoxScoreOptions): Promise<ProviderBoxScore | null>

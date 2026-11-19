@@ -13,7 +13,7 @@ export const GameCard = ({ game }: { game: UpcomingGameRecord }) => {
 
     return (
         <Link
-            href={`/games/${game.gamePk}`}
+            href={game.leagueSlug && game.leagueSlug !== 'mlb' ? `/games/${game.gamePk}?league=${game.leagueSlug}` : `/games/${game.gamePk}`}
             className="block rounded-xl border border-foreground/10 bg-card p-4 transition-colors hover:border-foreground/25"
         >
             <div className="flex items-start justify-between gap-3">

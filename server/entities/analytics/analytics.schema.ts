@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { GAME_LEAGUES } from '../../../src/shared/games'
+
 const season = z.coerce.number().int().min(1900).max(2100).optional()
 
 export const playerAnalyticsQuerySchema = z.object({ season })
@@ -27,6 +29,9 @@ export const compareQuerySchema = z.object({
                 .max(MAX_COMPARE_PLAYERS, `Compare takes at most ${MAX_COMPARE_PLAYERS} players`),
         ),
 })
+
+// Which league a game belongs to; MLB when omitted.
+export const gameLeagueSchema = z.enum(GAME_LEAGUES).default('mlb')
 
 export const gamePkParamSchema = z.coerce.number().int().positive()
 

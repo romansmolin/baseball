@@ -1,6 +1,8 @@
 import type { GameDetail, PitcherSummary } from '../../../src/shared/analytics'
 import type { GameEstimate } from '../../../src/shared/estimates'
 import type { UpcomingGameRecord } from '../../../src/shared/games'
+import type { GameLeague } from '../../../src/shared/games'
+import { GAME_LEAGUES } from '../../../src/shared/games'
 import type { ProviderGameContext } from '../../providers/dto/provider-game-context.dto'
 import type { ProviderPlayer } from '../../providers/dto/provider-player.dto'
 import type { ProviderTeamStanding } from '../../providers/dto/provider-team-standing.dto'
@@ -17,6 +19,11 @@ import type { IGamesService } from './games.service.interface'
 const UPCOMING_WINDOW_DAYS = 4
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
+interface LeagueGame {
+    league: GameLeague
+    context: ProviderGameContext
+}
+
 export class GamesService implements IGamesService {
     private readonly sportsProvider: ISportsProvider
 
@@ -28,26 +35,22 @@ export class GamesService implements IGamesService {
         const now = new Date()
         const end = new Date(now.getTime() + UPCOMING_WINDOW_DAYS * MS_PER_DAY)
 
-        const contexts = await this.sportsProvider.getGameContexts({
-            startDateUtc: now,
-            endDateUtc: end,
-            league: 'mlb',
-        })
+        const games = await this.loadSchedule({ startDateUtc: now, endDateUtc: end })
 
-        const upcoming = contexts
-            .filter(({ game: g }) => g.status !== 'FINAL' && g.status !== 'CANCELLED')
-            .filter(({ game: g }) => new Date(g.gameDateUtc).getTime() >= now.getTime() - 60 * 60 * 1000)
-            .sort((a, b) => a.game.gameDateUtc.localeCompare(b.game.gameDateUtc))
+        const upcoming = games
+            .filter(({ context: { game: g } }) => g.status !== 'FINAL' && g.status !== 'CANCELLED')
+            .filter(({ context: { game: g } }) => new Date(g.gameDateUtc).getTime() >= now.getTime() - 60 * 60 * 1000)
+            .sort((a, b) => a.context.game.gameDateUtc.localeCompare(b.context.game.gameDateUtc))
             .slice(0, limit)
 
         return this.toRecords(upcoming)
     }
 
-    async getGameDetail(gamePk: number): Promise<GameDetail | null> {
-        const context = await this.sportsProvider.getGameContext(gamePk)
+    async getGameDetail(gamePk: number, league: GameLeague = 'mlb'): Promise<GameDetail | null> {
+        const context = await this.sportsProvider.getGameContext(gamePk, env.defaultSeason(), league)
         if (!context) return null
 
-        const [record] = await this.toRecords([context])
+        const [record] = await this.toRecords([{ league, context }])
         return {
             game: record,
             weather: context.weather,
@@ -60,7 +63,23 @@ export class GamesService implements IGamesService {
         }
     }
 
-    // A standings outage must not blank the page: estimates then fall back to the schedule's own records.
+    // One failing league must not blank the page; only a total failure is an error.
+    private async loadSchedule(range: { startDateUtc: Date; endDateUtc: Date }): Promise<LeagueGame[]> {
+        const results = await Promise.allSettled(
+            GAME_LEAGUES.map(async (league) =>
+                (await this.sportsProvider.getGameContexts({ ...range, league })).map((context) => ({
+                    league,
+                    context,
+                })),
+            ),
+        )
+        const failed = results.filter((r) => r.status === 'rejected')
+        if (failed.length === results.length) throw failed[0].reason
+        return results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+    }
+
+    // Only MLB has standings; other leagues fall back to the schedule's own records.
+    // A standings outage must not blank the page either.
     private async loadStandings(): Promise<Map<number, ProviderTeamStanding>> {
         try {
             const rows = await this.sportsProvider.getTeamStandings(env.defaultSeason())
@@ -70,37 +89,44 @@ export class GamesService implements IGamesService {
         }
     }
 
-    private async toRecords(contexts: ProviderGameContext[]): Promise<UpcomingGameRecord[]> {
-        if (contexts.length === 0) return []
+    private async toRecords(games: LeagueGame[]): Promise<UpcomingGameRecord[]> {
+        if (games.length === 0) return []
 
-        const [teams, standings] = await Promise.all([
-            this.sportsProvider.getTeams({ league: 'mlb' }),
-            this.loadStandings(),
+        const leagues = [...new Set(games.map((g) => g.league))]
+        const [teamLists, mlbStandings] = await Promise.all([
+            Promise.all(leagues.map((league) => this.sportsProvider.getTeams({ league }))),
+            leagues.includes('mlb') ? this.loadStandings() : Promise.resolve(new Map<number, ProviderTeamStanding>()),
         ])
-        const teamById = new Map(teams.map((team) => [team.id, team]))
+        const teamByKey = new Map(
+            leagues.flatMap((league, i) => teamLists[i].map((team) => [`${league}:${team.id}`, team] as const)),
+        )
+        const noStandings = new Map<number, ProviderTeamStanding>()
 
-        const side = (id: number) => {
-            const team = teamById.get(id)
+        const side = (league: GameLeague, id: number) => {
+            const team = teamByKey.get(`${league}:${id}`)
             return team
                 ? { id: team.id, name: team.name, teamName: team.teamName, abbreviation: team.abbreviation }
                 : { id, name: 'Unknown', teamName: null, abbreviation: 'UNK' }
         }
 
-        return contexts.map((context) => {
+        return games.map(({ league, context }) => {
             const g = context.game
             return {
                 gamePk: g.gamePk,
                 gameDateUtc: g.gameDateUtc,
                 status: g.status,
-                leagueSlug: 'mlb',
-                homeTeam: side(g.homeTeamId),
-                awayTeam: side(g.awayTeamId),
-                venueName: context.venue?.name ?? teamById.get(g.homeTeamId)?.venueName ?? null,
+                leagueSlug: league,
+                homeTeam: side(league, g.homeTeamId),
+                awayTeam: side(league, g.awayTeamId),
+                venueName: context.venue?.name ?? teamByKey.get(`${league}:${g.homeTeamId}`)?.venueName ?? null,
                 homeScore: g.homeScore,
                 awayScore: g.awayScore,
                 homeProbablePitcher: context.probablePitchers.home?.fullName ?? null,
                 awayProbablePitcher: context.probablePitchers.away?.fullName ?? null,
-                estimate: g.status === 'SCHEDULED' ? estimateContext(context, standings) : null,
+                estimate:
+                    g.status === 'SCHEDULED'
+                        ? estimateContext(context, league === 'mlb' ? mlbStandings : noStandings)
+                        : null,
             }
         })
     }

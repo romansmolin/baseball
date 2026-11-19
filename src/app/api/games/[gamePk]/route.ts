@@ -4,7 +4,7 @@ import { GamesService } from '../../../../../server/services/games/games.service
 
 const gamesController = new GamesController(new GamesService(getSportsProvider()))
 
-export async function GET(_request: Request, { params }: { params: Promise<{ gamePk: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ gamePk: string }> }) {
     const { gamePk } = await params
-    return gamesController.getGameDetail(gamePk)
+    return gamesController.getGameDetail(gamePk, new URL(request.url).searchParams.get('league'))
 }

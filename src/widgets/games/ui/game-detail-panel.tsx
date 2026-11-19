@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 
+import type { GameLeague } from '@/shared/games'
 import { formatDecimal, formatInnings, type PitcherSummary } from '@/shared/analytics'
 
 import { useGameDetail } from '../model/use-game-detail'
@@ -26,12 +27,13 @@ const PitcherLine = ({ label, pitcher }: { label: string; pitcher: PitcherSummar
 
 interface GameDetailPanelProps {
     gamePk: number
+    league: GameLeague
     // Room for actions that belong to a game, e.g. asking the AI for picks.
     actions?: React.ReactNode
 }
 
-export const GameDetailPanel = ({ gamePk, actions }: GameDetailPanelProps) => {
-    const { detail, isLoading, error } = useGameDetail(gamePk)
+export const GameDetailPanel = ({ gamePk, league, actions }: GameDetailPanelProps) => {
+    const { detail, isLoading, error } = useGameDetail(gamePk, league)
 
     if (isLoading) return <p className="text-sm text-muted-foreground">Loading the game…</p>
     if (error || !detail) {
@@ -86,7 +88,7 @@ export const GameDetailPanel = ({ gamePk, actions }: GameDetailPanelProps) => {
                 <p className="text-sm text-muted-foreground">An estimate is shown for games that have not started.</p>
             )}
 
-            {game.status === 'SCHEDULED' && actions}
+            {game.status === 'SCHEDULED' && game.leagueSlug === 'mlb' && actions}
         </div>
     )
 }

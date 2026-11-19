@@ -50,6 +50,10 @@ const context = (
     lineupsPosted: true,
 })
 
+// Contexts by league slug; a league that is not listed has no games.
+const byLeague = (games: Partial<Record<string, ProviderGameContext[]>>) =>
+    vi.fn(async (filters: { league?: string }) => games[filters.league ?? 'mlb'] ?? [])
+
 const provider = (overrides: Partial<ISportsProvider> = {}): ISportsProvider =>
     ({
         name: 'fake',
@@ -67,11 +71,9 @@ describe('GamesService.getUpcomingGames', () => {
     it('adds an estimate to scheduled games only, and drops finished ones', async () => {
         const service = new GamesService(
             provider({
-                getGameContexts: vi.fn().mockResolvedValue([
-                    context(1, 'SCHEDULED', 3),
-                    context(2, 'LIVE', 0.5),
-                    context(3, 'FINAL', -2),
-                ]),
+                getGameContexts: byLeague({
+                    mlb: [context(1, 'SCHEDULED', 3), context(2, 'LIVE', 0.5), context(3, 'FINAL', -2)],
+                }),
             }),
         )
 
@@ -85,12 +87,14 @@ describe('GamesService.getUpcomingGames', () => {
     it('names the probable pitchers and leans toward the better one', async () => {
         const service = new GamesService(
             provider({
-                getGameContexts: vi.fn().mockResolvedValue([
-                    context(1, 'SCHEDULED', 3, {
-                        home: pitcher(10, 'Ace', '2.00'),
-                        away: pitcher(11, 'Scrub', '6.00'),
-                    }),
-                ]),
+                getGameContexts: byLeague({
+                    mlb: [
+                        context(1, 'SCHEDULED', 3, {
+                            home: pitcher(10, 'Ace', '2.00'),
+                            away: pitcher(11, 'Scrub', '6.00'),
+                        }),
+                    ],
+                }),
             }),
         )
 
@@ -104,7 +108,7 @@ describe('GamesService.getUpcomingGames', () => {
     it('still returns an estimate when the standings call fails', async () => {
         const service = new GamesService(
             provider({
-                getGameContexts: vi.fn().mockResolvedValue([context(1, 'SCHEDULED', 3)]),
+                getGameContexts: byLeague({ mlb: [context(1, 'SCHEDULED', 3)] }),
                 getTeamStandings: vi.fn().mockRejectedValue(new Error('standings down')),
             }),
         )
@@ -117,11 +121,9 @@ describe('GamesService.getUpcomingGames', () => {
     it('respects the limit', async () => {
         const service = new GamesService(
             provider({
-                getGameContexts: vi.fn().mockResolvedValue([
-                    context(1, 'SCHEDULED', 1),
-                    context(2, 'SCHEDULED', 2),
-                    context(3, 'SCHEDULED', 3),
-                ]),
+                getGameContexts: byLeague({
+                    mlb: [context(1, 'SCHEDULED', 1), context(2, 'SCHEDULED', 2), context(3, 'SCHEDULED', 3)],
+                }),
             }),
         )
 
@@ -129,7 +131,68 @@ describe('GamesService.getUpcomingGames', () => {
     })
 })
 
+describe('GamesService.getUpcomingGames across leagues', () => {
+    it('shows winter-league games when MLB is in its off-season', async () => {
+        const getTeams = vi.fn().mockResolvedValue([])
+        const service = new GamesService(
+            provider({
+                getGameContexts: byLeague({ 'winter-leagues': [context(7, 'SCHEDULED', 2)] }),
+                getTeams,
+            }),
+        )
+
+        const games = await service.getUpcomingGames(10)
+
+        expect(games.map((g) => [g.gamePk, g.leagueSlug])).toEqual([[7, 'winter-leagues']])
+        expect(getTeams).toHaveBeenCalledWith({ league: 'winter-leagues' })
+    })
+
+    it('merges the leagues by start time', async () => {
+        const service = new GamesService(
+            provider({
+                getGameContexts: byLeague({
+                    mlb: [context(1, 'SCHEDULED', 5)],
+                    'winter-leagues': [context(2, 'SCHEDULED', 1)],
+                }),
+            }),
+        )
+
+        expect((await service.getUpcomingGames(10)).map((g) => g.gamePk)).toEqual([2, 1])
+    })
+
+    it('keeps the other league when one league fails', async () => {
+        const service = new GamesService(
+            provider({
+                getGameContexts: vi.fn(async (filters: { league?: string }) => {
+                    if (filters.league === 'mlb') throw new Error('mlb down')
+                    return [context(2, 'SCHEDULED', 1)]
+                }),
+            }),
+        )
+
+        expect((await service.getUpcomingGames(10)).map((g) => g.gamePk)).toEqual([2])
+    })
+
+    it('fails only when every league fails', async () => {
+        const service = new GamesService(
+            provider({ getGameContexts: vi.fn().mockRejectedValue(new Error('all down')) }),
+        )
+
+        await expect(service.getUpcomingGames(10)).rejects.toThrow('all down')
+    })
+})
+
 describe('GamesService.getGameDetail', () => {
+    it('looks the game up in the requested league', async () => {
+        const getGameContext = vi.fn().mockResolvedValue(context(7, 'SCHEDULED', 5))
+        const service = new GamesService(provider({ getGameContext }))
+
+        const detail = await service.getGameDetail(7, 'winter-leagues')
+
+        expect(getGameContext).toHaveBeenCalledWith(7, expect.any(Number), 'winter-leagues')
+        expect(detail?.game.leagueSlug).toBe('winter-leagues')
+    })
+
     it('returns null for an unknown game', async () => {
         const service = new GamesService(provider())
 
